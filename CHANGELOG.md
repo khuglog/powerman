@@ -7,6 +7,10 @@ Tất cả các thay đổi đáng chú ý của dự án **Powerman** sẽ đư
 ## [1.0.0] - 2026-11-16
 
 ### Fixed
+- **Final Pre-release Review & Polish:**
+  - Khắc phục rò rỉ `NSEvent` global monitor trong `MenuBarController` khi `NSPopover` tự đóng qua `NSPopoverDelegate`, dùng `preferredContentSize` để mở rộng accordion mượt mà, và tự động đóng popover khi bấm `Settings...` / `Battery Settings...` / `Send Us Feedback`.
+  - Bổ sung debounced track-click & keyboard handler cho thanh trượt `Charge Limit` trong `ChargingSettingsView`.
+  - Cập nhật trạng thái quyền Accessibility tức thì khi quay lại từ System Settings (`didBecomeActiveNotification`) trong `GeneralSettingsView` và reset `isRefreshing` trong `BluetoothBatteryService.stopMonitoring()`.
 - **CI Test Runner (`ci.yml` & `AppDelegate.swift`):** Bỏ qua khởi tạo Bluetooth/IOKit/MenuBar khi chạy dưới dạng `TEST_HOST` của `XCTest` (tránh treo hộp thoại quyền Bluetooth trên macOS runner) và bật ad-hoc signing (`CODE_SIGN_IDENTITY="-"`) trong GitHub Actions CI để nhúng hợp lệ entitlements.
 
 ### Added

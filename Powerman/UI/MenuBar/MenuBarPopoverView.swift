@@ -21,7 +21,7 @@ struct MenuBarPopoverView: View {
     }
 
     private var appVersion: String {
-        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0.1.0"
+        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
     }
 
     var body: some View {
@@ -354,6 +354,7 @@ struct MenuBarPopoverView: View {
             .padding(.vertical, 8)
             Divider().padding(.leading, 36)
             actionRow(icon: "envelope.fill", title: "Send Us Feedback", showChevron: false) {
+                appState.dismissPopover()
                 if let url = URL(string: "mailto:hungnq719@gmail.com?subject=Powerman%20v\(appVersion)%20Feedback") {
                     NSWorkspace.shared.open(url)
                 }

@@ -31,6 +31,7 @@ final class AppState {
     private var firedDeviceAlertIDs: Set<String> = []
 
     var onOpenSettings: (() -> Void)?
+    var onDismissPopover: (() -> Void)?
     var onQuitApp: (() -> Void)?
 
     init(
@@ -238,10 +239,16 @@ final class AppState {
         if let tab {
             selectedTab = tab
         }
+        onDismissPopover?()
         onOpenSettings?()
     }
 
+    func dismissPopover() {
+        onDismissPopover?()
+    }
+
     func openSystemBatterySettings() {
+        onDismissPopover?()
         if let url = URL(string: "x-apple.systempreferences:com.apple.Battery-Settings.extension") {
             NSWorkspace.shared.open(url)
         }

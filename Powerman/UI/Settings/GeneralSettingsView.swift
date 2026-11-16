@@ -24,6 +24,9 @@ struct GeneralSettingsView: View {
         .onAppear {
             appState.syncSystemIntegrationState()
         }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            appState.syncSystemIntegrationState()
+        }
     }
 
     private var headerSection: some View {

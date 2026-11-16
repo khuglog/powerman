@@ -3,7 +3,7 @@ import Observation
 import SwiftUI
 
 @MainActor
-final class MenuBarController: NSObject {
+final class MenuBarController: NSObject, NSPopoverDelegate {
     private let appState: AppState
     private let statusItem: NSStatusItem
     private let popover: NSPopover
@@ -17,6 +17,10 @@ final class MenuBarController: NSObject {
         self.popover = NSPopover()
         super.init()
 
+        appState.onDismissPopover = { [weak self] in
+            self?.closePopover(nil)
+        }
+
         setupPopover()
         setupStatusButton()
         observeAppearanceChanges()
@@ -25,10 +29,7 @@ final class MenuBarController: NSObject {
     }
 
     func tearDown() {
-        if let eventMonitor {
-            NSEvent.removeMonitor(eventMonitor)
-            self.eventMonitor = nil
-        }
+        removeEventMonitor()
         if let themeObserver {
             DistributedNotificationCenter.default().removeObserver(themeObserver)
             self.themeObserver = nil
@@ -39,12 +40,12 @@ final class MenuBarController: NSObject {
     }
 
     private func setupPopover() {
-        popover.contentSize = NSSize(width: 312, height: 470)
         popover.behavior = .transient
         popover.animates = true
-        popover.contentViewController = NSHostingController(
-            rootView: MenuBarPopoverView(appState: appState)
-        )
+        popover.delegate = self
+        let hosting = NSHostingController(rootView: MenuBarPopoverView(appState: appState))
+        hosting.sizingOptions = .preferredContentSize
+        popover.contentViewController = hosting
     }
 
     private func setupStatusButton() {
@@ -90,6 +91,7 @@ final class MenuBarController: NSObject {
         popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
         NSApp.activate(ignoringOtherApps: true)
 
+        removeEventMonitor()
         eventMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
             Task { @MainActor in
                 self?.closePopover(nil)
@@ -99,10 +101,18 @@ final class MenuBarController: NSObject {
 
     private func closePopover(_ sender: Any?) {
         popover.performClose(sender)
+        removeEventMonitor()
+    }
+
+    private func removeEventMonitor() {
         if let eventMonitor {
             NSEvent.removeMonitor(eventMonitor)
             self.eventMonitor = nil
         }
+    }
+
+    func popoverDidClose(_ notification: Notification) {
+        removeEventMonitor()
     }
 
     private func observeStateChanges() {

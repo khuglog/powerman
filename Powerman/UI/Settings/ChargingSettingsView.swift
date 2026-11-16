@@ -4,6 +4,8 @@ struct ChargingSettingsView: View {
     @Bindable var appState: AppState
     @State private var showInfoPopover = false
     @State private var sliderValue: Double = 80
+    @State private var isDraggingSlider = false
+    @State private var pendingCommitTask: Task<Void, Never>?
 
     private var status: ChargeLimitStatus { appState.chargeLimitStatus }
 
@@ -22,7 +24,20 @@ struct ChargingSettingsView: View {
             sliderValue = Double(appState.chargeLimitStatus.limitPercentage)
         }
         .onChange(of: appState.chargeLimitStatus.limitPercentage) { _, newValue in
-            sliderValue = Double(newValue)
+            if !isDraggingSlider {
+                sliderValue = Double(newValue)
+            }
+        }
+        .onChange(of: sliderValue) { _, newValue in
+            guard !isDraggingSlider else { return }
+            let target = Int(newValue.rounded())
+            guard target != status.limitPercentage else { return }
+            pendingCommitTask?.cancel()
+            pendingCommitTask = Task {
+                try? await Task.sleep(for: .milliseconds(180))
+                guard !Task.isCancelled else { return }
+                appState.setChargeLimitPercentage(target)
+            }
         }
     }
 
@@ -156,7 +171,9 @@ struct ChargingSettingsView: View {
                             in: 80...100,
                             step: 5
                         ) { editing in
+                            isDraggingSlider = editing
                             if !editing {
+                                pendingCommitTask?.cancel()
                                 appState.setChargeLimitPercentage(Int(sliderValue.rounded()))
                             }
                         }

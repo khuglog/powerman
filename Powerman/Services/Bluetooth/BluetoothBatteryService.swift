@@ -267,6 +267,7 @@ final class BluetoothBatteryService: NSObject, BluetoothBatteryMonitoring {
         connectNotification = nil
         centralManager = nil
         discoveredBLEPeripherals.removeAll()
+        isRefreshing = false
         updateHandler = nil
     }
 

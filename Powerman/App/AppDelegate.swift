@@ -7,7 +7,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var menuBarController: MenuBarController?
     private var settingsWindow: NSWindow?
 
+    private var isRunningUnitTests: Bool {
+        ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
+            || NSClassFromString("XCTestCase") != nil
+    }
+
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // Avoid initializing MenuBar UI, IOKit, or Bluetooth TCC prompts when launched as a unit test host.
+        guard !isRunningUnitTests else { return }
+
         appState.onOpenSettings = { [weak self] in
             self?.showSettingsWindow()
         }
@@ -20,6 +28,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationWillTerminate(_ notification: Notification) {
+        guard !isRunningUnitTests else { return }
         appState.stop()
         menuBarController?.tearDown()
     }

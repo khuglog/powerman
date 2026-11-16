@@ -6,6 +6,9 @@ Tất cả các thay đổi đáng chú ý của dự án **Powerman** sẽ đư
 
 ## [1.0.0] - 2026-11-16
 
+### Fixed
+- **CI Test Runner (`ci.yml` & `AppDelegate.swift`):** Bỏ qua khởi tạo Bluetooth/IOKit/MenuBar khi chạy dưới dạng `TEST_HOST` của `XCTest` (tránh treo hộp thoại quyền Bluetooth trên macOS runner) và bật ad-hoc signing (`CODE_SIGN_IDENTITY="-"`) trong GitHub Actions CI để nhúng hợp lệ entitlements.
+
 ### Added
 - **Phase 6 (General Settings & System Integration):**
   - Xây dựng `MacSystemIntegrationService`: Launch at Login (`SMAppService.mainApp`), App Appearance (`Auto`/`Light`/`Dark`), Low Power Mode + khôi phục độ sáng màn hình (`DisplayServices`), và tự động đóng thông báo pin yếu macOS qua Accessibility (`AXUIElement`).

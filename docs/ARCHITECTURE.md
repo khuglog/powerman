@@ -17,7 +17,7 @@ flowchart TD
 
     subgraph Services["Service Layer (Protocol-driven)"]
         BatterySvc["IOKitBatteryService (IOPS + AppleSmartBattery + Pack)"]
-        HistorySvc["BatteryHistoryStore (SwiftData - Phase 4)"]
+        HistorySvc["BatteryHistoryStore & EnergyConsumerService"]
         AlertSvc["AlertEngine & SoundPlayer"]
         BTSvc["BluetoothBatteryService (IORegistry + SPBluetooth + BLE)"]
         ChargeSvc["ChargeLimitService (Phase 5)"]

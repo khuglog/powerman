@@ -1,18 +1,30 @@
+import Charts
 import SwiftUI
 
 struct BatteryOverviewView: View {
     @Bindable var appState: AppState
+    @State private var selectedTimeframe: HistoryTimeframe = .twentyFourHours
 
     private var battery: BatteryInfo { appState.batteryInfo }
+
+    private var filteredSamples: [BatteryHistorySample] {
+        BatteryHistoryAnalytics.filter(appState.historySamples, timeframe: selectedTimeframe)
+    }
+
+    private var dailyUsageList: [DailyBatteryUsage] {
+        BatteryHistoryAnalytics.dailyUsage(from: appState.historySamples)
+    }
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 headerSection
                 kpiCardsRow
+                batteryLevelChartCard
+                dailyUsageCard
                 capacityDetailsCard
+                cyclesAndTemperatureCard
                 liveTelemetryCard
-                chartsPlaceholderCard
             }
             .padding(24)
         }
@@ -20,7 +32,7 @@ struct BatteryOverviewView: View {
     }
 
     private var headerSection: some View {
-        HStack {
+        HStack(alignment: .top) {
             VStack(alignment: .leading, spacing: 6) {
                 HStack(spacing: 10) {
                     RoundedRectangle(cornerRadius: 8, style: .continuous)
@@ -36,7 +48,7 @@ struct BatteryOverviewView: View {
                         .font(.title2.bold())
                 }
 
-                Text("Real-time battery health, temperature, cycle count, and telemetry")
+                Text("Daily usage, health, cycle, and temperature trends about your Mac over time")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
@@ -113,6 +125,163 @@ struct BatteryOverviewView: View {
         .background(cardBackground)
     }
 
+    private var batteryLevelChartCard: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            HStack {
+                Label("Battery Level", systemImage: "battery.100percent")
+                    .font(.headline)
+                    .foregroundStyle(.primary)
+
+                Spacer()
+
+                HStack(spacing: 4) {
+                    ForEach(HistoryTimeframe.allCases) { tf in
+                        let isSelected = selectedTimeframe == tf
+                        Button {
+                            selectedTimeframe = tf
+                        } label: {
+                            Text(tf.rawValue)
+                                .font(.caption.weight(.semibold))
+                                .foregroundStyle(isSelected ? .white : .secondary)
+                                .padding(.horizontal, 10)
+                                .padding(.vertical, 4)
+                                .background(
+                                    Capsule()
+                                        .fill(isSelected ? Color.green : Color.primary.opacity(0.07))
+                                )
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+
+            if filteredSamples.count < 2 {
+                VStack(spacing: 8) {
+                    Image(systemName: "hourglass")
+                        .font(.title3)
+                        .foregroundStyle(.secondary)
+                    Text("Building your battery-level history — your charge timeline fills in as you use your Mac.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                    Text("\(filteredSamples.count) sample collected in \(selectedTimeframe.rawValue)")
+                        .font(.caption2)
+                        .foregroundStyle(.tertiary)
+                }
+                .frame(maxWidth: .infinity)
+                .frame(height: 150)
+            } else {
+                Chart(filteredSamples) { sample in
+                    AreaMark(
+                        x: .value("Time", sample.timestamp),
+                        y: .value("Battery %", sample.percentage)
+                    )
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [Color.green.opacity(0.32), Color.green.opacity(0.02)],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+                    .interpolationMethod(.catmullRom)
+
+                    LineMark(
+                        x: .value("Time", sample.timestamp),
+                        y: .value("Battery %", sample.percentage)
+                    )
+                    .foregroundStyle(Color.green)
+                    .lineStyle(StrokeStyle(lineWidth: 2.2))
+                    .interpolationMethod(.catmullRom)
+                }
+                .chartYScale(domain: 0...100)
+                .chartYAxis {
+                    AxisMarks(values: [0, 25, 50, 75, 100]) { value in
+                        AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5, dash: [3]))
+                        AxisValueLabel {
+                            if let intVal = value.as(Int.self) {
+                                Text("\(intVal)%").font(.caption2)
+                            }
+                        }
+                    }
+                }
+                .frame(height: 170)
+            }
+        }
+        .padding(16)
+        .background(cardBackground)
+    }
+
+    private var dailyUsageCard: some View {
+        let days = Array(dailyUsageList.suffix(7))
+        let totalTrackedDays = dailyUsageList.count
+
+        return VStack(alignment: .leading, spacing: 14) {
+            HStack {
+                HStack(spacing: 6) {
+                    Image(systemName: "chart.bar.fill")
+                        .font(.system(size: 12))
+                        .foregroundStyle(.green)
+                    Text("DAILY USAGE")
+                        .font(.system(size: 11.5, weight: .bold))
+                        .foregroundStyle(.secondary)
+                }
+
+                Text("• \(appState.historySamples.count) samples")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+
+                Spacer()
+
+                if let today = days.last {
+                    Text("Today: \(today.dischargedPercent)% used • \(today.activeHoursFormatted) on battery")
+                        .font(.caption.weight(.medium))
+                        .foregroundStyle(.secondary)
+                }
+            }
+
+            if days.isEmpty || days.allSatisfy({ $0.dischargedPercent == 0 && $0.activeOnBatteryMinutes == 0 }) {
+                VStack(spacing: 8) {
+                    Image(systemName: "calendar.badge.clock")
+                        .font(.title2)
+                        .foregroundStyle(.green)
+                    Text("Building your daily usage")
+                        .font(.subheadline.weight(.semibold))
+                    Text("Powerman tracks battery discharge and active battery time across each day. Keep Powerman running to fill in your daily charts.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                        .frame(maxWidth: 420)
+                    Text("\(max(1, totalTrackedDays)) day(s) collected so far")
+                        .font(.caption2.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 4)
+                        .background(Capsule().fill(Color.primary.opacity(0.06)))
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 16)
+            } else {
+                Chart(days) { day in
+                    BarMark(
+                        x: .value("Day", day.date, unit: .day),
+                        y: .value("Discharged %", day.dischargedPercent)
+                    )
+                    .foregroundStyle(Color.green.gradient)
+                    .cornerRadius(5)
+                }
+                .chartXAxis {
+                    AxisMarks(values: .stride(by: .day)) { value in
+                        AxisValueLabel(format: .dateTime.weekday(.abbreviated))
+                    }
+                }
+                .chartYAxisLabel("Discharged %")
+                .frame(height: 150)
+            }
+        }
+        .padding(16)
+        .background(cardBackground)
+    }
+
     private var capacityDetailsCard: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
@@ -143,6 +312,46 @@ struct BatteryOverviewView: View {
         .background(cardBackground)
     }
 
+    private var cyclesAndTemperatureCard: some View {
+        let tempSamples = filteredSamples.filter { $0.temperatureCelsius != nil }
+
+        return VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Label("Battery Cycles & Temperature", systemImage: "thermometer.medium")
+                    .font(.headline)
+                Spacer()
+                Text("\(battery.cycleCount) cycles")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.blue)
+            }
+
+            ProgressView(value: Double(min(battery.cycleCount, battery.ratedCycleCount)), total: Double(max(1, battery.ratedCycleCount)))
+                .tint(.blue)
+
+            if tempSamples.count >= 2 {
+                Chart(tempSamples) { sample in
+                    LineMark(
+                        x: .value("Time", sample.timestamp),
+                        y: .value("Temp °C", sample.temperatureCelsius ?? 0)
+                    )
+                    .foregroundStyle(Color.orange)
+                    .lineStyle(StrokeStyle(lineWidth: 2))
+                    .interpolationMethod(.catmullRom)
+                }
+                .chartYScale(domain: 20...55)
+                .chartYAxisLabel("°C")
+                .frame(height: 110)
+                .padding(.top, 4)
+            } else {
+                Text("Temperature trend appears as more samples are collected.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+        }
+        .padding(16)
+        .background(cardBackground)
+    }
+
     private var liveTelemetryCard: some View {
         VStack(alignment: .leading, spacing: 10) {
             Label("Live Telemetry", systemImage: "waveform.path.ecg")
@@ -168,24 +377,6 @@ struct BatteryOverviewView: View {
             }
         }
         .padding(16)
-        .background(cardBackground)
-    }
-
-    private var chartsPlaceholderCard: some View {
-        VStack(spacing: 8) {
-            Image(systemName: "chart.xyaxis.line")
-                .font(.title2)
-                .foregroundStyle(.secondary)
-            Text("Battery Level & Daily Usage History")
-                .font(.headline)
-            Text("Historical timeline charts (6h, 12h, 24h, 7d, 14d) and daily discharge tracking will be added in Phase 4.")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-                .frame(maxWidth: 420)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(24)
         .background(cardBackground)
     }
 

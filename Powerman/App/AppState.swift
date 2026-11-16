@@ -7,12 +7,16 @@ import Observation
 final class AppState {
     var batteryInfo: BatteryInfo
     var bluetoothDevices: [BluetoothDeviceBattery] = []
+    var historySamples: [BatteryHistorySample] = []
+    var topEnergyApps: [AppEnergyUsage] = []
     let settings: AppSettings
     var selectedTab: SettingsTab = .battery
     var activeTestRuleID: UUID?
 
     private let batteryService: BatteryMonitoring
     private let bluetoothService: BluetoothBatteryMonitoring
+    private let historyStore: BatteryHistoryStoring
+    private let energyService: EnergyConsuming
     private let alertEngine: AlertEngine
     private let alertPresenter: AlertPresenting
     private let soundPreviewPlayer: SoundPlaying
@@ -24,6 +28,8 @@ final class AppState {
     init(
         batteryService: BatteryMonitoring = IOKitBatteryService(),
         bluetoothService: BluetoothBatteryMonitoring = BluetoothBatteryService(),
+        historyStore: BatteryHistoryStoring = JSONBatteryHistoryStore(),
+        energyService: EnergyConsuming = ProcessEnergyConsumerService(),
         settings: AppSettings = AppSettings(),
         alertEngine: AlertEngine = AlertEngine(),
         alertPresenter: AlertPresenting = OverlayWindowManager(),
@@ -31,6 +37,8 @@ final class AppState {
     ) {
         self.batteryService = batteryService
         self.bluetoothService = bluetoothService
+        self.historyStore = historyStore
+        self.energyService = energyService
         self.settings = settings
         self.alertEngine = alertEngine
         self.alertPresenter = alertPresenter
@@ -54,12 +62,15 @@ final class AppState {
     }
 
     func start() {
+        historyStore.load()
+        historySamples = historyStore.samples
         batteryService.startMonitoring { [weak self] info in
             self?.handleBatteryUpdate(info)
         }
         bluetoothService.startMonitoring { [weak self] devices in
             self?.handleBluetoothUpdate(devices)
         }
+        refreshEnergyConsumers()
     }
 
     func stop() {
@@ -76,6 +87,12 @@ final class AppState {
 
     func refreshDevices() {
         bluetoothService.refreshNow()
+    }
+
+    func refreshEnergyConsumers() {
+        energyService.refresh { [weak self] consumers in
+            self?.topEnergyApps = consumers
+        }
     }
 
     func testAlert(rule: AlertRule) {
@@ -141,6 +158,9 @@ final class AppState {
 
     private func handleBatteryUpdate(_ info: BatteryInfo) {
         batteryInfo = info
+        if historyStore.recordIfNeeded(from: info) {
+            historySamples = historyStore.samples
+        }
         let result = alertEngine.evaluate(
             battery: info,
             rules: settings.alertRules,

@@ -8,6 +8,11 @@ Tất cả các thay đổi đáng chú ý của dự án **Powerman** sẽ đư
 - **Phase 0 (Repo & Documentation):**
   - Thiết lập Git repository, `.gitignore`, GitHub Actions CI (`.github/workflows/ci.yml`).
   - Khởi tạo hệ thống tài liệu bàn giao chuẩn: `README.md`, `CONTRIBUTING.md`, `CHANGELOG.md`, `AGENTS.md`, `docs/ARCHITECTURE.md`, `docs/PROGRESS.md`.
+- **Phase 4 (Battery History Charts & Energy Consumers):**
+  - Thêm `BatteryHistorySample`, `DailyBatteryUsage`, `BatteryHistoryAnalytics` và `JSONBatteryHistoryStore` tự động lưu lịch sử pin 14 ngày và loại bỏ khoảng ngủ dài (> 15 phút) khi tính mức xả theo ngày.
+  - Xây dựng `ProcessEnergyConsumerService` dùng `Darwin.proc_pidinfo` (không cần quyền root) gộp tiến trình con về app mẹ để hiển thị top ứng dụng tiêu thụ năng lượng trong Popover (`Apps Using Significant Energy`).
+  - Hoàn thiện tab `Battery` (`BatteryOverviewView`) với biểu đồ **Swift Charts** cho `Battery Level` (`6h`, `12h`, `24h`, `7d`, `14d`), `Daily Usage` và xu hướng `Temperature`.
+  - Bổ sung `BatteryHistoryTests` (4/4 test cases pass).
 - **Phase 3 (Bluetooth Devices & Menu Bar Pinning):**
   - Thêm model `BluetoothDeviceBattery`, `DeviceCategory` và `DeviceUserPreference` lưu trữ tùy chọn ghim Menu Bar, ẩn khỏi dropdown và ngưỡng cảnh báo riêng theo thiết bị.
   - Xây dựng `BluetoothBatteryService` & `BluetoothBatteryParser` tổng hợp dữ liệu từ `SPBluetoothDataType`, `IORegistry` (`BatteryPercent`), `IOPS` accessories, `IOBluetooth` connect/disconnect notifications và `CoreBluetooth` (`0x180F`).

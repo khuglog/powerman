@@ -131,6 +131,9 @@ struct MenuBarPopoverView: View {
             Button {
                 withAnimation(.easeInOut(duration: 0.18)) {
                     isEnergyAppsExpanded.toggle()
+                    if isEnergyAppsExpanded {
+                        appState.refreshEnergyConsumers()
+                    }
                 }
             } label: {
                 HStack(spacing: 8) {
@@ -151,11 +154,42 @@ struct MenuBarPopoverView: View {
 
             if isEnergyAppsExpanded {
                 Divider().padding(.horizontal, 12)
-                Text("Energy consumer monitoring will be added in Phase 4.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                if appState.topEnergyApps.isEmpty {
+                    Text("No apps using significant energy right now.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(12)
+                } else {
+                    VStack(spacing: 8) {
+                        ForEach(appState.topEnergyApps) { app in
+                            HStack(spacing: 8) {
+                                if let nsIcon = NSRunningApplication(processIdentifier: app.pid)?.icon {
+                                    Image(nsImage: nsIcon)
+                                        .resizable()
+                                        .frame(width: 16, height: 16)
+                                } else {
+                                    Image(systemName: "app.fill")
+                                        .font(.system(size: 13))
+                                        .foregroundStyle(.secondary)
+                                        .frame(width: 16, height: 16)
+                                }
+
+                                Text(app.name)
+                                    .font(.system(size: 12.5, weight: .medium))
+                                    .lineLimit(1)
+
+                                Spacer()
+
+                                Text(String(format: "%.0f%%", app.cpuPercent))
+                                    .font(.caption.weight(.semibold))
+                                    .monospacedDigit()
+                                    .foregroundStyle(app.cpuPercent >= 35 ? .red : (app.cpuPercent >= 10 ? .orange : .secondary))
+                            }
+                        }
+                    }
                     .padding(12)
+                }
             }
         }
         .background(cardBackground)

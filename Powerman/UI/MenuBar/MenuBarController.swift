@@ -86,6 +86,7 @@ final class MenuBarController: NSObject {
         guard let button = statusItem.button else { return }
         appState.refreshBattery()
         appState.refreshDevices()
+        appState.refreshEnergyConsumers()
         popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
         NSApp.activate(ignoringOtherApps: true)
 

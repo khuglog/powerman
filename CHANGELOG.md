@@ -4,7 +4,13 @@ Tất cả các thay đổi đáng chú ý của dự án **Powerman** sẽ đư
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-11-16
+
 ### Added
+- **Phase 6 (General Settings & System Integration):**
+  - Xây dựng `MacSystemIntegrationService`: Launch at Login (`SMAppService.mainApp`), App Appearance (`Auto`/`Light`/`Dark`), Low Power Mode + khôi phục độ sáng màn hình (`DisplayServices`), và tự động đóng thông báo pin yếu macOS qua Accessibility (`AXUIElement`).
+  - Hoàn thiện `GeneralSettingsView` (Language, Appearance, Launch at Login, System Notifications, Restore Brightness, tùy chỉnh `Alert Bubble Size` & `Screen Edge Glow` kèm khung Preview trực tiếp) và công tắc `Low Power Mode` trong Popover.
+  - Bổ sung `GeneralSettingsTests` (3/3 test cases pass) và phát hành phiên bản `1.0.0` (23/23 unit tests pass).
 - **Phase 0 (Repo & Documentation):**
   - Thiết lập Git repository, `.gitignore`, GitHub Actions CI (`.github/workflows/ci.yml`).
   - Khởi tạo hệ thống tài liệu bàn giao chuẩn: `README.md`, `CONTRIBUTING.md`, `CHANGELOG.md`, `AGENTS.md`, `docs/ARCHITECTURE.md`, `docs/PROGRESS.md`.

@@ -4,7 +4,12 @@ import SwiftUI
 @MainActor
 protocol AlertPresenting: AnyObject {
     var activeAlert: ActiveAlertPresentation? { get }
-    func present(_ alert: ActiveAlertPresentation, onDismiss: (() -> Void)?)
+    func present(
+        _ alert: ActiveAlertPresentation,
+        bubbleSize: AlertBubbleSize,
+        glowIntensity: ScreenEdgeGlowIntensity,
+        onDismiss: (() -> Void)?
+    )
     func dismiss()
 }
 
@@ -22,18 +27,23 @@ final class OverlayWindowManager: AlertPresenting {
         self.soundPlayer = soundPlayer
     }
 
-    func present(_ alert: ActiveAlertPresentation, onDismiss: (() -> Void)? = nil) {
+    func present(
+        _ alert: ActiveAlertPresentation,
+        bubbleSize: AlertBubbleSize = .default,
+        glowIntensity: ScreenEdgeGlowIntensity = .default,
+        onDismiss: (() -> Void)? = nil
+    ) {
         dismiss(notifyCallback: false)
 
         self.activeAlert = alert
         self.dismissCallback = onDismiss
 
         if alert.borderGlow {
-            showBorderGlow(for: alert)
+            showBorderGlow(for: alert, intensity: glowIntensity)
         }
 
         if alert.showPopup {
-            showFloatingPopup(for: alert)
+            showFloatingPopup(for: alert, bubbleSize: bubbleSize)
         }
 
         if alert.sound != .none {
@@ -81,7 +91,7 @@ final class OverlayWindowManager: AlertPresenting {
         }
     }
 
-    private func showBorderGlow(for alert: ActiveAlertPresentation) {
+    private func showBorderGlow(for alert: ActiveAlertPresentation, intensity: ScreenEdgeGlowIntensity) {
         for screen in NSScreen.screens {
             let panel = NSPanel(
                 contentRect: screen.frame,
@@ -96,7 +106,12 @@ final class OverlayWindowManager: AlertPresenting {
             panel.ignoresMouseEvents = true
             panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary, .ignoresCycle]
             panel.contentViewController = NSHostingController(
-                rootView: ScreenBorderGlowView(color: alert.color, persistent: alert.persistent)
+                rootView: ScreenBorderGlowView(
+                    color: alert.color,
+                    persistent: alert.persistent,
+                    edgeThickness: intensity.edgeThickness,
+                    opacityMultiplier: intensity.opacityMultiplier
+                )
             )
             panel.setFrame(screen.frame, display: true)
             panel.orderFrontRegardless()
@@ -104,17 +119,17 @@ final class OverlayWindowManager: AlertPresenting {
         }
     }
 
-    private func showFloatingPopup(for alert: ActiveAlertPresentation) {
+    private func showFloatingPopup(for alert: ActiveAlertPresentation, bubbleSize: AlertBubbleSize) {
         guard let screen = NSScreen.main ?? NSScreen.screens.first else { return }
 
-        let bubbleView = FloatingAlertBubbleView(alert: alert) { [weak self] in
+        let bubbleView = FloatingAlertBubbleView(alert: alert, bubbleSize: bubbleSize) { [weak self] in
             self?.dismiss()
         }
 
         let hosting = NSHostingController(rootView: bubbleView)
-        let fittingSize = hosting.sizeThatFits(in: NSSize(width: 400, height: 120))
-        let panelWidth = max(310, fittingSize.width)
-        let panelHeight = max(62, fittingSize.height)
+        let fittingSize = hosting.sizeThatFits(in: NSSize(width: 480, height: 150))
+        let panelWidth = max(310 * bubbleSize.scale, fittingSize.width)
+        let panelHeight = max(62 * bubbleSize.scale, fittingSize.height)
 
         let originX = screen.frame.midX - (panelWidth / 2.0)
         let originY: CGFloat

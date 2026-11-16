@@ -21,7 +21,7 @@ flowchart TD
         AlertSvc["AlertEngine & SoundPlayer"]
         BTSvc["BluetoothBatteryService (IORegistry + SPBluetooth + BLE)"]
         ChargeSvc["NativeChargeLimitService (PowerUI MCL 80-100%)"]
-        SysSvc["SystemIntegration (Phase 6)"]
+        SysSvc["MacSystemIntegrationService (SMAppService, AX, LowPower)"]
     end
 
     UI --> AppState

@@ -20,15 +20,6 @@ struct SettingsRootView: View {
                         .font(.system(size: 13, weight: .medium))
 
                     Spacer()
-
-                    if let phaseTag = upcomingPhaseTag(for: tab) {
-                        Text(phaseTag)
-                            .font(.system(size: 10, weight: .semibold))
-                            .foregroundStyle(.secondary)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
-                            .background(Capsule().fill(Color.primary.opacity(0.07)))
-                    }
                 }
                 .padding(.vertical, 2)
                 .tag(tab)
@@ -40,25 +31,22 @@ struct SettingsRootView: View {
                 switch appState.selectedTab {
                 case .battery:
                     BatteryOverviewView(appState: appState)
-                case .menuBar:
-                    MenuBarSettingsView(appState: appState)
-                case .alerts:
-                    AlertsSettingsView(appState: appState)
-                case .devices:
-                    DevicesSettingsView(appState: appState)
                 case .charging:
                     ChargingSettingsView(appState: appState)
+                case .alerts:
+                    AlertsSettingsView(appState: appState)
+                case .menuBar:
+                    MenuBarSettingsView(appState: appState)
+                case .devices:
+                    DevicesSettingsView(appState: appState)
                 case .general:
-                    PhasePlaceholderView(
-                        tab: .general,
-                        phase: "Phase 6",
-                        description: "Configure app language, appearance, launch at login, system battery notification dismissal, and notification bubble appearance."
-                    )
+                    GeneralSettingsView(appState: appState)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .frame(minWidth: 780, minHeight: 560)
+        .environment(\.locale, appState.settings.appLanguage.locale)
     }
 
     private func iconColor(for tab: SettingsTab) -> Color {
@@ -70,43 +58,5 @@ struct SettingsRootView: View {
         case .devices: return .cyan
         case .general: return Color(red: 0.38, green: 0.78, blue: 0.22)
         }
-    }
-
-    private func upcomingPhaseTag(for tab: SettingsTab) -> String? {
-        switch tab {
-        case .general: return "P6"
-        case .battery, .charging, .alerts, .menuBar, .devices: return nil
-        }
-    }
-}
-
-private struct PhasePlaceholderView: View {
-    let tab: SettingsTab
-    let phase: String
-    let description: String
-
-    var body: some View {
-        VStack(spacing: 16) {
-            Image(systemName: tab.systemImage)
-                .font(.system(size: 40))
-                .foregroundStyle(.secondary)
-
-            Text(tab.title)
-                .font(.title2.bold())
-
-            Text("Scheduled for \(phase)")
-                .font(.subheadline.weight(.semibold))
-                .padding(.horizontal, 12)
-                .padding(.vertical, 4)
-                .background(Capsule().fill(Color.accentColor.opacity(0.14)))
-                .foregroundStyle(Color.accentColor)
-
-            Text(description)
-                .font(.body)
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-                .frame(maxWidth: 420)
-        }
-        .padding(32)
     }
 }

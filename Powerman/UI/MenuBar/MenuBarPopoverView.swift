@@ -335,6 +335,24 @@ struct MenuBarPopoverView: View {
                 appState.openSystemBatterySettings()
             }
             Divider().padding(.leading, 36)
+            HStack(spacing: 10) {
+                Image(systemName: "leaf.fill")
+                    .foregroundStyle(appState.isLowPowerModeEnabled ? .orange : .primary.opacity(0.75))
+                    .frame(width: 18)
+                Text("Low Power Mode")
+                    .font(.system(size: 13, weight: .medium))
+                Spacer()
+                Toggle("", isOn: Binding(
+                    get: { appState.isLowPowerModeEnabled },
+                    set: { appState.setLowPowerMode($0) }
+                ))
+                .labelsHidden()
+                .toggleStyle(.switch)
+                .controlSize(.small)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            Divider().padding(.leading, 36)
             Button {
                 appState.quit()
             } label: {

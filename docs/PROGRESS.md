@@ -3,9 +3,9 @@
 > **Dành cho nhân sự hoặc AI model mới tiếp nhận:** Đọc file này đầu tiên để biết dự án đang ở đâu, các tính năng nào đã chạy ổn định và bước tiếp theo cần làm ngay.
 
 - **Cập nhật lần cuối:** 2026-11-16
-- **Giai đoạn hiện tại (Current Phase):** Hoàn thành **Phase 5 (Giới hạn sạc 80–100% — `Charge Limit`)** — Sẵn sàng chuyển sang **Phase 6 (Final Polish)**
-- **Nhánh chính:** `main`
-- **Trạng thái Build / Test:** `TEST SUCCEEDED` (20/20 test cases: `BatteryInfoTests` 5/5, `AlertEngineTests` 6/6, `BluetoothBatteryTests` 3/3, `BatteryHistoryTests` 4/4, `ChargeLimitTests` 2/2, `SWIFT_STRICT_CONCURRENCY = complete`)
+- **Giai đoạn hiện tại (Current Phase):** Hoàn thành toàn bộ lộ trình **v1.0.0 (Phase 0 → Phase 6)**
+- **Nhánh chính:** `main` (tag `v1.0.0`)
+- **Trạng thái Build / Test:** `TEST SUCCEEDED` (23/23 test cases: `BatteryInfoTests` 5/5, `AlertEngineTests` 6/6, `BluetoothBatteryTests` 3/3, `BatteryHistoryTests` 4/4, `ChargeLimitTests` 2/2, `GeneralSettingsTests` 3/3, `SWIFT_STRICT_CONCURRENCY = complete`)
 
 ---
 
@@ -19,51 +19,52 @@
 | **Phase 3** | Thiết bị Bluetooth (`Devices`) & Ghim Menu Bar | ✅ Hoàn thành | `SPBluetoothDataType` + `IORegistry` + `IOPS` + `CoreBluetooth`, Pin Menu Bar |
 | **Phase 4** | Sức khỏe pin & Biểu đồ lịch sử (`Battery` + Charts) | ✅ Hoàn thành | Lưu lịch sử 14 ngày, Swift Charts `6h`–`14d`, Daily Usage, Top Energy Apps |
 | **Phase 5** | Giới hạn sạc 80–100% (`Charge Limit`) | ✅ Hoàn thành | Native macOS `PowerUI.framework` (`PowerUISmartChargeClient`), 80–100% step 5 |
-| **Phase 6** | General Settings, Tiện ích hệ thống & Đóng gói | ⏳ Chưa bắt đầu | Launch at Login, Appearance, Language, Low Power Mode, Dismiss macOS notif |
+| **Phase 6** | General Settings, Tiện ích hệ thống & v1.0.0 | ✅ Hoàn thành | Launch at Login, Appearance, Language, Low Power Mode, AX Notification Dismisser |
 
 ---
 
 ## 2. Checklist Chi tiết
 
-### Phase 0–4 (Đã hoàn thành)
+### Phase 0–5 (Đã hoàn thành)
 - [x] Repo GitHub (`khuglog/powerman`), CI workflow, tài liệu bàn giao chuẩn
 - [x] Core Battery (`IOKit`), Menu Bar 3 styles + 4 color modes, Popover dropdown
 - [x] Multi-level Alerts (`Low` / `Charged` / `Power Source`), Border Glow, Floating Popup, 22 âm thanh
 - [x] Bluetooth Peripheral Battery (`Devices`), Pin lên Menu Bar, Cảnh báo thiết bị riêng
 - [x] Lịch sử pin 14 ngày (`JSONBatteryHistoryStore`), Swift Charts (`6h`–`14d`), `Daily Usage`, Top Energy Apps
+- [x] Native Charge Limit 80–100% (`PowerUISmartChargeClient`) đồng bộ `System Settings → Battery`
 
-### Phase 5: Giới hạn sạc 80–100% (`Charge Limit`)
-- [x] Khảo sát thực nghiệm: macOS 27 (`Mac15,6`) hỗ trợ trực tiếp `PowerUISmartChargeClient` trong `PowerUI.framework` (`availableChargeLimits: [80, 85, 90, 95, 100]`, đọc & ghi không cần root)
-- [x] Xây dựng `ChargeLimitState` & `NativeChargeLimitService` (`Powerman/Services/Charging/ChargeLimitService.swift`)
-- [x] Tích hợp vào `AppState` & hiển thị trạng thái `Paused at X% Limit` trong `MenuBarPopoverView`
-- [x] Hoàn thiện `ChargingSettingsView` (toggle, slider 80–100% bước 5%, banner xác nhận & liên kết `System Settings → Battery`)
-- [x] Viết & pass `ChargeLimitTests` (2/2 tests)
-
-### Phase 6: General Settings & Hoàn thiện UX — *Kế tiếp*
-- [ ] Xây dựng `LaunchAtLoginService` (`SMAppService.mainApp`)
-- [ ] Hoàn thiện `GeneralSettingsView`: App Appearance (Auto/Light/Dark), Launch at Login, Low Power Mode + Restore Brightness, Dismiss macOS Battery Notifications (Accessibility `AXUIElement` tùy chọn), Notification Appearance preview
-- [ ] Tích hợp công tắc `Low Power Mode` trong `MenuBarPopoverView`
-- [ ] Kiểm thử toàn diện & cập nhật tài liệu bàn giao v1.0
+### Phase 6: General Settings & Hoàn thiện v1.0.0
+- [x] Xây dựng `MacSystemIntegrationService` (`Powerman/Services/System/SystemIntegrationService.swift`):
+  - [x] Launch at Login qua `SMAppService.mainApp`
+  - [x] App Appearance (`Auto` / `Light` / `Dark` qua `NSApp.appearance`)
+  - [x] Low Power Mode observer (`NSProcessInfoPowerStateDidChange`) + bật/tắt bất đồng bộ & khôi phục độ sáng màn hình (`DisplayServices`)
+  - [x] Tự động đóng thông báo pin yếu mặc định của macOS qua Accessibility (`AXUIElement`) khi được cấp quyền
+- [x] Bổ sung `AlertBubbleSize` & `ScreenEdgeGlowIntensity` áp dụng trực tiếp cho `FloatingAlertBubbleView`, `ScreenBorderGlowView` và `OverlayWindowManager`
+- [x] Hoàn thiện `GeneralSettingsView` (Language, Appearance, Launch at Login, Dismiss macOS Notifications, Restore Brightness, Notification Appearance + Live Preview)
+- [x] Bổ sung công tắc `Low Power Mode` trong `MenuBarPopoverView` & nâng `MARKETING_VERSION` lên `1.0.0`
+- [x] Viết & pass `GeneralSettingsTests` (3/3 tests)
 
 ---
 
 ## 3. Danh sách File Trọng tâm Hiện tại
 
 - **Models:** `BatteryInfo.swift`, `AppSettings.swift`, `AlertRule.swift`, `BluetoothDeviceBattery.swift`, `BatteryHistory.swift`, `ChargeLimitState.swift`
-- **Services:** `IOKitBatteryService.swift`, `BatteryHistoryStore.swift`, `EnergyConsumerService.swift`, `AlertEngine.swift`, `OverlayWindowManager.swift`, `SoundPlayer.swift`, `BluetoothBatteryService.swift`, `ChargeLimitService.swift`
+- **Services:** `IOKitBatteryService.swift`, `BatteryHistoryStore.swift`, `EnergyConsumerService.swift`, `AlertEngine.swift`, `OverlayWindowManager.swift`, `SoundPlayer.swift`, `BluetoothBatteryService.swift`, `ChargeLimitService.swift`, `SystemIntegrationService.swift`
 - **App:** `PowermanApp.swift`, `AppDelegate.swift`, `AppState.swift`
-- **UI:** `MenuBarController.swift`, `MenuBarIconView.swift`, `MenuBarPopoverView.swift`, `FloatingAlertBubbleView.swift`, `ScreenBorderGlowView.swift`, `SettingsRootView.swift`, `MenuBarSettingsView.swift`, `BatteryOverviewView.swift`, `AlertsSettingsView.swift`, `DevicesSettingsView.swift`, `ChargingSettingsView.swift`
-- **Tests:** `BatteryInfoTests.swift`, `AlertEngineTests.swift`, `BluetoothBatteryTests.swift`, `BatteryHistoryTests.swift`, `ChargeLimitTests.swift`
+- **UI:** `MenuBarController.swift`, `MenuBarIconView.swift`, `MenuBarPopoverView.swift`, `FloatingAlertBubbleView.swift`, `ScreenBorderGlowView.swift`, `SettingsRootView.swift`, `MenuBarSettingsView.swift`, `BatteryOverviewView.swift`, `AlertsSettingsView.swift`, `DevicesSettingsView.swift`, `ChargingSettingsView.swift`, `GeneralSettingsView.swift`
+- **Tests:** `BatteryInfoTests.swift`, `AlertEngineTests.swift`, `BluetoothBatteryTests.swift`, `BatteryHistoryTests.swift`, `ChargeLimitTests.swift`, `GeneralSettingsTests.swift`
 
 ---
 
-## 4. Bước tiếp theo cần làm ngay (Next Immediate Steps)
+## 4. Hướng mở rộng tiếp theo (Backlog sau v1.0.0)
 
-1. Bắt đầu **Phase 6**: xây dựng `Services/System/SystemIntegrationService.swift` (Launch at Login via `SMAppService.mainApp`, App Appearance override, Brightness & Low Power Mode, Accessibility Notification Dismisser).
-2. Hoàn thiện `UI/Settings/GeneralSettingsView.swift` và công tắc `Low Power Mode` trong `MenuBarPopoverView`.
+1. Bổ sung bản địa hóa đầy đủ (`Localizable.xcstrings`) cho tiếng Việt & tiếng Anh trên toàn bộ chuỗi UI.
+2. Hỗ trợ đọc pin iPhone / Apple Watch qua kết nối Wi-Fi/USB (`lockdownd` / Companion).
+3. Đóng gói bản Release `.app` / `.dmg` có Developer ID Code Signing & Notarization hoặc Sparkle auto-updater (`Check for Updates...`).
 
 ---
 
 ## 5. Ghi chú Kỹ thuật & Known Issues
 
-- **Native Charge Limit (`PowerUI.framework`):** Trên macOS 27 (`Mac15,6`), `PowerUISmartChargeClient` hoạt động trực tiếp ở user space (không cần root daemon) cho các mức `[80, 85, 90, 95, 100]` và đồng bộ hai chiều với `System Settings → Battery`. Nếu chạy trên máy không hỗ trợ MCL (`isMCLSupported == false`), UI tự hiển thị thông báo rõ ràng.
+- **Low Power Mode:** Bật/tắt `pmset -a lowpowermode` trên macOS yêu cầu xác thực quản trị (`osascript ... with administrator privileges`); Powerman chạy tác vụ này bất đồng bộ để không bao giờ treo UI.
+- **Xcode Build trên môi trường bị sandbox:** Cần chạy `xcodebuild` ngoài sandbox nếu `swift-plugin-server` bị chặn.

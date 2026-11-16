@@ -91,6 +91,102 @@ enum MenuBarSize: String, CaseIterable, Identifiable, Codable {
     }
 }
 
+enum AppLanguageOption: String, CaseIterable, Identifiable, Codable {
+    case matchSystem = "system"
+    case english = "en"
+    case vietnamese = "vi"
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .matchSystem: return "Match System"
+        case .english: return "English"
+        case .vietnamese: return "Tiếng Việt"
+        }
+    }
+
+    var locale: Locale {
+        switch self {
+        case .matchSystem: return .autoupdatingCurrent
+        case .english: return Locale(identifier: "en")
+        case .vietnamese: return Locale(identifier: "vi")
+        }
+    }
+}
+
+enum AppAppearanceOption: String, CaseIterable, Identifiable, Codable {
+    case auto = "auto"
+    case light = "light"
+    case dark = "dark"
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .auto: return "Auto"
+        case .light: return "Light"
+        case .dark: return "Dark"
+        }
+    }
+}
+
+enum AlertBubbleSize: String, CaseIterable, Identifiable, Codable {
+    case compact = "compact"
+    case `default` = "default"
+    case large = "large"
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .compact: return "Compact"
+        case .default: return "Default"
+        case .large: return "Large"
+        }
+    }
+
+    var scale: CGFloat {
+        switch self {
+        case .compact: return 0.86
+        case .default: return 1.0
+        case .large: return 1.18
+        }
+    }
+}
+
+enum ScreenEdgeGlowIntensity: String, CaseIterable, Identifiable, Codable {
+    case subtle = "subtle"
+    case `default` = "default"
+    case intense = "intense"
+
+    var id: String { rawValue }
+
+    var title: String {
+        switch self {
+        case .subtle: return "Subtle"
+        case .default: return "Default"
+        case .intense: return "Intense"
+        }
+    }
+
+    var edgeThickness: CGFloat {
+        switch self {
+        case .subtle: return 20
+        case .default: return 34
+        case .intense: return 54
+        }
+    }
+
+    var opacityMultiplier: Double {
+        switch self {
+        case .subtle: return 0.65
+        case .default: return 1.0
+        case .intense: return 1.25
+        }
+    }
+}
+
 enum SettingsTab: String, CaseIterable, Identifiable {
     case battery
     case charging
@@ -139,6 +235,12 @@ final class AppSettings {
         static let soundDefaultsVersion = "alerts.soundDefaultsVersion"
         static let showBluetoothDevices = "devices.showBluetoothDevices"
         static let devicePreferences = "devices.preferences"
+        static let appLanguage = "general.appLanguage"
+        static let appAppearance = "general.appAppearance"
+        static let dismissSystemBatteryNotifications = "general.dismissSystemNotifications"
+        static let restoreBrightnessOnLowPowerOff = "general.restoreBrightness"
+        static let alertBubbleSize = "general.alertBubbleSize"
+        static let screenEdgeGlowIntensity = "general.screenEdgeGlow"
     }
 
     private let defaults: UserDefaults
@@ -193,6 +295,30 @@ final class AppSettings {
                 defaults.set(data, forKey: Keys.devicePreferences)
             }
         }
+    }
+
+    var appLanguage: AppLanguageOption {
+        didSet { defaults.set(appLanguage.rawValue, forKey: Keys.appLanguage) }
+    }
+
+    var appAppearance: AppAppearanceOption {
+        didSet { defaults.set(appAppearance.rawValue, forKey: Keys.appAppearance) }
+    }
+
+    var dismissSystemBatteryNotifications: Bool {
+        didSet { defaults.set(dismissSystemBatteryNotifications, forKey: Keys.dismissSystemBatteryNotifications) }
+    }
+
+    var restoreBrightnessOnLowPowerOff: Bool {
+        didSet { defaults.set(restoreBrightnessOnLowPowerOff, forKey: Keys.restoreBrightnessOnLowPowerOff) }
+    }
+
+    var alertBubbleSize: AlertBubbleSize {
+        didSet { defaults.set(alertBubbleSize.rawValue, forKey: Keys.alertBubbleSize) }
+    }
+
+    var screenEdgeGlowIntensity: ScreenEdgeGlowIntensity {
+        didSet { defaults.set(screenEdgeGlowIntensity.rawValue, forKey: Keys.screenEdgeGlowIntensity) }
     }
 
     init(defaults: UserDefaults = .standard) {
@@ -263,6 +389,42 @@ final class AppSettings {
             self.devicePreferences = decoded
         } else {
             self.devicePreferences = [:]
+        }
+
+        if let raw = defaults.string(forKey: Keys.appLanguage),
+           let value = AppLanguageOption(rawValue: raw) {
+            self.appLanguage = value
+        } else {
+            self.appLanguage = .matchSystem
+        }
+
+        if let raw = defaults.string(forKey: Keys.appAppearance),
+           let value = AppAppearanceOption(rawValue: raw) {
+            self.appAppearance = value
+        } else {
+            self.appAppearance = .auto
+        }
+
+        self.dismissSystemBatteryNotifications = defaults.bool(forKey: Keys.dismissSystemBatteryNotifications)
+
+        if defaults.object(forKey: Keys.restoreBrightnessOnLowPowerOff) != nil {
+            self.restoreBrightnessOnLowPowerOff = defaults.bool(forKey: Keys.restoreBrightnessOnLowPowerOff)
+        } else {
+            self.restoreBrightnessOnLowPowerOff = true
+        }
+
+        if let raw = defaults.string(forKey: Keys.alertBubbleSize),
+           let value = AlertBubbleSize(rawValue: raw) {
+            self.alertBubbleSize = value
+        } else {
+            self.alertBubbleSize = .default
+        }
+
+        if let raw = defaults.string(forKey: Keys.screenEdgeGlowIntensity),
+           let value = ScreenEdgeGlowIntensity(rawValue: raw) {
+            self.screenEdgeGlowIntensity = value
+        } else {
+            self.screenEdgeGlowIntensity = .default
         }
 
         migrateLegacySoundDefaultsIfNeeded()

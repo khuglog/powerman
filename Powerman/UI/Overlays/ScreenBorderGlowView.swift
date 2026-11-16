@@ -4,11 +4,13 @@ struct ScreenBorderGlowView: View {
     let color: Color
     let persistent: Bool
     var edgeThickness: CGFloat = 34
+    var opacityMultiplier: Double = 1.0
     var cornerRadius: CGFloat = 12
 
     @State private var pulse = false
 
     var body: some View {
+        let baseOpacity = min(1.0, (persistent ? (pulse ? 1.0 : 0.48) : 0.92) * opacityMultiplier)
         GeometryReader { geo in
             ZStack {
                 // Top edge glow
@@ -52,7 +54,7 @@ struct ScreenBorderGlowView: View {
                     .stroke(color.opacity(0.92), lineWidth: 3)
                     .frame(width: geo.size.width, height: geo.size.height)
             }
-            .opacity(persistent ? (pulse ? 1.0 : 0.48) : 0.92)
+            .opacity(baseOpacity)
             .onAppear {
                 guard persistent else { return }
                 withAnimation(.easeInOut(duration: 1.0).repeatForever(autoreverses: true)) {

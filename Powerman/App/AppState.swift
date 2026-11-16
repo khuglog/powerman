@@ -10,6 +10,11 @@ final class AppState {
     var historySamples: [BatteryHistorySample] = []
     var topEnergyApps: [AppEnergyUsage] = []
     var chargeLimitStatus: ChargeLimitStatus = .unsupported
+    var isLowPowerModeEnabled: Bool = false
+    var isLaunchAtLoginEnabled: Bool = false
+    var launchAtLoginError: String?
+    var isAccessibilityGranted: Bool = false
+
     let settings: AppSettings
     var selectedTab: SettingsTab = .battery
     var activeTestRuleID: UUID?
@@ -19,6 +24,7 @@ final class AppState {
     private let historyStore: BatteryHistoryStoring
     private let energyService: EnergyConsuming
     private let chargeLimitService: ChargeLimitManaging
+    private let systemService: SystemIntegrating
     private let alertEngine: AlertEngine
     private let alertPresenter: AlertPresenting
     private let soundPreviewPlayer: SoundPlaying
@@ -33,6 +39,7 @@ final class AppState {
         historyStore: BatteryHistoryStoring = JSONBatteryHistoryStore(),
         energyService: EnergyConsuming = ProcessEnergyConsumerService(),
         chargeLimitService: ChargeLimitManaging = NativeChargeLimitService(),
+        systemService: SystemIntegrating = MacSystemIntegrationService(),
         settings: AppSettings = AppSettings(),
         alertEngine: AlertEngine = AlertEngine(),
         alertPresenter: AlertPresenting = OverlayWindowManager(),
@@ -43,6 +50,7 @@ final class AppState {
         self.historyStore = historyStore
         self.energyService = energyService
         self.chargeLimitService = chargeLimitService
+        self.systemService = systemService
         self.settings = settings
         self.alertEngine = alertEngine
         self.alertPresenter = alertPresenter
@@ -65,10 +73,20 @@ final class AppState {
         }
     }
 
+    var launchAtLoginRequiresApproval: Bool {
+        systemService.launchAtLoginRequiresApproval
+    }
+
     func start() {
         historyStore.load()
         historySamples = historyStore.samples
         chargeLimitStatus = chargeLimitService.fetchStatus()
+        syncSystemIntegrationState()
+
+        systemService.startLowPowerObserver { [weak self] enabled in
+            self?.isLowPowerModeEnabled = enabled
+        }
+
         batteryService.startMonitoring { [weak self] info in
             self?.handleBatteryUpdate(info)
         }
@@ -76,6 +94,30 @@ final class AppState {
             self?.handleBluetoothUpdate(devices)
         }
         refreshEnergyConsumers()
+    }
+
+    func stop() {
+        batteryService.stopMonitoring()
+        bluetoothService.stopMonitoring()
+        systemService.stopLowPowerObserver()
+        systemService.stopNotificationDismisser()
+        alertPresenter.dismiss()
+        soundPreviewPlayer.stop()
+    }
+
+    func refreshBattery() {
+        let info = batteryService.refreshNow()
+        handleBatteryUpdate(info)
+    }
+
+    func refreshDevices() {
+        bluetoothService.refreshNow()
+    }
+
+    func refreshEnergyConsumers() {
+        energyService.refresh { [weak self] consumers in
+            self?.topEnergyApps = consumers
+        }
     }
 
     func refreshChargeLimit() {
@@ -93,25 +135,54 @@ final class AppState {
         chargeLimitStatus = chargeLimitService.setLimit(percentage)
     }
 
-    func stop() {
-        batteryService.stopMonitoring()
-        bluetoothService.stopMonitoring()
-        alertPresenter.dismiss()
-        soundPreviewPlayer.stop()
+    func syncSystemIntegrationState() {
+        isLowPowerModeEnabled = systemService.isLowPowerModeEnabled
+        isLaunchAtLoginEnabled = systemService.isLaunchAtLoginEnabled
+        isAccessibilityGranted = systemService.isAccessibilityGranted
+        systemService.applyAppearance(settings.appAppearance)
+
+        if settings.dismissSystemBatteryNotifications && isAccessibilityGranted {
+            systemService.startNotificationDismisser()
+        } else {
+            systemService.stopNotificationDismisser()
+        }
     }
 
-    func refreshBattery() {
-        let info = batteryService.refreshNow()
-        handleBatteryUpdate(info)
+    func applyAppAppearance(_ appearance: AppAppearanceOption) {
+        settings.appAppearance = appearance
+        systemService.applyAppearance(appearance)
     }
 
-    func refreshDevices() {
-        bluetoothService.refreshNow()
+    func setLaunchAtLogin(_ enabled: Bool) {
+        launchAtLoginError = systemService.setLaunchAtLogin(enabled)
+        isLaunchAtLoginEnabled = systemService.isLaunchAtLoginEnabled
     }
 
-    func refreshEnergyConsumers() {
-        energyService.refresh { [weak self] consumers in
-            self?.topEnergyApps = consumers
+    func setDismissSystemNotifications(_ enabled: Bool) {
+        settings.dismissSystemBatteryNotifications = enabled
+        if enabled && !systemService.isAccessibilityGranted {
+            systemService.requestAccessibilityPermission()
+        }
+        syncSystemIntegrationState()
+    }
+
+    func requestAccessibilityPermission() {
+        systemService.requestAccessibilityPermission()
+        isAccessibilityGranted = systemService.isAccessibilityGranted
+    }
+
+    func setLowPowerMode(_ enabled: Bool) {
+        Task { [weak self] in
+            guard let self else { return }
+            let success = await self.systemService.setLowPowerMode(
+                enabled,
+                restoreBrightness: self.settings.restoreBrightnessOnLowPowerOff
+            )
+            if success {
+                self.isLowPowerModeEnabled = enabled
+            } else {
+                self.isLowPowerModeEnabled = self.systemService.isLowPowerModeEnabled
+            }
         }
     }
 
@@ -144,7 +215,11 @@ final class AppState {
 
         let presentation = ActiveAlertPresentation.from(rule: rule, battery: previewBattery)
         activeTestRuleID = rule.id
-        alertPresenter.present(presentation) { [weak self] in
+        alertPresenter.present(
+            presentation,
+            bubbleSize: settings.alertBubbleSize,
+            glowIntensity: settings.screenEdgeGlowIntensity
+        ) { [weak self] in
             self?.activeTestRuleID = nil
         }
     }
@@ -196,7 +271,12 @@ final class AppState {
 
         if let alert = result.triggeredAlert {
             activeTestRuleID = nil
-            alertPresenter.present(alert, onDismiss: nil)
+            alertPresenter.present(
+                alert,
+                bubbleSize: settings.alertBubbleSize,
+                glowIntensity: settings.screenEdgeGlowIntensity,
+                onDismiss: nil
+            )
         }
     }
 
@@ -235,7 +315,12 @@ final class AppState {
                     persistent: false,
                     isChargingIcon: false
                 )
-                alertPresenter.present(alert, onDismiss: nil)
+                alertPresenter.present(
+                    alert,
+                    bubbleSize: settings.alertBubbleSize,
+                    glowIntensity: settings.screenEdgeGlowIntensity,
+                    onDismiss: nil
+                )
             }
         }
     }

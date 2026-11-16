@@ -209,29 +209,24 @@ final class ChargeLimitTests: XCTestCase {
         appState.start()
         defer { appState.stop() }
 
-        XCTAssertFalse(appState.isNegotiatingUSBCPower)
         XCTAssertEqual(appState.batteryStatusLabel, "On Battery")
 
-        // 1. Just plugged in at 40% while USB-PD negotiates (ExternalConnected=true, IsCharging=false).
+        // 1. Just plugged in at 40% (even before IsCharging flips): immediately shows "Charging".
         stubBattery.push(makeBattery(percentage: 40, isPluggedIn: true, isCharging: false))
-        XCTAssertTrue(appState.isNegotiatingUSBCPower)
-        XCTAssertEqual(appState.batteryStatusLabel, "Negotiating USB-C Power...")
-
-        // 2. Hardware finishes PD negotiation and begins active charging.
-        stubBattery.push(makeBattery(percentage: 40, isPluggedIn: true, isCharging: true))
-        XCTAssertFalse(appState.isNegotiatingUSBCPower)
         XCTAssertEqual(appState.batteryStatusLabel, "Charging")
 
-        // 3. Charger unplugged clears negotiating state immediately.
+        // 2. Hardware begins active charging: stays "Charging".
+        stubBattery.push(makeBattery(percentage: 40, isPluggedIn: true, isCharging: true))
+        XCTAssertEqual(appState.batteryStatusLabel, "Charging")
+
+        // 3. Charger unplugged returns to "On Battery" immediately.
         stubBattery.push(makeBattery(percentage: 40, isPluggedIn: false, isCharging: false))
-        XCTAssertFalse(appState.isNegotiatingUSBCPower)
         XCTAssertEqual(appState.batteryStatusLabel, "On Battery")
 
-        // 4. Plugged in at 82% while 80% Charge Limit pauses charging must show paused, not negotiating.
+        // 4. Plugged in at 82% while 80% Charge Limit pauses charging shows paused.
         appState.setChargeLimitEnabled(true)
         stubBattery.push(makeBattery(percentage: 82, isPluggedIn: true, isCharging: false))
         XCTAssertTrue(appState.isPausedAtChargeLimit)
-        XCTAssertFalse(appState.isNegotiatingUSBCPower)
         XCTAssertEqual(appState.batteryStatusLabel, "Paused at 80% Limit")
     }
 }

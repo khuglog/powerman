@@ -288,10 +288,8 @@ struct ActiveAlertPresentation: Identifiable, Equatable, Sendable {
         if pluggedIn {
             if let watts = battery.adapterWatts {
                 subtitle = "\(watts)W Adapter • \(battery.percentage)%"
-            } else if battery.isCharging {
-                subtitle = "Charging at \(battery.percentage)%"
             } else {
-                subtitle = "Negotiating USB-C Power • \(battery.percentage)%"
+                subtitle = "Charging at \(battery.percentage)%"
             }
         } else {
             subtitle = battery.timeRemainingMinutes != nil

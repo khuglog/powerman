@@ -7,16 +7,11 @@ Tất cả các thay đổi đáng chú ý của dự án **Powerman** sẽ đư
 ## [1.0.1] - 2026-11-17
 
 ### Fixed
+- **Instant Green Charging Status on Plug-in (`MenuBarIconView`, `AppState`, `MenuBarController`):**
+  - Bỏ trạng thái phụ chờ đàm phán USB-C; chuyển sang hiển thị **trạng thái đang sạc (Xanh lá + `⚡`) ngay tức thì (`t = 0s`)** khi cắm nguồn (`battery.isPluggedIn || battery.isCharging`) đồng thời với thông báo nổi `"Power Connected"` qua callback đồng bộ `onMenuBarUpdate`.
+  - Loại bỏ `GeometryReader` trong `minimalPillIndicator` (`MenuBarIconView`) để `ImageRenderer` luôn vẽ đầy đủ thanh màu xanh lá ngay ở lần render đầu tiên.
 - **Menu Bar Replicant Redraw CPU Spike (`AppearanceObserverView`):** Loại bỏ vòng lặp vẽ lại vô hạn `NSStatusItem _redrawReplicantSnapshot` gây nghẽn Main Thread (`87%` CPU), bổ sung `MenuBarController.RenderSignature` để chỉ render lại `ImageRenderer` khi dữ liệu hiển thị hoặc appearance thực sự thay đổi.
-- **Charge Limit Re-enable (`Off → On`):** Sửa lỗi `AppState.setChargeLimitEnabled(true)` và `NativeChargeLimitService.setEnabled` truyền lại giá trị `100` sau khi `disableMCL:` reset ngưỡng hệ thống về `100` (khiến macOS tắt ngược Charge Limit ngay lập tức); lưu `lastActiveChargeLimit` (80–95%) để bật lại chính xác mức giới hạn trước đó, kèm guard trong `ChargingSettingsView` (nâng lên build `3`).
-
-### Added
-- **USB-C PD Negotiating Status (`Negotiating USB-C Power...`):**
-  - Thêm trạng thái phụ chuyên biệt ngay tại `t = 0s` khi vừa cắm nguồn USB-C/MagSafe nhưng bộ sạc đang trong 2–10s đàm phán công suất (`AppState.isNegotiatingUSBCPower`, `AppState.batteryStatusLabel`):
-    - **Menu Bar (`MenuBarIconView`):** Đổi ngay sang màu **Cyan/Teal** (`#14B8D9`) kèm icon phích cắm (`powerplug.portrait.fill` / `powerplug.fill`), tách bạch rõ ràng với màu xanh lá + tia sét (`⚡`) khi dòng sạc bắt đầu nạp thật.
-    - **Popover & Live Telemetry (`MenuBarPopoverView`, `BatteryOverviewView`):** Hiển thị `"Negotiating USB-C Power..."` kèm icon phích cắm và thanh tiến trình Cyan/Teal; cập nhật thông báo nổi `"Power Connected"` (`AlertRule`) hiển thị `"Negotiating USB-C Power • X%"` khi adapter chưa kịp báo công suất.
-    - **Adaptive PD Polling & Charge Limit Guard:** Tự động hủy trạng thái đàm phán nếu đang tạm dừng ở ngưỡng Charge Limit (`isPausedAtChargeLimit`) hoặc sau tối đa 12s nếu phần cứng không kích hoạt sạc.
-  - Bổ sung & cập nhật unit test `testInstantPlugInStatusSyncAndChargeLimitPause` trong `ChargeLimitTests` (26/26 unit tests pass) và nâng `MARKETING_VERSION` lên `1.0.1` (build `2`).
+- **Charge Limit Re-enable (`Off → On`):** Sửa lỗi `AppState.setChargeLimitEnabled(true)` và `NativeChargeLimitService.setEnabled` truyền lại giá trị `100` sau khi `disableMCL:` reset ngưỡng hệ thống về `100` (khiến macOS tắt ngược Charge Limit ngay lập tức); lưu `lastActiveChargeLimit` (80–95%) để bật lại chính xác mức giới hạn trước đó, kèm guard trong `ChargingSettingsView` (nâng lên build `4`).
 
 ## [1.0.0] - 2026-11-16
 

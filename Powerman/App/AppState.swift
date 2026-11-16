@@ -18,7 +18,6 @@ final class AppState {
     let settings: AppSettings
     var selectedTab: SettingsTab = .battery
     var activeTestRuleID: UUID?
-    var isNegotiatingUSBCPower: Bool = false
 
     private let batteryService: BatteryMonitoring
     private let bluetoothService: BluetoothBatteryMonitoring
@@ -30,12 +29,12 @@ final class AppState {
     private let alertPresenter: AlertPresenting
     private let soundPreviewPlayer: SoundPlaying
     private var firedDeviceAlertIDs: Set<String> = []
-    private var chargeTransitionTask: Task<Void, Never>?
     private var lastActiveChargeLimit: Int = 80
 
     var onOpenSettings: (() -> Void)?
     var onDismissPopover: (() -> Void)?
     var onQuitApp: (() -> Void)?
+    var onMenuBarUpdate: (() -> Void)?
 
     init(
         batteryService: BatteryMonitoring = IOKitBatteryService(),
@@ -89,10 +88,13 @@ final class AppState {
         if isPausedAtChargeLimit {
             return "Paused at \(chargeLimitStatus.limitPercentage)% Limit"
         }
-        if isNegotiatingUSBCPower {
-            return "Negotiating USB-C Power..."
+        if batteryInfo.isFullyCharged && batteryInfo.isPluggedIn {
+            return "Fully Charged"
         }
-        return batteryInfo.chargingState.displayLabel
+        if batteryInfo.isCharging || batteryInfo.isPluggedIn {
+            return "Charging"
+        }
+        return "On Battery"
     }
 
     private func isPausedAtChargeLimit(for info: BatteryInfo) -> Bool {
@@ -123,9 +125,6 @@ final class AppState {
     }
 
     func stop() {
-        chargeTransitionTask?.cancel()
-        chargeTransitionTask = nil
-        isNegotiatingUSBCPower = false
         batteryService.stopMonitoring()
         bluetoothService.stopMonitoring()
         systemService.stopLowPowerObserver()
@@ -299,9 +298,8 @@ final class AppState {
     }
 
     private func handleBatteryUpdate(_ info: BatteryInfo) {
-        let previous = batteryInfo
         batteryInfo = info
-        updateChargeTransitionState(previous: previous, current: info)
+        onMenuBarUpdate?()
         if historyStore.recordIfNeeded(from: info) {
             historySamples = historyStore.samples
         }
@@ -329,29 +327,9 @@ final class AppState {
         }
     }
 
-    private func updateChargeTransitionState(previous: BatteryInfo, current: BatteryInfo) {
-        if !current.isPluggedIn || current.isCharging || current.isFullyCharged || isPausedAtChargeLimit(for: current) {
-            chargeTransitionTask?.cancel()
-            chargeTransitionTask = nil
-            isNegotiatingUSBCPower = false
-            return
-        }
-
-        // Reflect newly attached AC power immediately while USB-PD negotiates IsCharging.
-        if !previous.isPluggedIn && current.isPluggedIn {
-            isNegotiatingUSBCPower = true
-            chargeTransitionTask?.cancel()
-            chargeTransitionTask = Task { @MainActor [weak self] in
-                try? await Task.sleep(nanoseconds: 12_000_000_000)
-                guard !Task.isCancelled else { return }
-                self?.isNegotiatingUSBCPower = false
-                self?.chargeTransitionTask = nil
-            }
-        }
-    }
-
     private func handleBluetoothUpdate(_ devices: [BluetoothDeviceBattery]) {
         bluetoothDevices = devices
+        onMenuBarUpdate?()
         guard settings.notificationsEnabled else { return }
 
         for device in devices {

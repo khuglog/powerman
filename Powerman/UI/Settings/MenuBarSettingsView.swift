@@ -118,7 +118,7 @@ struct MenuBarSettingsView: View {
                         Text(
                             settings.menuBarColorMode == .monochrome
                             ? "Disabled while Color is set to Monochrome."
-                            : "Green when charging, cyan while negotiating USB-C power, orange for low battery. Off keeps the icon neutral and only turns red when critical."
+                            : "Green when charging, orange for low battery. Off keeps the icon neutral and only turns red when critical."
                         )
                         .font(.caption)
                         .foregroundStyle(.secondary)
@@ -224,8 +224,7 @@ struct MenuBarSettingsView: View {
                             colorMode: settings.menuBarColorMode,
                             size: settings.menuBarSize,
                             statusColorsEnabled: settings.statusColorsEnabled,
-                            isDarkMenuBar: !previewIsLightBar,
-                            isNegotiatingPower: appState.isNegotiatingUSBCPower
+                            isDarkMenuBar: !previewIsLightBar
                         )
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)

@@ -9,7 +9,6 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
         let isCharging: Bool
         let isPluggedIn: Bool
         let isFullyCharged: Bool
-        let isNegotiatingPower: Bool
         let adapterWatts: Int?
         let timeRemainingMinutes: Int?
         let pinnedDevices: [BluetoothDeviceBattery]
@@ -40,6 +39,9 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
 
         appState.onDismissPopover = { [weak self] in
             self?.closePopover(nil)
+        }
+        appState.onMenuBarUpdate = { [weak self] in
+            self?.updateStatusItemIcon()
         }
 
         setupPopover()
@@ -156,7 +158,6 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
         withObservationTracking {
             _ = appState.batteryInfo
             _ = appState.chargeLimitStatus
-            _ = appState.isNegotiatingUSBCPower
             _ = appState.bluetoothDevices
             _ = appState.settings.devicePreferences
             _ = appState.settings.menuBarIconStyle
@@ -192,7 +193,6 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
             isCharging: battery.isCharging,
             isPluggedIn: battery.isPluggedIn,
             isFullyCharged: battery.isFullyCharged,
-            isNegotiatingPower: appState.isNegotiatingUSBCPower,
             adapterWatts: battery.adapterWatts,
             timeRemainingMinutes: battery.timeRemainingMinutes,
             pinnedDevices: pinned,
@@ -217,8 +217,7 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
             size: settings.menuBarSize,
             statusColorsEnabled: settings.statusColorsEnabled,
             isDarkMenuBar: effectiveDark,
-            isTemplateMode: useTemplate,
-            isNegotiatingPower: appState.isNegotiatingUSBCPower
+            isTemplateMode: useTemplate
         )
         .environment(\.colorScheme, effectiveDark ? .dark : .light)
 

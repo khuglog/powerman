@@ -9,10 +9,8 @@ struct MenuBarPopoverView: View {
     private var battery: BatteryInfo { appState.batteryInfo }
 
     private var accentStatusColor: Color {
-        if battery.isCharging || battery.isFullyCharged {
+        if battery.isCharging || battery.isPluggedIn || battery.isFullyCharged {
             return .green
-        } else if appState.isNegotiatingUSBCPower {
-            return Color(red: 0.08, green: 0.72, blue: 0.85)
         } else if battery.percentage <= 10 {
             return .red
         } else if battery.percentage <= 20 {
@@ -46,12 +44,10 @@ struct MenuBarPopoverView: View {
     }
 
     private var statusIconName: String {
-        if battery.isCharging {
-            return "bolt.fill"
-        } else if appState.isNegotiatingUSBCPower {
-            return "powerplug.fill"
-        } else if appState.isPausedAtChargeLimit {
+        if appState.isPausedAtChargeLimit {
             return "pause.circle.fill"
+        } else if battery.isCharging || battery.isPluggedIn {
+            return "bolt.fill"
         } else {
             return "battery.100"
         }

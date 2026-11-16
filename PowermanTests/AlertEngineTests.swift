@@ -69,8 +69,8 @@ final class AlertEngineTests: XCTestCase {
     @MainActor
     func testChargedAlertAndPowerSourceTransitions() {
         let engine = AlertEngine()
-        let chargedRule = AlertRule(kind: .charged, threshold: 80, colorHex: "#34C759", sound: .chime)
-        let powerSource = PowerSourceAlertConfig(pluggedInEnabled: true, pluggedInSound: .chime, unpluggedEnabled: true, unpluggedSound: .ping)
+        let chargedRule = AlertRule(kind: .charged, threshold: 80, colorHex: "#34C759", sound: .chargedChime)
+        let powerSource = PowerSourceAlertConfig(pluggedInEnabled: true, pluggedInSound: .powerConnect, unpluggedEnabled: true, unpluggedSound: .ping)
 
         // Baseline at 78% on battery
         _ = engine.evaluate(battery: makeBattery(percentage: 78, isPluggedIn: false), rules: [chargedRule], powerSource: powerSource, notificationsEnabled: true)
@@ -126,5 +126,38 @@ final class AlertEngineTests: XCTestCase {
 
         reloaded.removeAlertRule(id: added.id)
         XCTAssertEqual(reloaded.alertRules.count, initialCount)
+    }
+
+    func testCustomSynthesizedSoundsGenerateValidWAVData() {
+        for option in AlertSoundOption.customAlertSounds {
+            let data = SynthesizedSoundGenerator.waveData(for: option)
+            XCTAssertNotNil(data, "Expected WAV data for \(option.rawValue)")
+            if let data {
+                XCTAssertGreaterThan(data.count, 1000)
+                let riff = String(data: data.prefix(4), encoding: .ascii)
+                let wave = String(data: data.subdata(in: 8..<12), encoding: .ascii)
+                XCTAssertEqual(riff, "RIFF")
+                XCTAssertEqual(wave, "WAVE")
+            }
+        }
+
+        XCTAssertNil(SynthesizedSoundGenerator.waveData(for: .none))
+        XCTAssertNil(SynthesizedSoundGenerator.waveData(for: .glass))
+    }
+
+    func testSemanticDefaultAlertSounds() {
+        let low5 = AlertRule.defaultRules.first { $0.kind == .lowBattery && $0.threshold == 5 }
+        let low10 = AlertRule.defaultRules.first { $0.kind == .lowBattery && $0.threshold == 10 }
+        let low20 = AlertRule.defaultRules.first { $0.kind == .lowBattery && $0.threshold == 20 }
+        let charged80 = AlertRule.defaultRules.first { $0.kind == .charged && $0.threshold == 80 }
+
+        XCTAssertEqual(low5?.sound, .criticalAlarm)
+        XCTAssertEqual(low10?.sound, .urgentBeep)
+        XCTAssertEqual(low20?.sound, .lowWarning)
+        XCTAssertEqual(charged80?.sound, .chargedChime)
+
+        let powerDefaults = PowerSourceAlertConfig()
+        XCTAssertEqual(powerDefaults.pluggedInSound, .powerConnect)
+        XCTAssertEqual(powerDefaults.unpluggedSound, .powerDisconnect)
     }
 }

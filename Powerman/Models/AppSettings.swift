@@ -136,6 +136,7 @@ final class AppSettings {
         static let notificationsEnabled = "alerts.notificationsEnabled"
         static let alertRules = "alerts.rules"
         static let powerSourceAlerts = "alerts.powerSource"
+        static let soundDefaultsVersion = "alerts.soundDefaultsVersion"
     }
 
     private let defaults: UserDefaults
@@ -236,6 +237,41 @@ final class AppSettings {
         } else {
             self.powerSourceAlerts = PowerSourceAlertConfig()
         }
+
+        migrateLegacySoundDefaultsIfNeeded()
+    }
+
+    private func migrateLegacySoundDefaultsIfNeeded() {
+        let currentVersion = defaults.integer(forKey: Keys.soundDefaultsVersion)
+        guard currentVersion < 2 else { return }
+        defaults.set(2, forKey: Keys.soundDefaultsVersion)
+
+        // Upgrade untouched Phase 2 initial sound defaults to semantic Powerman sounds.
+        for index in alertRules.indices {
+            let rule = alertRules[index]
+            if rule.kind == .lowBattery && rule.threshold == 5 && rule.sound == .basso {
+                alertRules[index].sound = .criticalAlarm
+            } else if rule.kind == .lowBattery && rule.threshold == 10 && rule.sound == .glass {
+                alertRules[index].sound = .urgentBeep
+            } else if rule.kind == .lowBattery && rule.threshold == 20 && rule.sound == .ping {
+                alertRules[index].sound = .lowWarning
+            } else if rule.kind == .charged && rule.threshold == 80 && rule.sound == .hero {
+                alertRules[index].sound = .chargedChime
+            }
+        }
+
+        if powerSourceAlerts.pluggedInSound == .hero {
+            powerSourceAlerts.pluggedInSound = .powerConnect
+        }
+        if powerSourceAlerts.unpluggedSound == .none {
+            powerSourceAlerts.unpluggedSound = .powerDisconnect
+        }
+    }
+
+    func resetAlertDefaults() {
+        notificationsEnabled = true
+        alertRules = AlertRule.defaultRules
+        powerSourceAlerts = PowerSourceAlertConfig()
     }
 
     func lowBatteryRules() -> [AlertRule] {
@@ -268,7 +304,7 @@ final class AppSettings {
             colorHex: colorHex,
             showPopup: true,
             position: .topOfScreen,
-            sound: kind == .lowBattery ? .glass : .chime,
+            sound: kind == .lowBattery ? (nextThreshold <= 10 ? .urgentBeep : .lowWarning) : .chargedChime,
             borderGlow: kind == .lowBattery,
             persistent: false
         )

@@ -11,9 +11,9 @@ Tất cả các thay đổi đáng chú ý của dự án **Powerman** sẽ đư
 - **Phase 2 (Multi-level Alerts & Visual Overlays):**
   - Thêm model `AlertRule`, `PowerSourceAlertConfig`, `ActiveAlertPresentation` hỗ trợ lưu trữ nhiều mức Low Battery và Charged Alerts.
   - Xây dựng `AlertEngine` với chống lặp (3% hysteresis), cảnh báo cắm/rút sạc (`Plugged In` / `Unplugged`), và tự động ẩn persistent alert khi đổi trạng thái nguồn.
-  - Xây dựng `OverlayWindowManager`, `FloatingAlertBubbleView` (vị trí `Top of Screen` / `Center of Screen`), `ScreenBorderGlowView` (viền sáng đa màn hình, nhịp pulse khi `Persistent`) và `SystemSoundPlayer`.
-  - Hoàn thiện `AlertsSettingsView` với thêm/sửa/xóa nhiều quy tắc, thanh trượt %, bảng màu + `ColorPicker`, tùy chọn `Floating Popup`, `Border Glow`, `Persistent`, `Sound`, khung `Alert Preview` và nút `▶ Test`.
-  - Bổ sung `AlertEngineTests` (4/4 test cases pass).
+  - Xây dựng `OverlayWindowManager`, `FloatingAlertBubbleView` (vị trí `Top of Screen` / `Center of Screen`), `ScreenBorderGlowView` (viền sáng đa màn hình, nhịp pulse khi `Persistent`), `SystemSoundPlayer` và `SynthesizedSoundGenerator` (8 âm thanh tổng hợp chuyên biệt cho từng trạng thái pin + 14 âm thanh hệ thống macOS).
+  - Hoàn thiện `AlertsSettingsView` với thêm/sửa/xóa nhiều quy tắc, thanh trượt %, bảng màu + `ColorPicker`, tùy chọn `Floating Popup`, `Border Glow`, `Persistent`, bộ chọn âm thanh phân nhóm kèm nút nghe thử `🔊`, `Reset Defaults`, khung `Alert Preview` và nút `▶ Test`.
+  - Bổ sung `AlertEngineTests` (6/6 test cases pass).
 - **Phase 1 (Core Battery & Menu Bar):**
   - Khởi tạo Xcode project `Powerman.xcodeproj` (Target `Powerman` non-sandboxed `LSUIElement` + Target `PowermanTests`).
   - Xây dựng `IOKitBatteryService` đọc thông số thực từ `IOPS` & `AppleSmartBattery` (%, trạng thái sạc, thời gian còn lại, dung lượng mAh, % sức khỏe, chu kỳ, nhiệt độ, điện áp/công suất, thông tin adapter).

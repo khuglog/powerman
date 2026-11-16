@@ -23,37 +23,90 @@ enum AlertPosition: String, Codable, Sendable, CaseIterable, Identifiable {
 
 enum AlertSoundOption: String, Codable, Sendable, CaseIterable, Identifiable {
     case none = "none"
-    case alarm = "Basso"
-    case chime = "Hero"
+
+    // Custom synthesized Powerman alert tones
+    case criticalAlarm = "powerman.criticalAlarm"
+    case urgentBeep = "powerman.urgentBeep"
+    case lowWarning = "powerman.lowWarning"
+    case chargedChime = "powerman.chargedChime"
+    case powerConnect = "powerman.powerConnect"
+    case powerDisconnect = "powerman.powerDisconnect"
+    case radarPulse = "powerman.radarPulse"
+    case softBell = "powerman.softBell"
+
+    // Built-in macOS system sounds
     case glass = "Glass"
+    case hero = "Hero"
     case ping = "Ping"
-    case sosumi = "Sosumi"
+    case pop = "Pop"
+    case tink = "Tink"
     case submarine = "Submarine"
+    case sosumi = "Sosumi"
+    case blow = "Blow"
+    case bottle = "Bottle"
+    case frog = "Frog"
+    case funk = "Funk"
+    case morse = "Morse"
+    case purr = "Purr"
+    case basso = "Basso"
 
     var id: String { rawValue }
 
+    static var customAlertSounds: [AlertSoundOption] {
+        [
+            .criticalAlarm,
+            .urgentBeep,
+            .lowWarning,
+            .chargedChime,
+            .powerConnect,
+            .powerDisconnect,
+            .radarPulse,
+            .softBell
+        ]
+    }
+
+    static var systemSounds: [AlertSoundOption] {
+        [
+            .glass, .hero, .ping, .pop, .tink, .submarine, .sosumi,
+            .blow, .bottle, .frog, .funk, .morse, .purr, .basso
+        ]
+    }
+
+    var isCustomSynthesized: Bool {
+        Self.customAlertSounds.contains(self)
+    }
+
     var title: String {
         switch self {
-        case .none: return "None"
-        case .alarm: return "Powerman Alarm"
-        case .chime: return "Powerman Chime"
-        case .glass: return "Glass"
-        case .ping: return "Ping"
-        case .sosumi: return "Sosumi"
-        case .submarine: return "Submarine"
+        case .none: return "None (Silent)"
+        case .criticalAlarm: return "Critical Alarm (Urgent)"
+        case .urgentBeep: return "Urgent Double Beep"
+        case .lowWarning: return "Low Battery Warning"
+        case .chargedChime: return "Charged Success Chime"
+        case .powerConnect: return "Power Connect"
+        case .powerDisconnect: return "Power Disconnect"
+        case .radarPulse: return "Radar Pulse"
+        case .softBell: return "Soft Bell"
+        case .glass: return "macOS Glass"
+        case .hero: return "macOS Hero"
+        case .ping: return "macOS Ping"
+        case .pop: return "macOS Pop"
+        case .tink: return "macOS Tink"
+        case .submarine: return "macOS Submarine"
+        case .sosumi: return "macOS Sosumi"
+        case .blow: return "macOS Blow"
+        case .bottle: return "macOS Bottle"
+        case .frog: return "macOS Frog"
+        case .funk: return "macOS Funk"
+        case .morse: return "macOS Morse"
+        case .purr: return "macOS Purr"
+        case .basso: return "macOS Basso"
         }
     }
 
     var systemSoundName: String? {
-        switch self {
-        case .none: return nil
-        case .alarm: return "Basso"
-        case .chime: return "Hero"
-        case .glass: return "Glass"
-        case .ping: return "Ping"
-        case .sosumi: return "Sosumi"
-        case .submarine: return "Submarine"
-        }
+        guard self != .none, !isCustomSynthesized else { return nil }
+        return rawValue
     }
 }
 
@@ -90,7 +143,7 @@ struct AlertRule: Identifiable, Codable, Equatable, Sendable {
         colorHex: String,
         showPopup: Bool = true,
         position: AlertPosition = .topOfScreen,
-        sound: AlertSoundOption = .glass,
+        sound: AlertSoundOption = .lowWarning,
         borderGlow: Bool = false,
         persistent: Bool = false
     ) {
@@ -114,7 +167,7 @@ struct AlertRule: Identifiable, Codable, Equatable, Sendable {
             parts.append("Border Glow")
         }
         if sound != .none {
-            parts.append("Sound")
+            parts.append(sound.title)
         }
         if persistent {
             parts.append("Persistent")
@@ -133,7 +186,7 @@ struct AlertRule: Identifiable, Codable, Equatable, Sendable {
             colorHex: AlertColorPreset.red.rawValue,
             showPopup: true,
             position: .centerOfScreen,
-            sound: .alarm,
+            sound: .criticalAlarm,
             borderGlow: true,
             persistent: true
         ),
@@ -143,7 +196,7 @@ struct AlertRule: Identifiable, Codable, Equatable, Sendable {
             colorHex: AlertColorPreset.red.rawValue,
             showPopup: true,
             position: .centerOfScreen,
-            sound: .glass,
+            sound: .urgentBeep,
             borderGlow: true,
             persistent: false
         ),
@@ -153,7 +206,7 @@ struct AlertRule: Identifiable, Codable, Equatable, Sendable {
             colorHex: AlertColorPreset.yellow.rawValue,
             showPopup: true,
             position: .topOfScreen,
-            sound: .ping,
+            sound: .lowWarning,
             borderGlow: false,
             persistent: false
         ),
@@ -163,7 +216,7 @@ struct AlertRule: Identifiable, Codable, Equatable, Sendable {
             colorHex: AlertColorPreset.green.rawValue,
             showPopup: true,
             position: .topOfScreen,
-            sound: .chime,
+            sound: .chargedChime,
             borderGlow: false,
             persistent: false
         )
@@ -172,9 +225,9 @@ struct AlertRule: Identifiable, Codable, Equatable, Sendable {
 
 struct PowerSourceAlertConfig: Codable, Equatable, Sendable {
     var pluggedInEnabled: Bool = true
-    var pluggedInSound: AlertSoundOption = .chime
+    var pluggedInSound: AlertSoundOption = .powerConnect
     var unpluggedEnabled: Bool = true
-    var unpluggedSound: AlertSoundOption = .none
+    var unpluggedSound: AlertSoundOption = .powerDisconnect
 }
 
 struct ActiveAlertPresentation: Identifiable, Equatable, Sendable {

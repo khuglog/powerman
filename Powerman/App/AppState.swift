@@ -13,6 +13,7 @@ final class AppState {
     private let batteryService: BatteryMonitoring
     private let alertEngine: AlertEngine
     private let alertPresenter: AlertPresenting
+    private let soundPreviewPlayer: SoundPlaying
 
     var onOpenSettings: (() -> Void)?
     var onQuitApp: (() -> Void)?
@@ -21,12 +22,14 @@ final class AppState {
         batteryService: BatteryMonitoring = IOKitBatteryService(),
         settings: AppSettings = AppSettings(),
         alertEngine: AlertEngine = AlertEngine(),
-        alertPresenter: AlertPresenting = OverlayWindowManager()
+        alertPresenter: AlertPresenting = OverlayWindowManager(),
+        soundPreviewPlayer: SoundPlaying = SystemSoundPlayer()
     ) {
         self.batteryService = batteryService
         self.settings = settings
         self.alertEngine = alertEngine
         self.alertPresenter = alertPresenter
+        self.soundPreviewPlayer = soundPreviewPlayer
         self.batteryInfo = batteryService.currentBattery
     }
 
@@ -83,6 +86,11 @@ final class AppState {
     func stopTestAlert() {
         activeTestRuleID = nil
         alertPresenter.dismiss()
+        soundPreviewPlayer.stop()
+    }
+
+    func previewSound(_ sound: AlertSoundOption) {
+        soundPreviewPlayer.play(sound: sound, repeating: false)
     }
 
     func openSettings(tab: SettingsTab? = nil) {

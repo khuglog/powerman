@@ -5,7 +5,7 @@
 - **Cập nhật lần cuối:** 2026-11-16
 - **Giai đoạn hiện tại (Current Phase):** Hoàn thành **Phase 2 (Hệ thống Cảnh báo đa mức, Popup nổi, Viền sáng màn hình & Âm thanh)** — Sẵn sàng chuyển sang **Phase 3**
 - **Nhánh chính:** `main`
-- **Trạng thái Build / Test:** `TEST SUCCEEDED` (9/9 test cases: `BatteryInfoTests` 5/5, `AlertEngineTests` 4/4, `SWIFT_STRICT_CONCURRENCY = complete`)
+- **Trạng thái Build / Test:** `TEST SUCCEEDED` (11/11 test cases: `BatteryInfoTests` 5/5, `AlertEngineTests` 6/6, `SWIFT_STRICT_CONCURRENCY = complete`)
 
 ---
 
@@ -45,9 +45,9 @@
 - [x] Xây dựng `OverlayWindowManager` hỗ trợ đa màn hình (`NSPanel` không cướp focus):
   - [x] `ScreenBorderGlowView` (viền sáng toàn màn hình theo màu, hiệu ứng pulse khi `Persistent = true`, click-through)
   - [x] `FloatingAlertBubbleView` (vị trí `Top of Screen` / `Center of Screen`, nút đóng `X`, chế độ ngắn 4.5s hoặc liên tục)
-- [x] Xây dựng `SystemSoundPlayer` (âm thanh đơn hoặc lặp chu kỳ 2.2s khi `Persistent = true`)
-- [x] Hoàn thiện `AlertsSettingsView` (CRUD nhiều mức Low/Charged, Power Source Alerts, màu preset + `ColorPicker`, Preview & `▶ Test`)
-- [x] Viết & pass `AlertEngineTests` (4/4 tests)
+- [x] Xây dựng `SystemSoundPlayer` & `SynthesizedSoundGenerator` (8 âm thanh cảnh báo tổng hợp theo ngữ cảnh + 14 âm thanh hệ thống macOS, hỗ trợ nghe thử `🔊` và lặp chu kỳ khi `Persistent = true`)
+- [x] Hoàn thiện `AlertsSettingsView` (CRUD nhiều mức Low/Charged, Power Source Alerts, màu preset + `ColorPicker`, Preview & `▶ Test`, `Reset Defaults`)
+- [x] Viết & pass `AlertEngineTests` (6/6 tests)
 
 ### Phase 3: Thiết bị Bluetooth (`Devices`) — *Kế tiếp*
 - [ ] Xây dựng `BluetoothBatteryService` (quét `IORegistry` Apple/HID peripherals + `CoreBluetooth` BLE Battery Service `0x180F`)

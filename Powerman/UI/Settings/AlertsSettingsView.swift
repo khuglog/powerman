@@ -21,24 +21,35 @@ struct AlertsSettingsView: View {
     }
 
     private var headerSection: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack(spacing: 10) {
-                RoundedRectangle(cornerRadius: 8, style: .continuous)
-                    .fill(.green)
-                    .frame(width: 28, height: 28)
-                    .overlay {
-                        Image(systemName: "bell.fill")
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundStyle(.white)
-                    }
+        HStack(alignment: .top) {
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(spacing: 10) {
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .fill(.green)
+                        .frame(width: 28, height: 28)
+                        .overlay {
+                            Image(systemName: "bell.fill")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundStyle(.white)
+                        }
 
-                Text("Alerts")
-                    .font(.title2.bold())
+                    Text("Alerts")
+                        .font(.title2.bold())
+                }
+
+                Text("Configure battery notifications and visual effects")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
             }
 
-            Text("Configure battery notifications and visual effects")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+            Spacer()
+
+            Button("Reset Defaults") {
+                appState.stopTestAlert()
+                settings.resetAlertDefaults()
+                expandedRuleID = nil
+            }
+            .font(.caption.weight(.medium))
         }
     }
 
@@ -109,6 +120,9 @@ struct AlertsSettingsView: View {
                             },
                             onTest: {
                                 appState.testAlert(rule: binding.wrappedValue)
+                            },
+                            onPreviewSound: { sound in
+                                appState.previewSound(sound)
                             }
                         )
                     }
@@ -166,6 +180,9 @@ struct AlertsSettingsView: View {
                             },
                             onTest: {
                                 appState.testAlert(rule: binding.wrappedValue)
+                            },
+                            onPreviewSound: { sound in
+                                appState.previewSound(sound)
                             }
                         )
                     }
@@ -220,20 +237,17 @@ struct AlertsSettingsView: View {
                     }
 
                     if settings.powerSourceAlerts.pluggedInEnabled {
-                        HStack {
+                        HStack(spacing: 8) {
                             Text("Sound")
                                 .font(.caption.weight(.medium))
                                 .foregroundStyle(.secondary)
-                            Picker("", selection: Binding(
-                                get: { settings.powerSourceAlerts.pluggedInSound },
-                                set: { settings.powerSourceAlerts.pluggedInSound = $0 }
-                            )) {
-                                ForEach(AlertSoundOption.allCases) { option in
-                                    Text(option.title).tag(option)
-                                }
-                            }
-                            .labelsHidden()
-                            .frame(width: 170)
+                            AlertSoundPicker(
+                                selection: Binding(
+                                    get: { settings.powerSourceAlerts.pluggedInSound },
+                                    set: { settings.powerSourceAlerts.pluggedInSound = $0 }
+                                ),
+                                onPreview: { appState.previewSound($0) }
+                            )
                             Spacer()
                         }
                         .padding(.leading, 40)
@@ -263,20 +277,17 @@ struct AlertsSettingsView: View {
                     }
 
                     if settings.powerSourceAlerts.unpluggedEnabled {
-                        HStack {
+                        HStack(spacing: 8) {
                             Text("Sound")
                                 .font(.caption.weight(.medium))
                                 .foregroundStyle(.secondary)
-                            Picker("", selection: Binding(
-                                get: { settings.powerSourceAlerts.unpluggedSound },
-                                set: { settings.powerSourceAlerts.unpluggedSound = $0 }
-                            )) {
-                                ForEach(AlertSoundOption.allCases) { option in
-                                    Text(option.title).tag(option)
-                                }
-                            }
-                            .labelsHidden()
-                            .frame(width: 170)
+                            AlertSoundPicker(
+                                selection: Binding(
+                                    get: { settings.powerSourceAlerts.unpluggedSound },
+                                    set: { settings.powerSourceAlerts.unpluggedSound = $0 }
+                                ),
+                                onPreview: { appState.previewSound($0) }
+                            )
                             Spacer()
                         }
                         .padding(.leading, 40)
@@ -324,6 +335,49 @@ struct AlertsSettingsView: View {
     }
 }
 
+private struct AlertSoundPicker: View {
+    @Binding var selection: AlertSoundOption
+    let onPreview: (AlertSoundOption) -> Void
+
+    var body: some View {
+        HStack(spacing: 6) {
+            Picker("", selection: $selection) {
+                Text(AlertSoundOption.none.title).tag(AlertSoundOption.none)
+
+                Section("Powerman Alerts") {
+                    ForEach(AlertSoundOption.customAlertSounds) { option in
+                        Text(option.title).tag(option)
+                    }
+                }
+
+                Section("macOS System Sounds") {
+                    ForEach(AlertSoundOption.systemSounds) { option in
+                        Text(option.title).tag(option)
+                    }
+                }
+            }
+            .labelsHidden()
+            .frame(width: 205)
+
+            Button {
+                onPreview(selection)
+            } label: {
+                Image(systemName: "speaker.wave.2.fill")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(selection == .none ? Color.secondary.opacity(0.4) : Color.accentColor)
+                    .frame(width: 26, height: 24)
+                    .background(
+                        RoundedRectangle(cornerRadius: 6, style: .continuous)
+                            .fill(Color.primary.opacity(0.06))
+                    )
+            }
+            .buttonStyle(.plain)
+            .disabled(selection == .none)
+            .help("Preview sound")
+        }
+    }
+}
+
 private struct AlertRuleCard: View {
     @Binding var rule: AlertRule
     let isExpanded: Bool
@@ -331,6 +385,7 @@ private struct AlertRuleCard: View {
     let onToggleExpand: () -> Void
     let onDelete: () -> Void
     let onTest: () -> Void
+    let onPreviewSound: (AlertSoundOption) -> Void
 
     private var thresholdRange: ClosedRange<Double> {
         rule.kind == .lowBattery ? 1...95 : 50...100
@@ -470,13 +525,7 @@ private struct AlertRuleCard: View {
                         .font(.system(size: 12, weight: .semibold))
                         .foregroundStyle(.secondary)
 
-                    Picker("", selection: $rule.sound) {
-                        ForEach(AlertSoundOption.allCases) { option in
-                            Text(option.title).tag(option)
-                        }
-                    }
-                    .labelsHidden()
-                    .frame(width: 145)
+                    AlertSoundPicker(selection: $rule.sound, onPreview: onPreviewSound)
                 }
             }
 

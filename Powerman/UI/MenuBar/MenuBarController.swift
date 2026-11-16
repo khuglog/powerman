@@ -9,7 +9,9 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
     private let popover: NSPopover
     private var eventMonitor: Any?
     private var appearanceObservation: NSKeyValueObservation?
+    private var appearanceObserverView: AppearanceObserverView?
     private var themeObserver: NSObjectProtocol?
+    private var spaceObserver: NSObjectProtocol?
 
     init(appState: AppState) {
         self.appState = appState
@@ -34,6 +36,12 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
             DistributedNotificationCenter.default().removeObserver(themeObserver)
             self.themeObserver = nil
         }
+        if let spaceObserver {
+            NSWorkspace.shared.notificationCenter.removeObserver(spaceObserver)
+            self.spaceObserver = nil
+        }
+        appearanceObserverView?.removeFromSuperview()
+        appearanceObserverView = nil
         appearanceObservation?.invalidate()
         appearanceObservation = nil
         NSStatusBar.system.removeStatusItem(statusItem)
@@ -62,10 +70,29 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
                     self?.updateStatusItemIcon()
                 }
             }
+
+            // AppKit viewDidChangeEffectiveAppearance() fires immediately on menu bar contrast/wallpaper shifts.
+            let observerView = AppearanceObserverView(frame: button.bounds)
+            observerView.autoresizingMask = [.width, .height]
+            observerView.onAppearanceChange = { [weak self] in
+                self?.updateStatusItemIcon()
+            }
+            button.addSubview(observerView)
+            appearanceObserverView = observerView
         }
 
         themeObserver = DistributedNotificationCenter.default().addObserver(
             forName: Notification.Name("AppleInterfaceThemeChangedNotification"),
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                self?.updateStatusItemIcon()
+            }
+        }
+
+        spaceObserver = NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.activeSpaceDidChangeNotification,
             object: nil,
             queue: .main
         ) { [weak self] _ in
@@ -159,7 +186,7 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
         .environment(\.colorScheme, effectiveDark ? .dark : .light)
 
         let renderer = ImageRenderer(content: iconView)
-        renderer.scale = NSScreen.main?.backingScaleFactor ?? 2.0
+        renderer.scale = button.window?.backingScaleFactor ?? NSScreen.main?.backingScaleFactor ?? 2.0
 
         if let nsImage = renderer.nsImage {
             nsImage.isTemplate = useTemplate
@@ -168,5 +195,18 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
         } else {
             button.title = "\(appState.batteryInfo.percentage)%"
         }
+    }
+}
+
+private final class AppearanceObserverView: NSView {
+    var onAppearanceChange: (() -> Void)?
+
+    override func hitTest(_ point: NSPoint) -> NSView? {
+        nil
+    }
+
+    override func viewDidChangeEffectiveAppearance() {
+        super.viewDidChangeEffectiveAppearance()
+        onAppearanceChange?()
     }
 }

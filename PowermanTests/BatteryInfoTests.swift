@@ -170,4 +170,99 @@ final class BatteryInfoTests: XCTestCase {
         XCTAssertEqual(reloaded.menuBarSize, .large)
         XCTAssertFalse(reloaded.statusColorsEnabled)
     }
+
+    func testSmartBatteryKernelFlagsTakePrecedenceOverStaleIOPS() {
+        let staleIOPS: [String: Any] = [
+            "Current Capacity": 45,
+            "Max Capacity": 100,
+            "Power Source State": "AC Power",
+            "Is Charging": false,
+            "Is Charged": false
+        ]
+
+        let liveKernelSmartBattery: [String: Any] = [
+            "CurrentCapacity": 45,
+            "MaxCapacity": 100,
+            "ExternalConnected": true,
+            "IsCharging": true,
+            "FullyCharged": false
+        ]
+
+        let info = BatterySnapshotParser.parse(iops: staleIOPS, smartBattery: liveKernelSmartBattery)
+
+        XCTAssertTrue(info.isPluggedIn)
+        XCTAssertTrue(info.isCharging)
+        XCTAssertEqual(info.chargingState, .charging)
+    }
+
+    func testBatteryInfoChangeDetectionCoalescing() {
+        let t0 = Date(timeIntervalSince1970: 1_000)
+        let base = BatteryInfo(
+            percentage: 50,
+            isCharging: false,
+            isPluggedIn: false,
+            isFullyCharged: false,
+            timeRemainingMinutes: 180,
+            cycleCount: 100,
+            ratedCycleCount: 1000,
+            designCapacityMah: 6000,
+            maxCapacityMah: 5700,
+            currentCapacityMah: 2850,
+            temperatureCelsius: 32.0,
+            voltageMv: 11800,
+            amperageMa: -1000,
+            batteryPowerMw: -11800,
+            adapterWatts: nil,
+            adapterName: nil,
+            hasBattery: true,
+            lastUpdated: t0
+        )
+
+        let timestampOnlyChange = BatteryInfo(
+            percentage: 50,
+            isCharging: false,
+            isPluggedIn: false,
+            isFullyCharged: false,
+            timeRemainingMinutes: 180,
+            cycleCount: 100,
+            ratedCycleCount: 1000,
+            designCapacityMah: 6000,
+            maxCapacityMah: 5700,
+            currentCapacityMah: 2850,
+            temperatureCelsius: 32.0,
+            voltageMv: 11800,
+            amperageMa: -1000,
+            batteryPowerMw: -11800,
+            adapterWatts: nil,
+            adapterName: nil,
+            hasBattery: true,
+            lastUpdated: t0.addingTimeInterval(5)
+        )
+
+        let startedCharging = BatteryInfo(
+            percentage: 50,
+            isCharging: true,
+            isPluggedIn: true,
+            isFullyCharged: false,
+            timeRemainingMinutes: 45,
+            cycleCount: 100,
+            ratedCycleCount: 1000,
+            designCapacityMah: 6000,
+            maxCapacityMah: 5700,
+            currentCapacityMah: 2850,
+            temperatureCelsius: 32.0,
+            voltageMv: 12100,
+            amperageMa: 2500,
+            batteryPowerMw: 30250,
+            adapterWatts: 60,
+            adapterName: "pd charger",
+            hasBattery: true,
+            lastUpdated: t0.addingTimeInterval(1)
+        )
+
+        XCTAssertFalse(timestampOnlyChange.hasVisualOrStatusChange(from: base))
+        XCTAssertFalse(timestampOnlyChange.hasTelemetryChange(from: base))
+        XCTAssertTrue(startedCharging.hasVisualOrStatusChange(from: base))
+        XCTAssertTrue(startedCharging.hasTelemetryChange(from: base))
+    }
 }

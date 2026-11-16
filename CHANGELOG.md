@@ -7,6 +7,10 @@ Tất cả các thay đổi đáng chú ý của dự án **Powerman** sẽ đư
 ## [1.0.0] - 2026-11-16
 
 ### Fixed
+- **Instant Menu Bar Status & Appearance Response:**
+  - `IOKitBatteryService`: Đăng ký trực tiếp thông báo nhân macOS `IOServiceAddInterestNotification` (`kIOGeneralInterest`) trên `AppleSmartBattery` / `AppleSmartBatteryPack`, bổ sung `IOPSCreateLimitedPowerNotification`, chạy mọi nguồn RunLoop & timer trên `.commonModes`, theo dõi `NSWorkspace.didWakeNotification`, gộp sự kiện telemetry nhiễu (`hasVisualOrStatusChange` vs `hasTelemetryChange`), và kiểm tra xác nhận chuyển tiếp USB-PD sau 1s/2.5s khi cắm/rút nguồn để cập nhật tức thì thay vì chờ timer dự phòng.
+  - `BatterySnapshotParser` (`BatteryInfo`): Ưu tiên đọc trực tiếp cờ `IsCharging` và `FullyCharged` từ kernel IORegistry (`AppleSmartBattery`) trước cache `IOPS` (`powerd`), cùng 2 unit tests mới trong `BatteryInfoTests` (tổng 25/25 unit tests pass).
+  - `MenuBarController`: Thêm `AppearanceObserverView` (`viewDidChangeEffectiveAppearance`), `activeSpaceDidChangeNotification` và scale theo màn hình đang hiển thị `statusItem` để màu nền Light/Dark Menu Bar cập nhật tức thì.
 - **Final Functional & Visual UI Audit:**
   - `SettingsRootView`: Thay `List(.sidebar)` bằng custom sidebar dùng màu sRGB cố định cho badge và màu nhãn tương phản theo `colorScheme`, sửa triệt để lỗi trắng hóa badge và lỗi chữ tối trên nền Dark Mode.
   - `MenuBarIconView`: Cải tiến render pill `Minimal` với hai lớp chữ tương phản cắt mặt nạ theo `%` (vẫn giữ alpha `destinationOut` cho `isTemplateMode`), giúp chữ số hiển thị sắc nét trong cả Menu Bar tối, sáng và Live Preview.

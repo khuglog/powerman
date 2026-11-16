@@ -122,6 +122,30 @@ struct BatteryInfo: Sendable, Equatable {
         }
     }
 
+    /// Returns true when user-visible status bar fields (percentage, charging state, adapter, time) differ from `previous`.
+    func hasVisualOrStatusChange(from previous: BatteryInfo) -> Bool {
+        hasBattery != previous.hasBattery
+            || percentage != previous.percentage
+            || isCharging != previous.isCharging
+            || isPluggedIn != previous.isPluggedIn
+            || isFullyCharged != previous.isFullyCharged
+            || adapterWatts != previous.adapterWatts
+            || timeRemainingMinutes != previous.timeRemainingMinutes
+    }
+
+    /// Returns true when any hardware telemetry value differs from `previous` (ignoring `lastUpdated`).
+    func hasTelemetryChange(from previous: BatteryInfo) -> Bool {
+        hasVisualOrStatusChange(from: previous)
+            || temperatureCelsius != previous.temperatureCelsius
+            || cycleCount != previous.cycleCount
+            || maxCapacityMah != previous.maxCapacityMah
+            || currentCapacityMah != previous.currentCapacityMah
+            || voltageMv != previous.voltageMv
+            || amperageMa != previous.amperageMa
+            || batteryPowerMw != previous.batteryPowerMw
+            || adapterName != previous.adapterName
+    }
+
     static let placeholder = BatteryInfo(
         percentage: 0,
         isCharging: false,
@@ -156,6 +180,7 @@ enum BatterySnapshotParser {
         guard hasBattery else { return .placeholder }
 
         let smartBatteryData = smartBattery?["BatteryData"] as? [String: Any]
+        let chargerData = smartBattery?["ChargerData"] as? [String: Any]
         let packBatteryData = smartBatteryPack?["BatteryData"] as? [String: Any]
         let dictionaries: [[String: Any]?] = [smartBattery, smartBatteryData, packBatteryData, smartBatteryPack]
 
@@ -193,12 +218,15 @@ enum BatterySnapshotParser {
         let isPluggedIn = boolValue(smartBattery?["ExternalConnected"])
             ?? (powerSourceState == "AC Power")
 
-        let isCharging = boolValue(iops?["Is Charging"])
-            ?? boolValue(smartBattery?["IsCharging"])
+        // Prefer live kernel IORegistry flags over IOPS cache (powerd can lag behind AppleSmartBattery during transitions).
+        let isCharging = boolValue(smartBattery?["IsCharging"])
+            ?? boolValue(chargerData?["IsCharging"])
+            ?? boolValue(iops?["Is Charging"])
             ?? false
 
-        let isFullyCharged = boolValue(iops?["Is Charged"])
-            ?? boolValue(smartBattery?["FullyCharged"])
+        let isFullyCharged = boolValue(smartBattery?["FullyCharged"])
+            ?? boolValue(smartBatteryData?["FullyCharged"])
+            ?? boolValue(iops?["Is Charged"])
             ?? (isPluggedIn && !isCharging && percentage >= 100)
 
         let timeRemainingMinutes: Int? = {

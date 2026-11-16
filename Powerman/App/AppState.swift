@@ -31,6 +31,7 @@ final class AppState {
     private let soundPreviewPlayer: SoundPlaying
     private var firedDeviceAlertIDs: Set<String> = []
     private var chargeTransitionTask: Task<Void, Never>?
+    private var lastActiveChargeLimit: Int = 80
 
     var onOpenSettings: (() -> Void)?
     var onDismissPopover: (() -> Void)?
@@ -105,7 +106,7 @@ final class AppState {
     func start() {
         historyStore.load()
         historySamples = historyStore.samples
-        chargeLimitStatus = chargeLimitService.fetchStatus()
+        refreshChargeLimit()
         syncSystemIntegrationState()
 
         systemService.startLowPowerObserver { [weak self] enabled in
@@ -150,17 +151,29 @@ final class AppState {
 
     func refreshChargeLimit() {
         chargeLimitStatus = chargeLimitService.fetchStatus()
+        if chargeLimitStatus.isEnabled, chargeLimitStatus.limitPercentage < 100 {
+            lastActiveChargeLimit = chargeLimitStatus.limitPercentage
+        }
     }
 
     func setChargeLimitEnabled(_ enabled: Bool) {
-        let target = chargeLimitStatus.limitPercentage >= 80 && chargeLimitStatus.limitPercentage <= 100
+        let target = (chargeLimitStatus.limitPercentage >= 80 && chargeLimitStatus.limitPercentage < 100)
             ? chargeLimitStatus.limitPercentage
-            : 80
+            : lastActiveChargeLimit
         chargeLimitStatus = chargeLimitService.setEnabled(enabled, targetLimit: target)
+        if chargeLimitStatus.isEnabled, chargeLimitStatus.limitPercentage < 100 {
+            lastActiveChargeLimit = chargeLimitStatus.limitPercentage
+        }
     }
 
     func setChargeLimitPercentage(_ percentage: Int) {
+        if percentage < 100 {
+            lastActiveChargeLimit = percentage
+        }
         chargeLimitStatus = chargeLimitService.setLimit(percentage)
+        if chargeLimitStatus.isEnabled, chargeLimitStatus.limitPercentage < 100 {
+            lastActiveChargeLimit = chargeLimitStatus.limitPercentage
+        }
     }
 
     func syncSystemIntegrationState() {

@@ -29,7 +29,7 @@ struct ChargingSettingsView: View {
             }
         }
         .onChange(of: sliderValue) { _, newValue in
-            guard !isDraggingSlider else { return }
+            guard status.isEnabled, !isDraggingSlider else { return }
             let target = Int(newValue.rounded())
             guard target != status.limitPercentage else { return }
             pendingCommitTask?.cancel()
@@ -118,6 +118,8 @@ struct ChargingSettingsView: View {
                 Toggle("", isOn: Binding(
                     get: { status.isEnabled },
                     set: { enabled in
+                        pendingCommitTask?.cancel()
+                        pendingCommitTask = nil
                         appState.setChargeLimitEnabled(enabled)
                     }
                 ))

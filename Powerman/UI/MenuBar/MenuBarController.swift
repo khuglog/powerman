@@ -4,14 +4,33 @@ import SwiftUI
 
 @MainActor
 final class MenuBarController: NSObject, NSPopoverDelegate {
+    private struct RenderSignature: Equatable {
+        let percentage: Int
+        let isCharging: Bool
+        let isPluggedIn: Bool
+        let isFullyCharged: Bool
+        let isNegotiatingPower: Bool
+        let adapterWatts: Int?
+        let timeRemainingMinutes: Int?
+        let pinnedDevices: [BluetoothDeviceBattery]
+        let style: MenuBarIconStyle
+        let displayMode: MenuBarDisplayMode
+        let colorMode: MenuBarColorMode
+        let size: MenuBarSize
+        let statusColorsEnabled: Bool
+        let isDarkMenuBar: Bool
+        let useTemplate: Bool
+        let scale: CGFloat
+    }
+
     private let appState: AppState
     private let statusItem: NSStatusItem
     private let popover: NSPopover
     private var eventMonitor: Any?
     private var appearanceObservation: NSKeyValueObservation?
-    private var appearanceObserverView: AppearanceObserverView?
     private var themeObserver: NSObjectProtocol?
     private var spaceObserver: NSObjectProtocol?
+    private var lastRenderSignature: RenderSignature?
 
     init(appState: AppState) {
         self.appState = appState
@@ -40,8 +59,6 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
             NSWorkspace.shared.notificationCenter.removeObserver(spaceObserver)
             self.spaceObserver = nil
         }
-        appearanceObserverView?.removeFromSuperview()
-        appearanceObserverView = nil
         appearanceObservation?.invalidate()
         appearanceObservation = nil
         NSStatusBar.system.removeStatusItem(statusItem)
@@ -70,15 +87,6 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
                     self?.updateStatusItemIcon()
                 }
             }
-
-            // AppKit viewDidChangeEffectiveAppearance() fires immediately on menu bar contrast/wallpaper shifts.
-            let observerView = AppearanceObserverView(frame: button.bounds)
-            observerView.autoresizingMask = [.width, .height]
-            observerView.onAppearanceChange = { [weak self] in
-                self?.updateStatusItemIcon()
-            }
-            button.addSubview(observerView)
-            appearanceObserverView = observerView
         }
 
         themeObserver = DistributedNotificationCenter.default().addObserver(
@@ -97,6 +105,8 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
             queue: .main
         ) { [weak self] _ in
             Task { @MainActor [weak self] in
+                try? await Task.sleep(nanoseconds: 150_000_000)
+                guard !Task.isCancelled else { return }
                 self?.updateStatusItemIcon()
             }
         }
@@ -174,9 +184,33 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
         case .auto, .monochrome: isDarkMenuBar
         }
 
+        let battery = appState.batteryInfo
+        let pinned = appState.pinnedMenuBarDevices
+        let backingScale = button.window?.backingScaleFactor ?? NSScreen.main?.backingScaleFactor ?? 2.0
+        let signature = RenderSignature(
+            percentage: battery.percentage,
+            isCharging: battery.isCharging,
+            isPluggedIn: battery.isPluggedIn,
+            isFullyCharged: battery.isFullyCharged,
+            isNegotiatingPower: appState.isNegotiatingUSBCPower,
+            adapterWatts: battery.adapterWatts,
+            timeRemainingMinutes: battery.timeRemainingMinutes,
+            pinnedDevices: pinned,
+            style: settings.menuBarIconStyle,
+            displayMode: settings.menuBarDisplayMode,
+            colorMode: settings.menuBarColorMode,
+            size: settings.menuBarSize,
+            statusColorsEnabled: settings.statusColorsEnabled,
+            isDarkMenuBar: effectiveDark,
+            useTemplate: useTemplate,
+            scale: backingScale
+        )
+        guard signature != lastRenderSignature else { return }
+        lastRenderSignature = signature
+
         let iconView = MenuBarIconView(
-            battery: appState.batteryInfo,
-            pinnedDevices: appState.pinnedMenuBarDevices,
+            battery: battery,
+            pinnedDevices: pinned,
             style: settings.menuBarIconStyle,
             displayMode: settings.menuBarDisplayMode,
             colorMode: settings.menuBarColorMode,
@@ -189,27 +223,14 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
         .environment(\.colorScheme, effectiveDark ? .dark : .light)
 
         let renderer = ImageRenderer(content: iconView)
-        renderer.scale = button.window?.backingScaleFactor ?? NSScreen.main?.backingScaleFactor ?? 2.0
+        renderer.scale = backingScale
 
         if let nsImage = renderer.nsImage {
             nsImage.isTemplate = useTemplate
             button.image = nsImage
             button.title = ""
         } else {
-            button.title = "\(appState.batteryInfo.percentage)%"
+            button.title = "\(battery.percentage)%"
         }
-    }
-}
-
-private final class AppearanceObserverView: NSView {
-    var onAppearanceChange: (() -> Void)?
-
-    override func hitTest(_ point: NSPoint) -> NSView? {
-        nil
-    }
-
-    override func viewDidChangeEffectiveAppearance() {
-        super.viewDidChangeEffectiveAppearance()
-        onAppearanceChange?()
     }
 }

@@ -66,11 +66,17 @@ final class NativeChargeLimitService: ChargeLimitManaging {
         var error: NSError?
         let ok: Bool
         if enabled {
-            ok = callBoolErrorMethod(client, selectorName: "enableMCL:", error: &error)
-            if ok {
-                let snapped = ChargeLimitHelpers.snapToSupportedLimit(targetLimit, availableLimits: readAvailableLimits(client, error: &error))
-                _ = setMCLLimit(client, limit: UInt8(snapped), error: &error)
-            }
+            let enableOk = callBoolErrorMethod(client, selectorName: "enableMCL:", error: &error)
+            let available = readAvailableLimits(client, error: &error)
+            // macOS interprets 100% as "Charge Limit Off", so enabling must target an active cap < 100%.
+            let activeLimits = available.filter { $0 < 100 }
+            let safeTarget = targetLimit < 100 ? targetLimit : 80
+            let snapped = ChargeLimitHelpers.snapToSupportedLimit(
+                safeTarget,
+                availableLimits: activeLimits.isEmpty ? [80, 85, 90, 95] : activeLimits
+            )
+            let limitOk = setMCLLimit(client, limit: UInt8(snapped), error: &error)
+            ok = enableOk || limitOk
         } else {
             ok = callBoolErrorMethod(client, selectorName: "disableMCL:", error: &error)
         }

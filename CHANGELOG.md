@@ -6,6 +6,10 @@ Tất cả các thay đổi đáng chú ý của dự án **Powerman** sẽ đư
 
 ## [1.0.1] - 2026-11-17
 
+### Fixed
+- **Menu Bar Replicant Redraw CPU Spike (`AppearanceObserverView`):** Loại bỏ vòng lặp vẽ lại vô hạn `NSStatusItem _redrawReplicantSnapshot` gây nghẽn Main Thread (`87%` CPU), bổ sung `MenuBarController.RenderSignature` để chỉ render lại `ImageRenderer` khi dữ liệu hiển thị hoặc appearance thực sự thay đổi.
+- **Charge Limit Re-enable (`Off → On`):** Sửa lỗi `AppState.setChargeLimitEnabled(true)` và `NativeChargeLimitService.setEnabled` truyền lại giá trị `100` sau khi `disableMCL:` reset ngưỡng hệ thống về `100` (khiến macOS tắt ngược Charge Limit ngay lập tức); lưu `lastActiveChargeLimit` (80–95%) để bật lại chính xác mức giới hạn trước đó, kèm guard trong `ChargingSettingsView` (nâng lên build `3`).
+
 ### Added
 - **USB-C PD Negotiating Status (`Negotiating USB-C Power...`):**
   - Thêm trạng thái phụ chuyên biệt ngay tại `t = 0s` khi vừa cắm nguồn USB-C/MagSafe nhưng bộ sạc đang trong 2–10s đàm phán công suất (`AppState.isNegotiatingUSBCPower`, `AppState.batteryStatusLabel`):

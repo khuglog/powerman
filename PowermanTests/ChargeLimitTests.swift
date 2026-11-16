@@ -16,15 +16,28 @@ private final class MockChargeLimitService: ChargeLimitManaging {
     }
 
     func setEnabled(_ enabled: Bool, targetLimit: Int) -> ChargeLimitStatus {
-        status.isEnabled = enabled
         if enabled {
-            status.limitPercentage = ChargeLimitHelpers.snapToSupportedLimit(targetLimit, availableLimits: status.availableLimits)
+            let activeLimits = status.availableLimits.filter { $0 < 100 }
+            let safeTarget = targetLimit < 100 ? targetLimit : 80
+            status.limitPercentage = ChargeLimitHelpers.snapToSupportedLimit(
+                safeTarget,
+                availableLimits: activeLimits.isEmpty ? [80, 85, 90, 95] : activeLimits
+            )
+            status.isEnabled = status.limitPercentage < 100
+        } else {
+            // Match macOS PowerUI behavior: disabling MCL resets hardware limitPercentage to 100.
+            status.isEnabled = false
+            status.limitPercentage = 100
         }
         return status
     }
 
     func setLimit(_ percentage: Int) -> ChargeLimitStatus {
-        status.limitPercentage = ChargeLimitHelpers.snapToSupportedLimit(percentage, availableLimits: status.availableLimits)
+        let snapped = ChargeLimitHelpers.snapToSupportedLimit(percentage, availableLimits: status.availableLimits)
+        status.limitPercentage = snapped
+        if snapped >= 100 {
+            status.isEnabled = false
+        }
         return status
     }
 }
@@ -133,6 +146,15 @@ final class ChargeLimitTests: XCTestCase {
         XCTAssertEqual(appState.chargeLimitStatus.limitPercentage, 80)
 
         appState.setChargeLimitPercentage(89)
+        XCTAssertEqual(appState.chargeLimitStatus.limitPercentage, 90)
+
+        // Disabling resets limitPercentage to 100 in macOS; re-enabling must restore 90% instead of staying stuck at 100%.
+        appState.setChargeLimitEnabled(false)
+        XCTAssertFalse(appState.chargeLimitStatus.isEnabled)
+        XCTAssertEqual(appState.chargeLimitStatus.limitPercentage, 100)
+
+        appState.setChargeLimitEnabled(true)
+        XCTAssertTrue(appState.chargeLimitStatus.isEnabled)
         XCTAssertEqual(appState.chargeLimitStatus.limitPercentage, 90)
 
         appState.setChargeLimitEnabled(false)

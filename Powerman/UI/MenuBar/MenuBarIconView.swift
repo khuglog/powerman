@@ -7,15 +7,32 @@ struct MenuBarIconView: View {
     let colorMode: MenuBarColorMode
     let size: MenuBarSize
     let statusColorsEnabled: Bool
-    var forceDarkForeground: Bool = false
+    var isDarkMenuBar: Bool = false
+    var isTemplateMode: Bool = false
 
     private var scaleFactor: CGFloat {
         size == .large ? 1.18 : 1.0
     }
 
+    /// Foreground color used for text, outlines, and neutral fills.
+    private var baseForeground: Color {
+        if isTemplateMode {
+            return .black
+        }
+        return isDarkMenuBar ? .white : .black
+    }
+
+    private var isStatusColored: Bool {
+        guard !isTemplateMode else { return false }
+        if statusColorsEnabled {
+            return battery.isCharging || battery.isFullyCharged || battery.percentage <= 20
+        }
+        return battery.percentage <= 10
+    }
+
     private var fillColor: Color {
-        if colorMode == .monochrome && !statusColorsEnabled {
-            return forceDarkForeground ? .white : .primary
+        if isTemplateMode {
+            return .black
         }
 
         if statusColorsEnabled {
@@ -30,11 +47,7 @@ struct MenuBarIconView: View {
             return .red
         }
 
-        return forceDarkForeground ? .white : .primary
-    }
-
-    private var textColor: Color {
-        forceDarkForeground ? .white : .primary
+        return baseForeground
     }
 
     var body: some View {
@@ -48,13 +61,13 @@ struct MenuBarIconView: View {
                     Text("\(battery.percentage)%")
                         .font(.system(size: 11.5 * scaleFactor, weight: .semibold, design: .rounded))
                         .monospacedDigit()
-                        .foregroundStyle(textColor)
+                        .foregroundStyle(baseForeground)
                 }
             } else if displayMode == .timeRemaining {
                 Text(battery.formattedTimeRemaining)
                     .font(.system(size: 11.5 * scaleFactor, weight: .medium, design: .rounded))
                     .monospacedDigit()
-                    .foregroundStyle(textColor)
+                    .foregroundStyle(baseForeground)
             }
         }
         .padding(.horizontal, 3)
@@ -67,7 +80,7 @@ struct MenuBarIconView: View {
         case .batteryIndicator:
             richBatteryIndicator
         case .minimal:
-            minimalPillIndicator
+            minimalPillIndicator(showDigitsInside: displayMode != .iconOnly)
         case .powermanLogo:
             Image(systemName: battery.isCharging ? "bolt.shield.fill" : "bolt.circle.fill")
                 .font(.system(size: 13.5 * scaleFactor, weight: .semibold))
@@ -79,7 +92,7 @@ struct MenuBarIconView: View {
         HStack(spacing: 1.5) {
             ZStack(alignment: .leading) {
                 RoundedRectangle(cornerRadius: 3.5 * scaleFactor, style: .continuous)
-                    .stroke(textColor.opacity(0.7), lineWidth: 1.2)
+                    .stroke(baseForeground.opacity(0.75), lineWidth: 1.2)
                     .frame(width: 24 * scaleFactor, height: 12.5 * scaleFactor)
 
                 RoundedRectangle(cornerRadius: 2.2 * scaleFactor, style: .continuous)
@@ -93,52 +106,88 @@ struct MenuBarIconView: View {
                 if battery.isCharging {
                     Image(systemName: "bolt.fill")
                         .font(.system(size: 7.5 * scaleFactor, weight: .bold))
-                        .foregroundStyle(.white)
-                        .shadow(color: .black.opacity(0.4), radius: 0.5)
+                        .foregroundStyle(isStatusColored ? .white : (isDarkMenuBar ? .black : .white))
+                        .shadow(color: .black.opacity(0.35), radius: 0.5)
                         .frame(width: 24 * scaleFactor, height: 12.5 * scaleFactor)
                 }
             }
 
             RoundedRectangle(cornerRadius: 1)
-                .fill(textColor.opacity(0.55))
+                .fill(baseForeground.opacity(0.6))
                 .frame(width: 1.8 * scaleFactor, height: 4.5 * scaleFactor)
         }
     }
 
-    private var minimalPillIndicator: some View {
+    private func minimalPillIndicator(showDigitsInside: Bool) -> some View {
         HStack(spacing: 1.5) {
             ZStack {
-                RoundedRectangle(cornerRadius: 3.5 * scaleFactor, style: .continuous)
-                    .fill(textColor.opacity(0.22))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 3.5 * scaleFactor, style: .continuous)
-                            .stroke(textColor.opacity(0.55), lineWidth: 0.9)
-                    )
-                    .frame(width: 24 * scaleFactor, height: 13 * scaleFactor)
+                if isStatusColored {
+                    // Dark track ensures crisp white digit contrast over both filled and unfilled regions.
+                    RoundedRectangle(cornerRadius: 3.5 * scaleFactor, style: .continuous)
+                        .fill(Color.black.opacity(isDarkMenuBar ? 0.45 : 0.62))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 3.5 * scaleFactor, style: .continuous)
+                                .stroke(baseForeground.opacity(0.45), lineWidth: 0.9)
+                        )
+                        .frame(width: 25 * scaleFactor, height: 13.5 * scaleFactor)
 
-                GeometryReader { geo in
-                    RoundedRectangle(cornerRadius: 3 * scaleFactor, style: .continuous)
-                        .fill(fillColor)
-                        .frame(width: geo.size.width * CGFloat(battery.percentage) / 100.0)
-                }
-                .frame(width: 24 * scaleFactor, height: 13 * scaleFactor)
-                .clipShape(RoundedRectangle(cornerRadius: 3.5 * scaleFactor, style: .continuous))
-
-                HStack(spacing: 1) {
-                    if battery.isCharging {
-                        Image(systemName: "bolt.fill")
-                            .font(.system(size: 7 * scaleFactor, weight: .bold))
+                    GeometryReader { geo in
+                        RoundedRectangle(cornerRadius: 3 * scaleFactor, style: .continuous)
+                            .fill(fillColor)
+                            .frame(width: geo.size.width * CGFloat(battery.percentage) / 100.0)
                     }
-                    Text("\(battery.percentage)")
-                        .font(.system(size: 9 * scaleFactor, weight: .bold, design: .rounded))
-                        .monospacedDigit()
+                    .frame(width: 25 * scaleFactor, height: 13.5 * scaleFactor)
+                    .clipShape(RoundedRectangle(cornerRadius: 3.5 * scaleFactor, style: .continuous))
+
+                    if showDigitsInside {
+                        pillLabel
+                            .foregroundStyle(.white)
+                            .shadow(color: .black.opacity(0.45), radius: 0.6, x: 0, y: 0.5)
+                    }
+                } else {
+                    // Punch out digits using destinationOut so the pill always contrasts cleanly with any menu bar.
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 3.5 * scaleFactor, style: .continuous)
+                            .fill(baseForeground.opacity(0.32))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 3.5 * scaleFactor, style: .continuous)
+                                    .stroke(baseForeground.opacity(0.65), lineWidth: 0.9)
+                            )
+                            .frame(width: 25 * scaleFactor, height: 13.5 * scaleFactor)
+
+                        GeometryReader { geo in
+                            RoundedRectangle(cornerRadius: 3 * scaleFactor, style: .continuous)
+                                .fill(baseForeground)
+                                .frame(width: geo.size.width * CGFloat(battery.percentage) / 100.0)
+                        }
+                        .frame(width: 25 * scaleFactor, height: 13.5 * scaleFactor)
+                        .clipShape(RoundedRectangle(cornerRadius: 3.5 * scaleFactor, style: .continuous))
+
+                        if showDigitsInside {
+                            pillLabel
+                                .foregroundStyle(.black)
+                                .blendMode(.destinationOut)
+                        }
+                    }
+                    .compositingGroup()
                 }
-                .foregroundStyle(textColor)
             }
 
             RoundedRectangle(cornerRadius: 1)
-                .fill(textColor.opacity(0.5))
+                .fill(baseForeground.opacity(0.55))
                 .frame(width: 1.5 * scaleFactor, height: 4.5 * scaleFactor)
+        }
+    }
+
+    private var pillLabel: some View {
+        HStack(spacing: 1) {
+            if battery.isCharging {
+                Image(systemName: "bolt.fill")
+                    .font(.system(size: 6.5 * scaleFactor, weight: .bold))
+            }
+            Text("\(battery.percentage)")
+                .font(.system(size: 9 * scaleFactor, weight: .bold, design: .rounded))
+                .monospacedDigit()
         }
     }
 }

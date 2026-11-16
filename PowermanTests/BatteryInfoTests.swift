@@ -91,6 +91,62 @@ final class BatteryInfoTests: XCTestCase {
         XCTAssertEqual(info.formattedTimeRemaining, "--")
     }
 
+    func testParseAppleSiliconNestedBatteryDataAndPack() {
+        let iops: [String: Any] = [
+            "Current Capacity": 65,
+            "Max Capacity": 100,
+            "Power Source State": "Battery Power",
+            "Is Charging": false,
+            "Time to Empty": 304
+        ]
+
+        let smartBattery: [String: Any] = [
+            "CycleCount": 167,
+            "DesignCycleCount9C": 1000,
+            "MaxCapacity": 100,
+            "CurrentCapacity": 65,
+            "Voltage": 11839,
+            "InstantAmperage": -947,
+            "ExternalConnected": false,
+            "IsCharging": false,
+            "BatteryData": [
+                "DesignCapacity": 6249,
+                "FullChargeCapacity": 5705,
+                "NominalChargeCapacity": 5857,
+                "RemainingCapacity": 3546,
+                "BatteryPower": -11211
+            ]
+        ]
+
+        let smartBatteryPack: [String: Any] = [
+            "BatteryData": [
+                "Temperature": 3239,
+                "VirtualTemperature": 3239,
+                "AppleRawMaxCapacity": 5693,
+                "AppleRawCurrentCapacity": 3651,
+                "DesignCapacity": 6249
+            ]
+        ]
+
+        let info = BatterySnapshotParser.parse(
+            iops: iops,
+            smartBattery: smartBattery,
+            smartBatteryPack: smartBatteryPack
+        )
+
+        XCTAssertTrue(info.hasBattery)
+        XCTAssertEqual(info.percentage, 65)
+        XCTAssertEqual(info.cycleCount, 167)
+        XCTAssertEqual(info.designCapacityMah, 6249)
+        XCTAssertEqual(info.maxCapacityMah, 5693)
+        XCTAssertEqual(info.currentCapacityMah, 3651)
+        XCTAssertEqual(info.roundedHealthPercentage, 91)
+        XCTAssertEqual(info.healthStatus, .good)
+        XCTAssertEqual(info.temperatureCelsius ?? 0, 32.4, accuracy: 0.1)
+        XCTAssertEqual(info.temperatureStatus, .normal)
+        XCTAssertEqual(info.wattage ?? 0, 11.21, accuracy: 0.05)
+    }
+
     @MainActor
     func testAppSettingsPersistence() {
         let suiteName = "com.powerman.tests.\(UUID().uuidString)"

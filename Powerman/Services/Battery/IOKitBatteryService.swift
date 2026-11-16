@@ -59,8 +59,13 @@ final class IOKitBatteryService: BatteryMonitoring {
     @discardableResult
     func refreshNow() -> BatteryInfo {
         let iopsDict = Self.readIOPSPrimaryBattery()
-        let smartBatteryDict = Self.readAppleSmartBattery()
-        let parsed = BatterySnapshotParser.parse(iops: iopsDict, smartBattery: smartBatteryDict)
+        let smartBatteryDict = Self.readIORegistryService(named: "AppleSmartBattery")
+        let smartBatteryPackDict = Self.readIORegistryService(named: "AppleSmartBatteryPack")
+        let parsed = BatterySnapshotParser.parse(
+            iops: iopsDict,
+            smartBattery: smartBatteryDict,
+            smartBatteryPack: smartBatteryPackDict
+        )
         currentBattery = parsed
         return parsed
     }
@@ -89,8 +94,8 @@ final class IOKitBatteryService: BatteryMonitoring {
         return nil
     }
 
-    private static func readAppleSmartBattery() -> [String: Any]? {
-        let service = IOServiceGetMatchingService(kIOMainPortDefault, IOServiceMatching("AppleSmartBattery"))
+    private static func readIORegistryService(named serviceName: String) -> [String: Any]? {
+        let service = IOServiceGetMatchingService(kIOMainPortDefault, IOServiceMatching(serviceName))
         guard service != IO_OBJECT_NULL else { return nil }
         defer { IOObjectRelease(service) }
 

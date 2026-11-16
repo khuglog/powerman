@@ -3,9 +3,9 @@
 > **Dành cho nhân sự hoặc AI model mới tiếp nhận:** Đọc file này đầu tiên để biết dự án đang ở đâu, các tính năng nào đã chạy ổn định và bước tiếp theo cần làm ngay.
 
 - **Cập nhật lần cuối:** 2026-11-16
-- **Giai đoạn hiện tại (Current Phase):** Hoàn thành **Phase 0 & Phase 1** — Sẵn sàng chuyển sang **Phase 2**
+- **Giai đoạn hiện tại (Current Phase):** Hoàn thành **Phase 0 & Phase 1** (đã fix Menu Bar contrast & Apple Silicon `BatteryData`/`AppleSmartBatteryPack` telemetry) — Sẵn sàng chuyển sang **Phase 2**
 - **Nhánh chính:** `main`
-- **Trạng thái Build / Test:** `TEST SUCCEEDED` (4/4 test cases trong `BatteryInfoTests` pass, `SWIFT_STRICT_CONCURRENCY = complete`)
+- **Trạng thái Build / Test:** `TEST SUCCEEDED` (5/5 test cases trong `BatteryInfoTests` pass, `SWIFT_STRICT_CONCURRENCY = complete`)
 
 ---
 
@@ -37,7 +37,7 @@
 - [x] Xây dựng `IOKitBatteryService` (event-driven qua `IOPSNotificationCreateRunLoopSource` + timer fallback 30s)
 - [x] Xây dựng `AppState`, `AppDelegate`, `MenuBarController` (`NSStatusItem` + `NSPopover`) & `MenuBarIconView`
 - [x] Hoàn thiện `MenuBarPopoverView` & `SettingsRootView` (Tab `Menu Bar` đầy đủ với Live Preview + Tab `Battery` hiển thị KPI & Live Telemetry)
-- [x] Viết & chạy pass `PowermanTests` (`BatteryInfoTests`: 4/4 tests passed)
+- [x] Viết & chạy pass `PowermanTests` (`BatteryInfoTests`: 5/5 tests passed, bao gồm test `BatteryData` & `AppleSmartBatteryPack` trên Apple Silicon)
 
 ### Phase 2: Hệ thống Cảnh báo (`Alerts`) — *Kế tiếp*
 - [ ] Tạo model `AlertRule` (Low Battery, Charged, Power Source), lưu bằng `UserDefaults`/JSON

@@ -216,7 +216,7 @@ struct MenuBarSettingsView: View {
                             colorMode: settings.menuBarColorMode,
                             size: settings.menuBarSize,
                             statusColorsEnabled: settings.statusColorsEnabled,
-                            forceDarkForeground: true
+                            isDarkMenuBar: true
                         )
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)

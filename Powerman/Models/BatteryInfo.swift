@@ -48,6 +48,7 @@ struct BatteryInfo: Sendable, Equatable {
     let temperatureCelsius: Double?
     let voltageMv: Int?
     let amperageMa: Int?
+    let batteryPowerMw: Int?
     let adapterWatts: Int?
     let adapterName: String?
     let hasBattery: Bool
@@ -99,8 +100,13 @@ struct BatteryInfo: Sendable, Equatable {
     }
 
     var wattage: Double? {
-        guard let voltageMv, let amperageMa else { return nil }
-        return (Double(voltageMv) * Double(abs(amperageMa))) / 1_000_000.0
+        if let voltageMv, let amperageMa {
+            return (Double(voltageMv) * Double(abs(amperageMa))) / 1_000_000.0
+        }
+        if let batteryPowerMw {
+            return Double(abs(batteryPowerMw)) / 1_000.0
+        }
+        return nil
     }
 
     var formattedTimeRemaining: String {
@@ -130,6 +136,7 @@ struct BatteryInfo: Sendable, Equatable {
         temperatureCelsius: nil,
         voltageMv: nil,
         amperageMa: nil,
+        batteryPowerMw: nil,
         adapterWatts: nil,
         adapterName: nil,
         hasBattery: false,
@@ -138,14 +145,19 @@ struct BatteryInfo: Sendable, Equatable {
 }
 
 enum BatterySnapshotParser {
-    /// Parses combined IOPS power source description and `AppleSmartBattery` IORegistry dictionary into `BatteryInfo`.
+    /// Parses combined IOPS power source description, `AppleSmartBattery`, and `AppleSmartBatteryPack` IORegistry dictionaries into `BatteryInfo`.
     static func parse(
         iops: [String: Any]?,
         smartBattery: [String: Any]?,
+        smartBatteryPack: [String: Any]? = nil,
         now: Date = Date()
     ) -> BatteryInfo {
-        let hasBattery = (smartBattery != nil) || (iops != nil)
+        let hasBattery = (smartBattery != nil) || (smartBatteryPack != nil) || (iops != nil)
         guard hasBattery else { return .placeholder }
+
+        let smartBatteryData = smartBattery?["BatteryData"] as? [String: Any]
+        let packBatteryData = smartBatteryPack?["BatteryData"] as? [String: Any]
+        let dictionaries: [[String: Any]?] = [smartBattery, smartBatteryData, packBatteryData, smartBatteryPack]
 
         let currentCapIOPS = intValue(iops?["Current Capacity"])
         let maxCapIOPS = intValue(iops?["Max Capacity"])
@@ -154,20 +166,19 @@ enum BatterySnapshotParser {
             return Int(((Double(cur) / Double(maxVal)) * 100.0).rounded())
         }()
 
-        let currentCapRaw = intValue(smartBattery?["AppleRawCurrentCapacity"])
-            ?? intValue(smartBattery?["CurrentCapacity"])
+        let currentCapRaw = firstInt(forKeys: ["AppleRawCurrentCapacity", "RemainingCapacity"], in: dictionaries)
+            ?? validRawCapacityFallback(firstInt(forKeys: ["CurrentCapacity"], in: dictionaries))
             ?? 0
 
-        let maxCapRaw = intValue(smartBattery?["AppleRawMaxCapacity"])
-            ?? intValue(smartBattery?["NominalChargeCapacity"])
-            ?? validMaxCapacityFallback(smartBattery?["MaxCapacity"])
+        let maxCapRaw = firstInt(forKeys: ["AppleRawMaxCapacity", "FullChargeCapacity", "NominalChargeCapacity"], in: dictionaries)
+            ?? validRawCapacityFallback(firstInt(forKeys: ["MaxCapacity"], in: dictionaries))
             ?? 0
 
-        let designCapRaw = intValue(smartBattery?["DesignCapacity"]) ?? 0
+        let designCapRaw = firstInt(forKeys: ["DesignCapacity"], in: dictionaries) ?? 0
 
         let percentageFromSmartBattery: Int? = {
-            if let pct = intValue(smartBattery?["CurrentCapacity"]), pct <= 100,
-               intValue(smartBattery?["MaxCapacity"]) == 100 {
+            if let pct = firstInt(forKeys: ["CurrentCapacity"], in: dictionaries), pct <= 100,
+               firstInt(forKeys: ["MaxCapacity"], in: dictionaries) == 100 {
                 return pct
             }
             if maxCapRaw > 0, currentCapRaw > 0 {
@@ -195,25 +206,29 @@ enum BatterySnapshotParser {
                 if let toFull = intValue(iops?["Time to Full Charge"]), toFull > 0, toFull < 10_000 {
                     return toFull
                 }
-                if let avgToFull = intValue(smartBattery?["AvgTimeToFull"]), avgToFull > 0, avgToFull < 10_000 {
+                if let avgToFull = firstInt(forKeys: ["AvgTimeToFull"], in: dictionaries), avgToFull > 0, avgToFull < 10_000 {
                     return avgToFull
                 }
             } else if !isPluggedIn {
                 if let toEmpty = intValue(iops?["Time to Empty"]), toEmpty > 0, toEmpty < 10_000 {
                     return toEmpty
                 }
-                if let avgToEmpty = intValue(smartBattery?["AvgTimeToEmpty"]), avgToEmpty > 0, avgToEmpty < 10_000 {
+                if let avgToEmpty = firstInt(forKeys: ["AvgTimeToEmpty"], in: dictionaries), avgToEmpty > 0, avgToEmpty < 10_000 {
                     return avgToEmpty
                 }
             }
             return nil
         }()
 
-        let cycleCount = intValue(smartBattery?["CycleCount"]) ?? 0
-        let designCycleCount = intValue(smartBattery?["DesignCycleCount9C"]) ?? 1000
-        let temperatureCelsius = parseTemperatureCelsius(smartBattery?["Temperature"])
-        let voltageMv = intValue(smartBattery?["Voltage"])
-        let amperageMa = intValue(smartBattery?["InstantAmperage"]) ?? intValue(smartBattery?["Amperage"])
+        let cycleCount = firstInt(forKeys: ["CycleCount"], in: dictionaries) ?? 0
+        let designCycleCount = firstInt(forKeys: ["DesignCycleCount9C"], in: dictionaries) ?? 1000
+
+        let rawTemp = firstValue(forKeys: ["Temperature", "VirtualTemperature"], in: dictionaries)
+        let temperatureCelsius = parseTemperatureCelsius(rawTemp)
+
+        let voltageMv = firstInt(forKeys: ["Voltage", "AppleRawBatteryVoltage"], in: dictionaries)
+        let amperageMa = firstInt(forKeys: ["InstantAmperage", "Amperage"], in: dictionaries)
+        let batteryPowerMw = firstInt(forKeys: ["BatteryPower"], in: dictionaries)
 
         let adapterDict = smartBattery?["AdapterDetails"] as? [String: Any]
         let adapterWatts = intValue(adapterDict?["Watts"])
@@ -233,6 +248,7 @@ enum BatterySnapshotParser {
             temperatureCelsius: temperatureCelsius,
             voltageMv: voltageMv,
             amperageMa: amperageMa,
+            batteryPowerMw: batteryPowerMw,
             adapterWatts: adapterWatts,
             adapterName: adapterName,
             hasBattery: true,
@@ -240,15 +256,15 @@ enum BatterySnapshotParser {
         )
     }
 
-    /// Converts AppleSmartBattery `Temperature` (centi-Kelvin on modern Macs, deci-Kelvin or deci-Celsius on legacy) to Celsius.
+    /// Converts AppleSmartBattery `Temperature` (centi-Kelvin > 10,000; centi-Celsius 1,500...9,999; deci-Celsius 150...1,499) to Celsius.
     static func parseTemperatureCelsius(_ value: Any?) -> Double? {
         guard let raw = intValue(value), raw > 0 else { return nil }
         let celsius: Double
         if raw > 10_000 {
             celsius = (Double(raw) / 100.0) - 273.15
-        } else if raw > 1_000 {
-            celsius = (Double(raw) / 10.0) - 273.15
-        } else if raw > 150 {
+        } else if raw >= 1_500 {
+            celsius = Double(raw) / 100.0
+        } else if raw >= 150 {
             celsius = Double(raw) / 10.0
         } else {
             celsius = Double(raw)
@@ -257,8 +273,30 @@ enum BatterySnapshotParser {
         return (celsius * 10.0).rounded() / 10.0
     }
 
-    private static func validMaxCapacityFallback(_ value: Any?) -> Int? {
-        guard let num = intValue(value), num > 200 else { return nil }
+    private static func firstInt(forKeys keys: [String], in dictionaries: [[String: Any]?]) -> Int? {
+        for key in keys {
+            for dict in dictionaries {
+                if let val = intValue(dict?[key]) {
+                    return val
+                }
+            }
+        }
+        return nil
+    }
+
+    private static func firstValue(forKeys keys: [String], in dictionaries: [[String: Any]?]) -> Any? {
+        for key in keys {
+            for dict in dictionaries {
+                if let val = dict?[key] {
+                    return val
+                }
+            }
+        }
+        return nil
+    }
+
+    private static func validRawCapacityFallback(_ num: Int?) -> Int? {
+        guard let num, num > 200 else { return nil }
         return num
     }
 

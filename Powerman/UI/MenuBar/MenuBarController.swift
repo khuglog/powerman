@@ -8,6 +8,8 @@ final class MenuBarController: NSObject {
     private let statusItem: NSStatusItem
     private let popover: NSPopover
     private var eventMonitor: Any?
+    private var appearanceObservation: NSKeyValueObservation?
+    private var themeObserver: NSObjectProtocol?
 
     init(appState: AppState) {
         self.appState = appState
@@ -17,6 +19,7 @@ final class MenuBarController: NSObject {
 
         setupPopover()
         setupStatusButton()
+        observeAppearanceChanges()
         observeStateChanges()
         updateStatusItemIcon()
     }
@@ -26,6 +29,12 @@ final class MenuBarController: NSObject {
             NSEvent.removeMonitor(eventMonitor)
             self.eventMonitor = nil
         }
+        if let themeObserver {
+            DistributedNotificationCenter.default().removeObserver(themeObserver)
+            self.themeObserver = nil
+        }
+        appearanceObservation?.invalidate()
+        appearanceObservation = nil
         NSStatusBar.system.removeStatusItem(statusItem)
     }
 
@@ -43,6 +52,26 @@ final class MenuBarController: NSObject {
         button.target = self
         button.action = #selector(togglePopover(_:))
         button.sendAction(on: [.leftMouseUp, .rightMouseUp])
+    }
+
+    private func observeAppearanceChanges() {
+        if let button = statusItem.button {
+            appearanceObservation = button.observe(\.effectiveAppearance, options: [.new]) { [weak self] _, _ in
+                Task { @MainActor [weak self] in
+                    self?.updateStatusItemIcon()
+                }
+            }
+        }
+
+        themeObserver = DistributedNotificationCenter.default().addObserver(
+            forName: Notification.Name("AppleInterfaceThemeChangedNotification"),
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                self?.updateStatusItemIcon()
+            }
+        }
     }
 
     @objc private func togglePopover(_ sender: Any?) {
@@ -94,20 +123,26 @@ final class MenuBarController: NSObject {
     private func updateStatusItemIcon() {
         guard let button = statusItem.button else { return }
         let settings = appState.settings
+        let isDarkMenuBar = button.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+        let useTemplate = (settings.menuBarColorMode == .monochrome && !settings.statusColorsEnabled)
+
         let iconView = MenuBarIconView(
             battery: appState.batteryInfo,
             style: settings.menuBarIconStyle,
             displayMode: settings.menuBarDisplayMode,
             colorMode: settings.menuBarColorMode,
             size: settings.menuBarSize,
-            statusColorsEnabled: settings.statusColorsEnabled
+            statusColorsEnabled: settings.statusColorsEnabled,
+            isDarkMenuBar: isDarkMenuBar,
+            isTemplateMode: useTemplate
         )
+        .environment(\.colorScheme, isDarkMenuBar ? .dark : .light)
 
         let renderer = ImageRenderer(content: iconView)
         renderer.scale = NSScreen.main?.backingScaleFactor ?? 2.0
 
         if let nsImage = renderer.nsImage {
-            nsImage.isTemplate = (settings.menuBarColorMode == .monochrome && !settings.statusColorsEnabled)
+            nsImage.isTemplate = useTemplate
             button.image = nsImage
             button.title = ""
         } else {

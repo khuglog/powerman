@@ -103,6 +103,7 @@ final class OverlayWindowManager: AlertPresenting {
             panel.isOpaque = false
             panel.backgroundColor = .clear
             panel.hasShadow = false
+            panel.isReleasedWhenClosed = false
             panel.ignoresMouseEvents = true
             panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary, .ignoresCycle]
             panel.contentViewController = NSHostingController(
@@ -151,6 +152,7 @@ final class OverlayWindowManager: AlertPresenting {
         panel.isOpaque = false
         panel.backgroundColor = .clear
         panel.hasShadow = false
+        panel.isReleasedWhenClosed = false
         panel.ignoresMouseEvents = false
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary, .ignoresCycle]
         panel.contentViewController = hosting

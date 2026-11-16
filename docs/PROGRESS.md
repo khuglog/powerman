@@ -5,7 +5,7 @@
 - **Cập nhật lần cuối:** 2026-11-16
 - **Giai đoạn hiện tại (Current Phase):** Hoàn thành toàn bộ lộ trình **v1.0.0 (Phase 0 → Phase 6)**
 - **Nhánh chính:** `main` (tag `v1.0.0`)
-- **Trạng thái Build / Test:** `TEST SUCCEEDED` (23/23 test cases: `BatteryInfoTests` 5/5, `AlertEngineTests` 6/6, `BluetoothBatteryTests` 3/3, `BatteryHistoryTests` 4/4, `ChargeLimitTests` 2/2, `GeneralSettingsTests` 3/3, `SWIFT_STRICT_CONCURRENCY = complete`)
+- **Trạng thái Build / Test:** `Release BUILD SUCCEEDED` (0 Swift warnings) & `TEST SUCCEEDED` (23/23 test cases: `BatteryInfoTests` 5/5, `AlertEngineTests` 6/6, `BluetoothBatteryTests` 3/3, `BatteryHistoryTests` 4/4, `ChargeLimitTests` 2/2, `GeneralSettingsTests` 3/3)
 
 ---
 

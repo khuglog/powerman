@@ -238,8 +238,8 @@ final class BluetoothBatteryService: NSObject, BluetoothBatteryMonitoring {
     private var discoveredBLEPeripherals: [UUID: CBPeripheral] = [:]
     private var bleBatteryLevels: [String: BluetoothDeviceBattery] = [:]
 
-    private static let batteryServiceUUID = CBUUID(string: "180F")
-    private static let batteryLevelCharacteristicUUID = CBUUID(string: "2A19")
+    nonisolated private static var batteryServiceUUID: CBUUID { CBUUID(string: "180F") }
+    nonisolated private static var batteryLevelCharacteristicUUID: CBUUID { CBUUID(string: "2A19") }
 
     func startMonitoring(onUpdate: @escaping @MainActor ([BluetoothDeviceBattery]) -> Void) {
         stopMonitoring()
@@ -423,11 +423,10 @@ final class BluetoothBatteryService: NSObject, BluetoothBatteryMonitoring {
 
 extension BluetoothBatteryService: CBCentralManagerDelegate, CBPeripheralDelegate {
     nonisolated func centralManagerDidUpdateState(_ central: CBCentralManager) {
+        let isPoweredOn = (central.state == .poweredOn)
         Task { @MainActor [weak self] in
-            guard let self else { return }
-            if central.state == .poweredOn {
-                self.queryConnectedBLEBatteries()
-            }
+            guard let self, isPoweredOn else { return }
+            self.queryConnectedBLEBatteries()
         }
     }
 

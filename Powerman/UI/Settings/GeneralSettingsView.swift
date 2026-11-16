@@ -16,6 +16,7 @@ struct GeneralSettingsView: View {
                 systemNotificationsSection
                 lowPowerModeSection
                 notificationAppearanceSection
+                aboutSection
             }
             .padding(24)
         }
@@ -319,6 +320,74 @@ struct GeneralSettingsView: View {
                     }
                     .frame(height: 120)
                     .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                }
+                .padding(14)
+            }
+            .background(cardBackground)
+        }
+    }
+
+    private var aboutSection: some View {
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
+
+        return VStack(alignment: .leading, spacing: 10) {
+            Label("About Powerman", systemImage: "info.circle.fill")
+                .font(.headline)
+
+            VStack(spacing: 0) {
+                HStack(spacing: 12) {
+                    badgeIcon("bolt.batteryblock.fill", color: .teal)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Powerman")
+                            .font(.system(size: 13.5, weight: .bold))
+                        Text("macOS Battery Manager • Version \(version)")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                    if let repoURL = URL(string: "https://github.com/khuglog/powerman") {
+                        Link("GitHub", destination: repoURL)
+                            .font(.caption.weight(.semibold))
+                    }
+                }
+                .padding(14)
+
+                Divider().padding(.horizontal, 14)
+
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Text("Author")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .frame(width: 64, alignment: .leading)
+                        Text("Hưng Nguyễn 719")
+                            .font(.system(size: 13, weight: .semibold))
+                        Spacer()
+                    }
+
+                    HStack {
+                        Text("Email")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .frame(width: 64, alignment: .leading)
+                        if let mailURL = URL(string: "mailto:hungnq719@gmail.com") {
+                            Link("hungnq719@gmail.com", destination: mailURL)
+                                .font(.system(size: 12.5, weight: .medium))
+                        }
+                        Spacer()
+                    }
+
+                    HStack {
+                        Text("Phone")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .frame(width: 64, alignment: .leading)
+                        if let telURL = URL(string: "tel:+84793334555") {
+                            Link("+84793334555", destination: telURL)
+                                .font(.system(size: 12.5, weight: .medium))
+                        }
+                        Spacer()
+                    }
                 }
                 .padding(14)
             }

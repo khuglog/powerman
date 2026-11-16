@@ -353,6 +353,12 @@ struct MenuBarPopoverView: View {
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
             Divider().padding(.leading, 36)
+            actionRow(icon: "envelope.fill", title: "Send Us Feedback", showChevron: false) {
+                if let url = URL(string: "mailto:hungnq719@gmail.com?subject=Powerman%20v\(appVersion)%20Feedback") {
+                    NSWorkspace.shared.open(url)
+                }
+            }
+            Divider().padding(.leading, 36)
             Button {
                 appState.quit()
             } label: {

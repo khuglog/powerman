@@ -24,5 +24,7 @@
 	<true/>
 	<key>NSBluetoothAlwaysUsageDescription</key>
 	<string>Powerman needs Bluetooth access to display battery levels for your paired devices.</string>
+	<key>NSHumanReadableCopyright</key>
+	<string>Copyright © 2026 Hưng Nguyễn 719 (hungnq719@gmail.com). All rights reserved.</string>
 </dict>
 </plist>

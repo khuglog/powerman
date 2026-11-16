@@ -23,7 +23,7 @@ struct AppEnergyUsage: Identifiable, Equatable, Sendable {
 @MainActor
 protocol EnergyConsuming: AnyObject {
     var topConsumers: [AppEnergyUsage] { get }
-    func refresh(completion: (@MainActor ([AppEnergyUsage]) -> Void)?)
+    func refresh(completion: (@MainActor @Sendable ([AppEnergyUsage]) -> Void)?)
 }
 
 @MainActor
@@ -44,7 +44,7 @@ final class ProcessEnergyConsumerService: EnergyConsuming {
         let bundleID: String?
     }
 
-    func refresh(completion: (@MainActor ([AppEnergyUsage]) -> Void)? = nil) {
+    func refresh(completion: (@MainActor @Sendable ([AppEnergyUsage]) -> Void)? = nil) {
         guard !isSampling else { return }
         isSampling = true
 
@@ -59,29 +59,30 @@ final class ProcessEnergyConsumerService: EnergyConsuming {
 
         let prior = previousSample
 
-        Task.detached(priority: .utility) {
-            let baseline: Snapshot
-            if let prior, Date().timeIntervalSince(prior.timestamp) >= 0.3 {
-                baseline = prior
-            } else {
-                baseline = Self.captureSnapshot()
-                try? await Task.sleep(for: .milliseconds(350))
-            }
+        Task { [weak self] in
+            let (current, consumers) = await Task.detached(priority: .utility) {
+                let baseline: Snapshot
+                if let prior, Date().timeIntervalSince(prior.timestamp) >= 0.3 {
+                    baseline = prior
+                } else {
+                    baseline = Self.captureSnapshot()
+                    try? await Task.sleep(for: .milliseconds(350))
+                }
 
-            let current = Self.captureSnapshot()
-            let consumers = Self.computeTopConsumers(
-                from: baseline,
-                to: current,
-                runningApps: appDescriptors
-            )
+                let current = Self.captureSnapshot()
+                let consumers = Self.computeTopConsumers(
+                    from: baseline,
+                    to: current,
+                    runningApps: appDescriptors
+                )
+                return (current, consumers)
+            }.value
 
-            await MainActor.run { [weak self] in
-                guard let self else { return }
-                self.previousSample = current
-                self.topConsumers = consumers
-                self.isSampling = false
-                completion?(consumers)
-            }
+            guard let self else { return }
+            self.previousSample = current
+            self.topConsumers = consumers
+            self.isSampling = false
+            completion?(consumers)
         }
     }
 

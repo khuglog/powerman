@@ -13,7 +13,7 @@ protocol SystemIntegrating: AnyObject {
     func setLaunchAtLogin(_ enabled: Bool) -> String?
     func applyAppearance(_ appearance: AppAppearanceOption)
     func requestAccessibilityPermission()
-    func startLowPowerObserver(onChange: @escaping @MainActor (Bool) -> Void)
+    func startLowPowerObserver(onChange: @escaping @MainActor @Sendable (Bool) -> Void)
     func stopLowPowerObserver()
     func setLowPowerMode(_ enabled: Bool, restoreBrightness: Bool) async -> Bool
     func startNotificationDismisser()
@@ -76,7 +76,7 @@ final class MacSystemIntegrationService: SystemIntegrating {
         _ = AXIsProcessTrustedWithOptions(options)
     }
 
-    func startLowPowerObserver(onChange: @escaping @MainActor (Bool) -> Void) {
+    func startLowPowerObserver(onChange: @escaping @MainActor @Sendable (Bool) -> Void) {
         stopLowPowerObserver()
         powerObserver = NotificationCenter.default.addObserver(
             forName: Notification.Name.NSProcessInfoPowerStateDidChange,

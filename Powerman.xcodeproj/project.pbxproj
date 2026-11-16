@@ -43,6 +43,7 @@
 		FBEEF5D59B4286B7AAFEEC3B /* BatteryHistoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 375EE0A3BC215F65B3C840E8 /* BatteryHistoryTests.swift */; };
 		0446F25DE09E370EE38501D9 /* ChargeLimitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28E3AC939E578A34F2EEA56F /* ChargeLimitTests.swift */; };
 		A8EC81CF1A27BEC372483390 /* GeneralSettingsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90B9729B2D3050605B76044A /* GeneralSettingsTests.swift */; };
+		B904E3333EB6C05F545F68B0 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D7F19F2D471C68872D7B14D5 /* Assets.xcassets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -94,6 +95,7 @@
 		90B9729B2D3050605B76044A /* GeneralSettingsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GeneralSettingsTests.swift; path = PowermanTests/GeneralSettingsTests.swift; sourceTree = "<group>"; };
 		2784DD82DBAE4CF1C17FABBB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Info.plist; path = Powerman/Resources/Info.plist; sourceTree = "<group>"; };
 		A9C664FF117B198BCE0CB392 /* Powerman.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = Powerman.entitlements; path = Powerman/Resources/Powerman.entitlements; sourceTree = "<group>"; };
+		D7F19F2D471C68872D7B14D5 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Assets.xcassets; path = Powerman/Resources/Assets.xcassets; sourceTree = "<group>"; };
 		5141EFFF35ACD6C51F274E4D /* Powerman.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Powerman.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		68D128FAC7073081D8355714 /* PowermanTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PowermanTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -169,6 +171,7 @@
 				6589E9FAF27D497E89CB2DE1,
 				2784DD82DBAE4CF1C17FABBB,
 				A9C664FF117B198BCE0CB392,
+				D7F19F2D471C68872D7B14D5,
 			);
 			name = Powerman;
 			sourceTree = "<group>";
@@ -267,6 +270,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B904E3333EB6C05F545F68B0 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -381,6 +385,7 @@
 		6FD51FE8A48050B44AFCCF21 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Powerman/Resources/Powerman.entitlements;
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
@@ -403,6 +408,7 @@
 		B2F784F5305FC92A81050698 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = Powerman/Resources/Powerman.entitlements;
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;

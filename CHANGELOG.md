@@ -9,7 +9,8 @@ Tất cả các thay đổi đáng chú ý của dự án **Powerman** sẽ đư
 ### Added
 - **Phase 6 (General Settings & System Integration):**
   - Xây dựng `MacSystemIntegrationService`: Launch at Login (`SMAppService.mainApp`), App Appearance (`Auto`/`Light`/`Dark`), Low Power Mode + khôi phục độ sáng màn hình (`DisplayServices`), và tự động đóng thông báo pin yếu macOS qua Accessibility (`AXUIElement`).
-  - Hoàn thiện `GeneralSettingsView` (Language, Appearance, Launch at Login, System Notifications, Restore Brightness, tùy chỉnh `Alert Bubble Size` & `Screen Edge Glow` kèm khung Preview trực tiếp) và công tắc `Low Power Mode` trong Popover.
+  - Hoàn thiện `GeneralSettingsView` (Language, Appearance, Launch at Login, System Notifications, Restore Brightness, tùy chỉnh `Alert Bubble Size` & `Screen Edge Glow` kèm khung Preview trực tiếp, thẻ `About Powerman` với thông tin tác giả **Hưng Nguyễn 719**) và công tắc `Low Power Mode` + `Send Us Feedback` trong Popover.
+  - Tạo bộ `AppIcon` (`Assets.xcassets`) cho macOS app, bổ sung copyright trong `Info.plist`, và xử lý triệt để toàn bộ cảnh báo Swift 6 Strict Concurrency ở bản dựng `Release`.
   - Bổ sung `GeneralSettingsTests` (3/3 test cases pass) và phát hành phiên bản `1.0.0` (23/23 unit tests pass).
 - **Phase 0 (Repo & Documentation):**
   - Thiết lập Git repository, `.gitignore`, GitHub Actions CI (`.github/workflows/ci.yml`).

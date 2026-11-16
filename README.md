@@ -40,3 +40,10 @@ Hoặc mở trực tiếp `Powerman.xcodeproj` bằng Xcode và nhấn `Cmd + R`
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Quy chuẩn nhánh Git, Conventional Commits, quy tắc code Swift và cập nhật tài liệu |
 | [CHANGELOG.md](CHANGELOG.md) | Lịch sử các phiên bản và thay đổi theo từng Phase |
 | [AGENTS.md](AGENTS.md) | Hướng dẫn dành riêng cho AI Coding Agents khi tiếp nhận dự án |
+
+## Tác giả & Liên hệ (Author & Contact)
+
+- **Tác giả:** Hưng Nguyễn 719
+- **Email:** [hungnq719@gmail.com](mailto:hungnq719@gmail.com)
+- **Điện thoại:** +84793334555
+

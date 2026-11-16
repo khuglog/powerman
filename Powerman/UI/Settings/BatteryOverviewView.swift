@@ -194,10 +194,13 @@ struct BatteryOverviewView: View {
                     .interpolationMethod(.catmullRom)
                 }
                 .chartYScale(domain: 0...100)
+                .chartXAxis {
+                    timeXAxisMarks(desiredCount: 5)
+                }
                 .chartYAxis {
                     AxisMarks(values: [0, 25, 50, 75, 100]) { value in
                         AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5, dash: [3]))
-                        AxisValueLabel {
+                        AxisValueLabel(anchor: .leading) {
                             if let intVal = value.as(Int.self) {
                                 Text("\(intVal)%").font(.caption2)
                             }
@@ -271,10 +274,24 @@ struct BatteryOverviewView: View {
                 }
                 .chartXAxis {
                     AxisMarks(values: .stride(by: .day)) { value in
-                        AxisValueLabel(format: .dateTime.weekday(.abbreviated))
+                        AxisValueLabel(anchor: .top) {
+                            if let date = value.as(Date.self) {
+                                Text(date, format: .dateTime.weekday(.abbreviated))
+                                    .font(.caption2)
+                            }
+                        }
                     }
                 }
-                .chartYAxisLabel("Discharged %")
+                .chartYAxis {
+                    AxisMarks(values: .automatic(desiredCount: 4)) { value in
+                        AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5, dash: [3]))
+                        AxisValueLabel(anchor: .leading) {
+                            if let pct = value.as(Int.self) {
+                                Text("\(pct)%").font(.caption2)
+                            }
+                        }
+                    }
+                }
                 .frame(height: 150)
             }
         }
@@ -339,7 +356,19 @@ struct BatteryOverviewView: View {
                     .interpolationMethod(.catmullRom)
                 }
                 .chartYScale(domain: 20...55)
-                .chartYAxisLabel("°C")
+                .chartXAxis {
+                    timeXAxisMarks(desiredCount: 4)
+                }
+                .chartYAxis {
+                    AxisMarks(values: [20, 35, 50]) { value in
+                        AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5, dash: [3]))
+                        AxisValueLabel(anchor: .leading) {
+                            if let deg = value.as(Int.self) {
+                                Text("\(deg)°C").font(.caption2)
+                            }
+                        }
+                    }
+                }
                 .frame(height: 110)
                 .padding(.top, 4)
             } else {
@@ -406,6 +435,22 @@ struct BatteryOverviewView: View {
         case .warm: return .orange
         case .hot: return .red
         case .unknown: return .secondary
+        }
+    }
+
+    @AxisContentBuilder
+    private func timeXAxisMarks(desiredCount: Int) -> some AxisContent {
+        let format: Date.FormatStyle = selectedTimeframe.duration >= 7 * 86400
+            ? .dateTime.month(.abbreviated).day()
+            : .dateTime.hour().minute()
+        AxisMarks(values: .automatic(desiredCount: desiredCount)) { value in
+            AxisGridLine(stroke: StrokeStyle(lineWidth: 0.5, dash: [3]))
+            AxisValueLabel(anchor: .top) {
+                if let date = value.as(Date.self) {
+                    Text(date, format: format)
+                        .font(.caption2)
+                }
+            }
         }
     }
 

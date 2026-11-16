@@ -169,8 +169,8 @@ struct MenuBarIconView: View {
                             .foregroundStyle(.white)
                             .shadow(color: .black.opacity(0.45), radius: 0.6, x: 0, y: 0.5)
                     }
-                } else {
-                    // Punch out digits using destinationOut so the pill always contrasts cleanly with any menu bar.
+                } else if isTemplateMode {
+                    // Punch out digits using destinationOut for monochrome NSImage template alpha masks.
                     ZStack {
                         RoundedRectangle(cornerRadius: 3.5 * scaleFactor, style: .continuous)
                             .fill(baseForeground.opacity(0.32))
@@ -195,6 +195,43 @@ struct MenuBarIconView: View {
                         }
                     }
                     .compositingGroup()
+                } else {
+                    let pillWidth = 25 * scaleFactor
+                    let pillHeight = 13.5 * scaleFactor
+                    let inverseForeground: Color = (colorMode == .white || (colorMode != .black && isDarkMenuBar)) ? .black : .white
+
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 3.5 * scaleFactor, style: .continuous)
+                            .fill(baseForeground.opacity(0.22))
+                            .frame(width: pillWidth, height: pillHeight)
+
+                        if showDigitsInside {
+                            pillLabel
+                                .foregroundStyle(baseForeground)
+                        }
+
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 3.5 * scaleFactor, style: .continuous)
+                                .fill(baseForeground)
+                                .frame(width: pillWidth, height: pillHeight)
+
+                            if showDigitsInside {
+                                pillLabel
+                                    .foregroundStyle(inverseForeground)
+                            }
+                        }
+                        .frame(width: pillWidth, height: pillHeight)
+                        .mask(alignment: .leading) {
+                            Rectangle()
+                                .frame(width: pillWidth * CGFloat(battery.percentage) / 100.0, height: pillHeight)
+                        }
+                    }
+                    .frame(width: pillWidth, height: pillHeight)
+                    .clipShape(RoundedRectangle(cornerRadius: 3.5 * scaleFactor, style: .continuous))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 3.5 * scaleFactor, style: .continuous)
+                            .stroke(baseForeground.opacity(0.75), lineWidth: 0.9)
+                    )
                 }
             }
 

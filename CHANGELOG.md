@@ -7,6 +7,11 @@ Tất cả các thay đổi đáng chú ý của dự án **Powerman** sẽ đư
 ## [1.0.0] - 2026-11-16
 
 ### Fixed
+- **Final Functional & Visual UI Audit:**
+  - `SettingsRootView`: Thay `List(.sidebar)` bằng custom sidebar dùng màu sRGB cố định cho badge và màu nhãn tương phản theo `colorScheme`, sửa triệt để lỗi trắng hóa badge và lỗi chữ tối trên nền Dark Mode.
+  - `MenuBarIconView`: Cải tiến render pill `Minimal` với hai lớp chữ tương phản cắt mặt nạ theo `%` (vẫn giữ alpha `destinationOut` cho `isTemplateMode`), giúp chữ số hiển thị sắc nét trong cả Menu Bar tối, sáng và Live Preview.
+  - `DevicesSettingsView`: Ẩn mũi tên thừa của `Menu` chuông cảnh báo (`.menuIndicator(.hidden)`) và bọc nền tròn `28x28` đồng nhất với các nút Pin và Ẩn/Hiện.
+  - `BatteryOverviewView`: Chỉ định tường minh `AxisMarks` & `AxisValueLabel(anchor:)` (`timeXAxisMarks`) cho các biểu đồ Swift Charts (`Battery Level`, `Daily Usage`, `Temperature`), loại bỏ hoàn toàn cảnh báo runtime về `UnitPoint`.
 - **Final Pre-release Review & Polish:**
   - Khắc phục rò rỉ `NSEvent` global monitor trong `MenuBarController` khi `NSPopover` tự đóng qua `NSPopoverDelegate`, dùng `preferredContentSize` để mở rộng accordion mượt mà, và tự động đóng popover khi bấm `Settings...` / `Battery Settings...` / `Send Us Feedback`.
   - Bổ sung debounced track-click & keyboard handler cho thanh trượt `Charge Limit` trong `ChargingSettingsView`.

@@ -164,25 +164,35 @@ struct DevicesSettingsView: View {
             Spacer()
 
             // Bell alert menu
-            Menu {
-                Button("Off") {
-                    settings.setDeviceAlertThreshold(nil, for: device.id)
-                }
-                Divider()
-                ForEach([10, 15, 20, 30], id: \.self) { level in
-                    Button("Alert below \(level)%") {
-                        settings.setDeviceAlertThreshold(level, for: device.id)
-                    }
-                }
-            } label: {
+            ZStack {
+                Circle()
+                    .fill(pref.lowBatteryAlertThreshold != nil ? Color.orange.opacity(0.14) : Color.primary.opacity(0.06))
+                    .frame(width: 28, height: 28)
+
                 Image(systemName: pref.lowBatteryAlertThreshold != nil ? "bell.fill" : "bell.slash")
                     .font(.system(size: 12))
                     .foregroundStyle(pref.lowBatteryAlertThreshold != nil ? Color.orange : Color.secondary)
-                    .frame(width: 28, height: 28)
-                    .background(Circle().fill(pref.lowBatteryAlertThreshold != nil ? Color.orange.opacity(0.14) : Color.primary.opacity(0.06)))
+
+                Menu {
+                    Button("Off") {
+                        settings.setDeviceAlertThreshold(nil, for: device.id)
+                    }
+                    Divider()
+                    ForEach([10, 15, 20, 30], id: \.self) { level in
+                        Button("Alert below \(level)%") {
+                            settings.setDeviceAlertThreshold(level, for: device.id)
+                        }
+                    }
+                } label: {
+                    Color.clear
+                        .frame(width: 28, height: 28)
+                        .contentShape(Circle())
+                }
+                .menuStyle(.borderlessButton)
+                .menuIndicator(.hidden)
+                .frame(width: 28, height: 28)
+                .accessibilityLabel("Set low battery alert for \(device.name)")
             }
-            .menuStyle(.borderlessButton)
-            .frame(width: 28)
             .help("Set low battery alert for this device")
 
             // Pin to menu bar

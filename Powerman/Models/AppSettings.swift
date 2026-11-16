@@ -56,6 +56,8 @@ enum MenuBarDisplayMode: String, CaseIterable, Identifiable, Codable {
 enum MenuBarColorMode: String, CaseIterable, Identifiable, Codable {
     case auto = "auto"
     case monochrome = "monochrome"
+    case white = "white"
+    case black = "black"
 
     var id: String { rawValue }
 
@@ -65,6 +67,10 @@ enum MenuBarColorMode: String, CaseIterable, Identifiable, Codable {
             return "Auto"
         case .monochrome:
             return "Monochrome"
+        case .white:
+            return "White"
+        case .black:
+            return "Black"
         }
     }
 }

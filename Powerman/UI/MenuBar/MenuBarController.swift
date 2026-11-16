@@ -124,7 +124,12 @@ final class MenuBarController: NSObject {
         guard let button = statusItem.button else { return }
         let settings = appState.settings
         let isDarkMenuBar = button.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
-        let useTemplate = (settings.menuBarColorMode == .monochrome && !settings.statusColorsEnabled)
+        let useTemplate = (settings.menuBarColorMode == .monochrome)
+        let effectiveDark = switch settings.menuBarColorMode {
+        case .white: true
+        case .black: false
+        case .auto, .monochrome: isDarkMenuBar
+        }
 
         let iconView = MenuBarIconView(
             battery: appState.batteryInfo,
@@ -133,10 +138,10 @@ final class MenuBarController: NSObject {
             colorMode: settings.menuBarColorMode,
             size: settings.menuBarSize,
             statusColorsEnabled: settings.statusColorsEnabled,
-            isDarkMenuBar: isDarkMenuBar,
+            isDarkMenuBar: effectiveDark,
             isTemplateMode: useTemplate
         )
-        .environment(\.colorScheme, isDarkMenuBar ? .dark : .light)
+        .environment(\.colorScheme, effectiveDark ? .dark : .light)
 
         let renderer = ImageRenderer(content: iconView)
         renderer.scale = NSScreen.main?.backingScaleFactor ?? 2.0

@@ -16,14 +16,20 @@ struct MenuBarIconView: View {
 
     /// Foreground color used for text, outlines, and neutral fills.
     private var baseForeground: Color {
-        if isTemplateMode {
+        switch colorMode {
+        case .monochrome:
+            return isTemplateMode ? .black : (isDarkMenuBar ? .white : .black)
+        case .white:
+            return .white
+        case .black:
             return .black
+        case .auto:
+            return isDarkMenuBar ? .white : .black
         }
-        return isDarkMenuBar ? .white : .black
     }
 
     private var isStatusColored: Bool {
-        guard !isTemplateMode else { return false }
+        guard colorMode != .monochrome, !isTemplateMode else { return false }
         if statusColorsEnabled {
             return battery.isCharging || battery.isFullyCharged || battery.percentage <= 20
         }
@@ -31,8 +37,8 @@ struct MenuBarIconView: View {
     }
 
     private var fillColor: Color {
-        if isTemplateMode {
-            return .black
+        if colorMode == .monochrome || isTemplateMode {
+            return baseForeground
         }
 
         if statusColorsEnabled {

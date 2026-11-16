@@ -115,9 +115,13 @@ struct MenuBarSettingsView: View {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Status colors")
                             .font(.system(size: 13, weight: .semibold))
-                        Text("Green when charging, orange for low battery. Off keeps the icon neutral and only turns red when critical.")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                        Text(
+                            settings.menuBarColorMode == .monochrome
+                            ? "Disabled while Color is set to Monochrome."
+                            : "Green when charging, orange for low battery. Off keeps the icon neutral and only turns red when critical."
+                        )
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                     }
                     Spacer()
                     Toggle("", isOn: Binding(
@@ -126,7 +130,9 @@ struct MenuBarSettingsView: View {
                     ))
                     .labelsHidden()
                     .toggleStyle(.switch)
+                    .disabled(settings.menuBarColorMode == .monochrome)
                 }
+                .opacity(settings.menuBarColorMode == .monochrome ? 0.6 : 1.0)
                 .padding(14)
 
                 Divider().padding(.horizontal, 14)
@@ -184,7 +190,8 @@ struct MenuBarSettingsView: View {
     }
 
     private var previewSection: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        let previewIsLightBar = (settings.menuBarColorMode == .black)
+        return VStack(alignment: .leading, spacing: 10) {
             Text("Preview")
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(.secondary)
@@ -207,7 +214,7 @@ struct MenuBarSettingsView: View {
                     HStack {
                         Image(systemName: "apple.logo")
                             .font(.system(size: 11))
-                            .foregroundStyle(.white.opacity(0.9))
+                            .foregroundStyle(previewIsLightBar ? Color.black.opacity(0.85) : Color.white.opacity(0.9))
                         Spacer()
                         MenuBarIconView(
                             battery: appState.batteryInfo,
@@ -216,15 +223,18 @@ struct MenuBarSettingsView: View {
                             colorMode: settings.menuBarColorMode,
                             size: settings.menuBarSize,
                             statusColorsEnabled: settings.statusColorsEnabled,
-                            isDarkMenuBar: true
+                            isDarkMenuBar: !previewIsLightBar
                         )
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
-                        .background(RoundedRectangle(cornerRadius: 4).fill(.white.opacity(0.12)))
+                        .background(
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(previewIsLightBar ? Color.black.opacity(0.08) : Color.white.opacity(0.12))
+                        )
                     }
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
-                    .background(.black.opacity(0.35))
+                    .background(previewIsLightBar ? Color.white.opacity(0.85) : Color.black.opacity(0.35))
 
                     Spacer()
 

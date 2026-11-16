@@ -1,0 +1,24 @@
+# macOS & Xcode
+.DS_Store
+*.xcuserstate
+*.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+*.xcodeproj/project.xcworkspace/xcuserdata/
+DerivedData/
+build/
+.build/
+*.ipa
+*.dSYM.zip
+*.dSYM
+*.dmg
+*.app
+
+# Swift Package Manager
+.swiftpm/
+Package.resolved
+
+# Secrets & local env
+.env
+*.p12
+*.mobileprovision
+*.provisionprofile

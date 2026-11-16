@@ -1,0 +1,284 @@
+import Foundation
+
+enum BatteryHealthStatus: String, Sendable, Equatable {
+    case good = "Good"
+    case fair = "Fair"
+    case poor = "Poor"
+    case unknown = "Unknown"
+}
+
+enum TemperatureStatus: String, Sendable, Equatable {
+    case normal = "Normal"
+    case warm = "Warm"
+    case hot = "Hot"
+    case unknown = "Unknown"
+}
+
+enum ChargingState: Sendable, Equatable {
+    case onBattery
+    case charging
+    case charged
+    case pluggedNotCharging
+
+    var displayLabel: String {
+        switch self {
+        case .onBattery:
+            return "On Battery"
+        case .charging:
+            return "Charging"
+        case .charged:
+            return "Fully Charged"
+        case .pluggedNotCharging:
+            return "Plugged In (Not Charging)"
+        }
+    }
+}
+
+struct BatteryInfo: Sendable, Equatable {
+    let percentage: Int
+    let isCharging: Bool
+    let isPluggedIn: Bool
+    let isFullyCharged: Bool
+    let timeRemainingMinutes: Int?
+    let cycleCount: Int
+    let ratedCycleCount: Int
+    let designCapacityMah: Int
+    let maxCapacityMah: Int
+    let currentCapacityMah: Int
+    let temperatureCelsius: Double?
+    let voltageMv: Int?
+    let amperageMa: Int?
+    let adapterWatts: Int?
+    let adapterName: String?
+    let hasBattery: Bool
+    let lastUpdated: Date
+
+    var chargingState: ChargingState {
+        if isFullyCharged && isPluggedIn {
+            return .charged
+        } else if isCharging {
+            return .charging
+        } else if isPluggedIn {
+            return .pluggedNotCharging
+        } else {
+            return .onBattery
+        }
+    }
+
+    var healthPercentage: Double {
+        guard designCapacityMah > 0, maxCapacityMah > 0 else { return 0 }
+        let ratio = (Double(maxCapacityMah) / Double(designCapacityMah)) * 100.0
+        return min(max(ratio, 0), 100)
+    }
+
+    var roundedHealthPercentage: Int {
+        Int(healthPercentage.rounded())
+    }
+
+    var healthStatus: BatteryHealthStatus {
+        guard designCapacityMah > 0, maxCapacityMah > 0 else { return .unknown }
+        let health = healthPercentage
+        if health >= 80 {
+            return .good
+        } else if health >= 60 {
+            return .fair
+        } else {
+            return .poor
+        }
+    }
+
+    var temperatureStatus: TemperatureStatus {
+        guard let temp = temperatureCelsius else { return .unknown }
+        if temp < 38.0 {
+            return .normal
+        } else if temp < 45.0 {
+            return .warm
+        } else {
+            return .hot
+        }
+    }
+
+    var wattage: Double? {
+        guard let voltageMv, let amperageMa else { return nil }
+        return (Double(voltageMv) * Double(abs(amperageMa))) / 1_000_000.0
+    }
+
+    var formattedTimeRemaining: String {
+        guard let minutes = timeRemainingMinutes, minutes > 0 else {
+            return isFullyCharged ? "Full" : "--"
+        }
+        let hours = minutes / 60
+        let mins = minutes % 60
+        if hours > 0 {
+            return "\(hours)h \(mins)m"
+        } else {
+            return "\(mins)m"
+        }
+    }
+
+    static let placeholder = BatteryInfo(
+        percentage: 0,
+        isCharging: false,
+        isPluggedIn: false,
+        isFullyCharged: false,
+        timeRemainingMinutes: nil,
+        cycleCount: 0,
+        ratedCycleCount: 1000,
+        designCapacityMah: 0,
+        maxCapacityMah: 0,
+        currentCapacityMah: 0,
+        temperatureCelsius: nil,
+        voltageMv: nil,
+        amperageMa: nil,
+        adapterWatts: nil,
+        adapterName: nil,
+        hasBattery: false,
+        lastUpdated: Date()
+    )
+}
+
+enum BatterySnapshotParser {
+    /// Parses combined IOPS power source description and `AppleSmartBattery` IORegistry dictionary into `BatteryInfo`.
+    static func parse(
+        iops: [String: Any]?,
+        smartBattery: [String: Any]?,
+        now: Date = Date()
+    ) -> BatteryInfo {
+        let hasBattery = (smartBattery != nil) || (iops != nil)
+        guard hasBattery else { return .placeholder }
+
+        let currentCapIOPS = intValue(iops?["Current Capacity"])
+        let maxCapIOPS = intValue(iops?["Max Capacity"])
+        let percentageFromIOPS: Int? = {
+            guard let cur = currentCapIOPS, let maxVal = maxCapIOPS, maxVal > 0 else { return nil }
+            return Int(((Double(cur) / Double(maxVal)) * 100.0).rounded())
+        }()
+
+        let currentCapRaw = intValue(smartBattery?["AppleRawCurrentCapacity"])
+            ?? intValue(smartBattery?["CurrentCapacity"])
+            ?? 0
+
+        let maxCapRaw = intValue(smartBattery?["AppleRawMaxCapacity"])
+            ?? intValue(smartBattery?["NominalChargeCapacity"])
+            ?? validMaxCapacityFallback(smartBattery?["MaxCapacity"])
+            ?? 0
+
+        let designCapRaw = intValue(smartBattery?["DesignCapacity"]) ?? 0
+
+        let percentageFromSmartBattery: Int? = {
+            if let pct = intValue(smartBattery?["CurrentCapacity"]), pct <= 100,
+               intValue(smartBattery?["MaxCapacity"]) == 100 {
+                return pct
+            }
+            if maxCapRaw > 0, currentCapRaw > 0 {
+                return Int(((Double(currentCapRaw) / Double(maxCapRaw)) * 100.0).rounded())
+            }
+            return nil
+        }()
+
+        let percentage = min(max(percentageFromIOPS ?? percentageFromSmartBattery ?? 0, 0), 100)
+
+        let powerSourceState = iops?["Power Source State"] as? String
+        let isPluggedIn = boolValue(smartBattery?["ExternalConnected"])
+            ?? (powerSourceState == "AC Power")
+
+        let isCharging = boolValue(iops?["Is Charging"])
+            ?? boolValue(smartBattery?["IsCharging"])
+            ?? false
+
+        let isFullyCharged = boolValue(iops?["Is Charged"])
+            ?? boolValue(smartBattery?["FullyCharged"])
+            ?? (isPluggedIn && !isCharging && percentage >= 100)
+
+        let timeRemainingMinutes: Int? = {
+            if isCharging {
+                if let toFull = intValue(iops?["Time to Full Charge"]), toFull > 0, toFull < 10_000 {
+                    return toFull
+                }
+                if let avgToFull = intValue(smartBattery?["AvgTimeToFull"]), avgToFull > 0, avgToFull < 10_000 {
+                    return avgToFull
+                }
+            } else if !isPluggedIn {
+                if let toEmpty = intValue(iops?["Time to Empty"]), toEmpty > 0, toEmpty < 10_000 {
+                    return toEmpty
+                }
+                if let avgToEmpty = intValue(smartBattery?["AvgTimeToEmpty"]), avgToEmpty > 0, avgToEmpty < 10_000 {
+                    return avgToEmpty
+                }
+            }
+            return nil
+        }()
+
+        let cycleCount = intValue(smartBattery?["CycleCount"]) ?? 0
+        let designCycleCount = intValue(smartBattery?["DesignCycleCount9C"]) ?? 1000
+        let temperatureCelsius = parseTemperatureCelsius(smartBattery?["Temperature"])
+        let voltageMv = intValue(smartBattery?["Voltage"])
+        let amperageMa = intValue(smartBattery?["InstantAmperage"]) ?? intValue(smartBattery?["Amperage"])
+
+        let adapterDict = smartBattery?["AdapterDetails"] as? [String: Any]
+        let adapterWatts = intValue(adapterDict?["Watts"])
+        let adapterName = (adapterDict?["Name"] as? String) ?? (adapterDict?["Description"] as? String)
+
+        return BatteryInfo(
+            percentage: percentage,
+            isCharging: isCharging,
+            isPluggedIn: isPluggedIn,
+            isFullyCharged: isFullyCharged,
+            timeRemainingMinutes: timeRemainingMinutes,
+            cycleCount: cycleCount,
+            ratedCycleCount: designCycleCount,
+            designCapacityMah: designCapRaw,
+            maxCapacityMah: maxCapRaw,
+            currentCapacityMah: currentCapRaw,
+            temperatureCelsius: temperatureCelsius,
+            voltageMv: voltageMv,
+            amperageMa: amperageMa,
+            adapterWatts: adapterWatts,
+            adapterName: adapterName,
+            hasBattery: true,
+            lastUpdated: now
+        )
+    }
+
+    /// Converts AppleSmartBattery `Temperature` (centi-Kelvin on modern Macs, deci-Kelvin or deci-Celsius on legacy) to Celsius.
+    static func parseTemperatureCelsius(_ value: Any?) -> Double? {
+        guard let raw = intValue(value), raw > 0 else { return nil }
+        let celsius: Double
+        if raw > 10_000 {
+            celsius = (Double(raw) / 100.0) - 273.15
+        } else if raw > 1_000 {
+            celsius = (Double(raw) / 10.0) - 273.15
+        } else if raw > 150 {
+            celsius = Double(raw) / 10.0
+        } else {
+            celsius = Double(raw)
+        }
+        guard celsius > -20 && celsius < 120 else { return nil }
+        return (celsius * 10.0).rounded() / 10.0
+    }
+
+    private static func validMaxCapacityFallback(_ value: Any?) -> Int? {
+        guard let num = intValue(value), num > 200 else { return nil }
+        return num
+    }
+
+    private static func intValue(_ value: Any?) -> Int? {
+        if let intVal = value as? Int {
+            return intVal
+        }
+        if let num = value as? NSNumber {
+            return Int(truncatingIfNeeded: num.int64Value)
+        }
+        return nil
+    }
+
+    private static func boolValue(_ value: Any?) -> Bool? {
+        if let boolVal = value as? Bool {
+            return boolVal
+        }
+        if let num = value as? NSNumber {
+            return num.boolValue
+        }
+        return nil
+    }
+}

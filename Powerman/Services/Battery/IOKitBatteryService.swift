@@ -195,11 +195,21 @@ final class IOKitBatteryService: BatteryMonitoring {
     private func scheduleTransitionConfirmation() {
         transitionConfirmTask?.cancel()
         transitionConfirmTask = Task { @MainActor [weak self] in
-            // USB-C / MagSafe PD negotiation can raise IsCharging ~1-3s after ExternalConnected attaches.
-            for delayNs in [1_000_000_000 as UInt64, 1_500_000_000 as UInt64] {
+            // USB-C / MagSafe PD (including multi-port GaN chargers) can take 2-10s before IsCharging flips.
+            for delayNs in [
+                500_000_000 as UInt64,
+                1_000_000_000,
+                1_500_000_000,
+                2_000_000_000,
+                3_000_000_000,
+                4_000_000_000
+            ] {
                 try? await Task.sleep(nanoseconds: delayNs)
-                guard !Task.isCancelled else { return }
-                self?.handlePowerSourceChange(forceEmit: false)
+                guard !Task.isCancelled, let self else { return }
+                self.handlePowerSourceChange(forceEmit: false)
+                if !self.currentBattery.isPluggedIn || self.currentBattery.isCharging || self.currentBattery.isFullyCharged {
+                    return
+                }
             }
         }
     }

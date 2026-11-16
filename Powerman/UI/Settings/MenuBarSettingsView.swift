@@ -224,7 +224,8 @@ struct MenuBarSettingsView: View {
                             colorMode: settings.menuBarColorMode,
                             size: settings.menuBarSize,
                             statusColorsEnabled: settings.statusColorsEnabled,
-                            isDarkMenuBar: !previewIsLightBar
+                            isDarkMenuBar: !previewIsLightBar,
+                            isStartingCharge: appState.isPluggedChargeTransitionActive && !appState.isPausedAtChargeLimit
                         )
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)

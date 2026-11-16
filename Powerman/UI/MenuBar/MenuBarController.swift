@@ -145,6 +145,8 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
     private func observeStateChanges() {
         withObservationTracking {
             _ = appState.batteryInfo
+            _ = appState.chargeLimitStatus
+            _ = appState.isPluggedChargeTransitionActive
             _ = appState.bluetoothDevices
             _ = appState.settings.devicePreferences
             _ = appState.settings.menuBarIconStyle
@@ -181,7 +183,8 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
             size: settings.menuBarSize,
             statusColorsEnabled: settings.statusColorsEnabled,
             isDarkMenuBar: effectiveDark,
-            isTemplateMode: useTemplate
+            isTemplateMode: useTemplate,
+            isStartingCharge: appState.isPluggedChargeTransitionActive && !appState.isPausedAtChargeLimit
         )
         .environment(\.colorScheme, effectiveDark ? .dark : .light)
 

@@ -5,7 +5,7 @@
 - **Cập nhật lần cuối:** 2026-11-16
 - **Giai đoạn hiện tại (Current Phase):** Hoàn thành toàn bộ lộ trình & rà soát cuối cùng **v1.0.0 (Phase 0 → Phase 6)**
 - **Nhánh chính:** `main` (tag `v1.0.0`)
-- **Trạng thái Build / Test:** `Release BUILD SUCCEEDED` (0 Swift compiler warnings), `TEST SUCCEEDED` (25/25 test cases: `BatteryInfoTests` 7/7, `AlertEngineTests` 6/6, `BluetoothBatteryTests` 3/3, `BatteryHistoryTests` 4/4, `ChargeLimitTests` 2/2, `GeneralSettingsTests` 3/3), và đã rà soát trực quan toàn bộ màn hình Dark/Light UI, Popover, Menu Bar icons & Overlays.
+- **Trạng thái Build / Test:** `Release BUILD SUCCEEDED` (0 Swift compiler warnings), `TEST SUCCEEDED` (26/26 test cases: `BatteryInfoTests` 7/7, `AlertEngineTests` 6/6, `BluetoothBatteryTests` 3/3, `BatteryHistoryTests` 4/4, `ChargeLimitTests` 3/3, `GeneralSettingsTests` 3/3), và đã rà soát trực quan toàn bộ màn hình Dark/Light UI, Popover, Menu Bar icons & Overlays.
 
 ---
 

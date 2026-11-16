@@ -18,6 +18,7 @@ final class AppState {
     let settings: AppSettings
     var selectedTab: SettingsTab = .battery
     var activeTestRuleID: UUID?
+    var isPluggedChargeTransitionActive: Bool = false
 
     private let batteryService: BatteryMonitoring
     private let bluetoothService: BluetoothBatteryMonitoring
@@ -29,6 +30,7 @@ final class AppState {
     private let alertPresenter: AlertPresenting
     private let soundPreviewPlayer: SoundPlaying
     private var firedDeviceAlertIDs: Set<String> = []
+    private var chargeTransitionTask: Task<Void, Never>?
 
     var onOpenSettings: (() -> Void)?
     var onDismissPopover: (() -> Void)?
@@ -78,6 +80,23 @@ final class AppState {
         systemService.launchAtLoginRequiresApproval
     }
 
+    var isPausedAtChargeLimit: Bool {
+        isPausedAtChargeLimit(for: batteryInfo)
+    }
+
+    var menuBarShowsChargingStatus: Bool {
+        batteryInfo.isCharging
+            || (batteryInfo.isPluggedIn && isPluggedChargeTransitionActive && !isPausedAtChargeLimit)
+    }
+
+    private func isPausedAtChargeLimit(for info: BatteryInfo) -> Bool {
+        chargeLimitStatus.isEnabled
+            && info.isPluggedIn
+            && !info.isCharging
+            && info.percentage >= chargeLimitStatus.limitPercentage - 2
+            && info.percentage < 100
+    }
+
     func start() {
         historyStore.load()
         historySamples = historyStore.samples
@@ -98,6 +117,9 @@ final class AppState {
     }
 
     func stop() {
+        chargeTransitionTask?.cancel()
+        chargeTransitionTask = nil
+        isPluggedChargeTransitionActive = false
         batteryService.stopMonitoring()
         bluetoothService.stopMonitoring()
         systemService.stopLowPowerObserver()
@@ -259,7 +281,9 @@ final class AppState {
     }
 
     private func handleBatteryUpdate(_ info: BatteryInfo) {
+        let previous = batteryInfo
         batteryInfo = info
+        updateChargeTransitionState(previous: previous, current: info)
         if historyStore.recordIfNeeded(from: info) {
             historySamples = historyStore.samples
         }
@@ -284,6 +308,27 @@ final class AppState {
                 glowIntensity: settings.screenEdgeGlowIntensity,
                 onDismiss: nil
             )
+        }
+    }
+
+    private func updateChargeTransitionState(previous: BatteryInfo, current: BatteryInfo) {
+        if !current.isPluggedIn || current.isCharging || current.isFullyCharged || isPausedAtChargeLimit(for: current) {
+            chargeTransitionTask?.cancel()
+            chargeTransitionTask = nil
+            isPluggedChargeTransitionActive = false
+            return
+        }
+
+        // Reflect newly attached AC power immediately while USB-PD negotiates IsCharging.
+        if !previous.isPluggedIn && current.isPluggedIn {
+            isPluggedChargeTransitionActive = true
+            chargeTransitionTask?.cancel()
+            chargeTransitionTask = Task { @MainActor [weak self] in
+                try? await Task.sleep(nanoseconds: 12_000_000_000)
+                guard !Task.isCancelled else { return }
+                self?.isPluggedChargeTransitionActive = false
+                self?.chargeTransitionTask = nil
+            }
         }
     }
 

@@ -7,6 +7,11 @@ Tất cả các thay đổi đáng chú ý của dự án **Powerman** sẽ đư
 ## [1.0.0] - 2026-11-16
 
 ### Fixed
+- **Zero-Delay Plug-in Menu Bar Status Sync (`t = 0s`):**
+  - `AppState` & `MenuBarIconView` & `MenuBarController`: Đồng bộ phản hồi trạng thái sạc tức thì ngay thời điểm vừa cắm nguồn (`isPluggedChargeTransitionActive`, hết chờ 2–10 giây đàm phán USB-C PD) cùng lúc với thông báo nổi `"Power Connected"`, đồng thời vẫn giữ nguyên trạng thái trung tính khi `isPausedAtChargeLimit` tạm dừng ở giới hạn sạc (và tự dọn nếu sau 12s phần cứng không kích hoạt sạc).
+  - `IOKitBatteryService`: Mở rộng chu kỳ xác nhận thích nghi trong cửa sổ PD handshake lên đến 12s (dừng sớm ngay khi `isCharging` chuyển `true` hoặc rút nguồn).
+  - `MenuBarPopoverView`: Tái sử dụng `appState.isPausedAtChargeLimit` và `appState.menuBarShowsChargingStatus` để đồng bộ màu sắc và icon tia sét với Menu Bar.
+  - Bổ sung unit test `testInstantPlugInStatusSyncAndChargeLimitPause` trong `ChargeLimitTests` (26/26 unit tests pass).
 - **Instant Menu Bar Status & Appearance Response:**
   - `IOKitBatteryService`: Đăng ký trực tiếp thông báo nhân macOS `IOServiceAddInterestNotification` (`kIOGeneralInterest`) trên `AppleSmartBattery` / `AppleSmartBatteryPack`, bổ sung `IOPSCreateLimitedPowerNotification`, chạy mọi nguồn RunLoop & timer trên `.commonModes`, theo dõi `NSWorkspace.didWakeNotification`, gộp sự kiện telemetry nhiễu (`hasVisualOrStatusChange` vs `hasTelemetryChange`), và kiểm tra xác nhận chuyển tiếp USB-PD sau 1s/2.5s khi cắm/rút nguồn để cập nhật tức thì thay vì chờ timer dự phòng.
   - `BatterySnapshotParser` (`BatteryInfo`): Ưu tiên đọc trực tiếp cờ `IsCharging` và `FullyCharged` từ kernel IORegistry (`AppleSmartBattery`) trước cache `IOPS` (`powerd`), cùng 2 unit tests mới trong `BatteryInfoTests` (tổng 25/25 unit tests pass).

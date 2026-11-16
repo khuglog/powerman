@@ -9,6 +9,7 @@ final class AppState {
     var bluetoothDevices: [BluetoothDeviceBattery] = []
     var historySamples: [BatteryHistorySample] = []
     var topEnergyApps: [AppEnergyUsage] = []
+    var chargeLimitStatus: ChargeLimitStatus = .unsupported
     let settings: AppSettings
     var selectedTab: SettingsTab = .battery
     var activeTestRuleID: UUID?
@@ -17,6 +18,7 @@ final class AppState {
     private let bluetoothService: BluetoothBatteryMonitoring
     private let historyStore: BatteryHistoryStoring
     private let energyService: EnergyConsuming
+    private let chargeLimitService: ChargeLimitManaging
     private let alertEngine: AlertEngine
     private let alertPresenter: AlertPresenting
     private let soundPreviewPlayer: SoundPlaying
@@ -30,6 +32,7 @@ final class AppState {
         bluetoothService: BluetoothBatteryMonitoring = BluetoothBatteryService(),
         historyStore: BatteryHistoryStoring = JSONBatteryHistoryStore(),
         energyService: EnergyConsuming = ProcessEnergyConsumerService(),
+        chargeLimitService: ChargeLimitManaging = NativeChargeLimitService(),
         settings: AppSettings = AppSettings(),
         alertEngine: AlertEngine = AlertEngine(),
         alertPresenter: AlertPresenting = OverlayWindowManager(),
@@ -39,6 +42,7 @@ final class AppState {
         self.bluetoothService = bluetoothService
         self.historyStore = historyStore
         self.energyService = energyService
+        self.chargeLimitService = chargeLimitService
         self.settings = settings
         self.alertEngine = alertEngine
         self.alertPresenter = alertPresenter
@@ -64,6 +68,7 @@ final class AppState {
     func start() {
         historyStore.load()
         historySamples = historyStore.samples
+        chargeLimitStatus = chargeLimitService.fetchStatus()
         batteryService.startMonitoring { [weak self] info in
             self?.handleBatteryUpdate(info)
         }
@@ -71,6 +76,21 @@ final class AppState {
             self?.handleBluetoothUpdate(devices)
         }
         refreshEnergyConsumers()
+    }
+
+    func refreshChargeLimit() {
+        chargeLimitStatus = chargeLimitService.fetchStatus()
+    }
+
+    func setChargeLimitEnabled(_ enabled: Bool) {
+        let target = chargeLimitStatus.limitPercentage >= 80 && chargeLimitStatus.limitPercentage <= 100
+            ? chargeLimitStatus.limitPercentage
+            : 80
+        chargeLimitStatus = chargeLimitService.setEnabled(enabled, targetLimit: target)
+    }
+
+    func setChargeLimitPercentage(_ percentage: Int) {
+        chargeLimitStatus = chargeLimitService.setLimit(percentage)
     }
 
     func stop() {

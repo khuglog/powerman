@@ -47,11 +47,7 @@ struct SettingsRootView: View {
                 case .devices:
                     DevicesSettingsView(appState: appState)
                 case .charging:
-                    PhasePlaceholderView(
-                        tab: .charging,
-                        phase: "Phase 5",
-                        description: "Limit maximum charge between 80% and 100% to protect long-term battery health."
-                    )
+                    ChargingSettingsView(appState: appState)
                 case .general:
                     PhasePlaceholderView(
                         tab: .general,
@@ -78,9 +74,8 @@ struct SettingsRootView: View {
 
     private func upcomingPhaseTag(for tab: SettingsTab) -> String? {
         switch tab {
-        case .charging: return "P5"
         case .general: return "P6"
-        case .battery, .alerts, .menuBar, .devices: return nil
+        case .battery, .charging, .alerts, .menuBar, .devices: return nil
         }
     }
 }

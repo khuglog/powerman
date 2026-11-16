@@ -39,6 +39,17 @@ struct MenuBarPopoverView: View {
         .background(.regularMaterial)
     }
 
+    private var statusDisplayText: String {
+        if appState.chargeLimitStatus.isEnabled,
+           battery.isPluggedIn,
+           !battery.isCharging,
+           battery.percentage >= appState.chargeLimitStatus.limitPercentage - 2,
+           battery.percentage < 100 {
+            return "Paused at \(appState.chargeLimitStatus.limitPercentage)% Limit"
+        }
+        return battery.chargingState.displayLabel
+    }
+
     private var batteryHeaderCard: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .top) {
@@ -68,7 +79,7 @@ struct MenuBarPopoverView: View {
                 Image(systemName: battery.isCharging ? "bolt.fill" : "battery.100")
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(accentStatusColor)
-                Text(battery.chargingState.displayLabel)
+                Text(statusDisplayText)
                     .font(.system(size: 13, weight: .medium))
             }
 

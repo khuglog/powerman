@@ -15,6 +15,7 @@
 		2E30CD4BE6DC4165EABA3242 /* AlertRule.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF7747963CEA53A8A9C91947 /* AlertRule.swift */; };
 		8E7553352B2E2B19814E8D23 /* BluetoothDeviceBattery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45E5FBC18274B44139264A5C /* BluetoothDeviceBattery.swift */; };
 		2CE180A324F8C488A2F07B35 /* BatteryHistory.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9606A6DFEC19E3A1356C8F2D /* BatteryHistory.swift */; };
+		7AFB0EA071DB2B9AB52FECA1 /* ChargeLimitState.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6B07438889565D62AE34762 /* ChargeLimitState.swift */; };
 		16D9C9E9FA937D93C173EA18 /* IOKitBatteryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DDA87CA76123ABD73446482 /* IOKitBatteryService.swift */; };
 		776276C545E0955567CA1ECF /* BatteryHistoryStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CC5E871CBB5A28CEE0C2DC1 /* BatteryHistoryStore.swift */; };
 		D6725F5387E2015984C2367B /* EnergyConsumerService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 748C3DE950CDE9D2B9F836C4 /* EnergyConsumerService.swift */; };
@@ -22,6 +23,7 @@
 		6FC434DAFA3B75F53AE5D12E /* AlertEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31E744CEE4BD54A644BCA779 /* AlertEngine.swift */; };
 		E49085103A80F14F00CEA034 /* OverlayWindowManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2B25B566658D48A82E3CDB7 /* OverlayWindowManager.swift */; };
 		EB7570D83A1FCA72D86950A4 /* BluetoothBatteryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0987D17F1964E355091F9937 /* BluetoothBatteryService.swift */; };
+		1FEE066C2CFC2328AF238BA8 /* ChargeLimitService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 265702B8826CC254CE1FF804 /* ChargeLimitService.swift */; };
 		9EF2159D7B64C959749E806F /* MenuBarIconView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08F0D085D0BF133F2DEBFBC3 /* MenuBarIconView.swift */; };
 		F2CEF443A293EB865BA81424 /* MenuBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EC242379EBC24EACB32D56A /* MenuBarController.swift */; };
 		F53B9D167CCF6E6E2FBC08EA /* MenuBarPopoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB744BC83308BB9884D5654 /* MenuBarPopoverView.swift */; };
@@ -32,10 +34,12 @@
 		B8FC938D8E0C542EA0B91EF9 /* BatteryOverviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7AD7884185001809C3CDA9C /* BatteryOverviewView.swift */; };
 		35721BD687655660FD13AD8F /* AlertsSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60E30A06FB849A684EE6C6AC /* AlertsSettingsView.swift */; };
 		8D2305DE35AFB54C6EB614AE /* DevicesSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78A25E44A2F940072D5A2C95 /* DevicesSettingsView.swift */; };
+		4AC5F2C4A0B4E441585A9A2C /* ChargingSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 212DA407C1C2DC5D8896851A /* ChargingSettingsView.swift */; };
 		EAA0F09024966A491D900C41 /* BatteryInfoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBCD320D71F3A26EEEDB250E /* BatteryInfoTests.swift */; };
 		DBE082EF91E0076BC3C325B1 /* AlertEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD729F0677A8FD9A9C6CDB59 /* AlertEngineTests.swift */; };
 		3E3D8C8358416D67E9F6EDBA /* BluetoothBatteryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2BB8827D6688E4CFC5FE277A /* BluetoothBatteryTests.swift */; };
 		FBEEF5D59B4286B7AAFEEC3B /* BatteryHistoryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 375EE0A3BC215F65B3C840E8 /* BatteryHistoryTests.swift */; };
+		0446F25DE09E370EE38501D9 /* ChargeLimitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28E3AC939E578A34F2EEA56F /* ChargeLimitTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -57,6 +61,7 @@
 		BF7747963CEA53A8A9C91947 /* AlertRule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AlertRule.swift; path = Powerman/Models/AlertRule.swift; sourceTree = "<group>"; };
 		45E5FBC18274B44139264A5C /* BluetoothDeviceBattery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = BluetoothDeviceBattery.swift; path = Powerman/Models/BluetoothDeviceBattery.swift; sourceTree = "<group>"; };
 		9606A6DFEC19E3A1356C8F2D /* BatteryHistory.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = BatteryHistory.swift; path = Powerman/Models/BatteryHistory.swift; sourceTree = "<group>"; };
+		F6B07438889565D62AE34762 /* ChargeLimitState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ChargeLimitState.swift; path = Powerman/Models/ChargeLimitState.swift; sourceTree = "<group>"; };
 		3DDA87CA76123ABD73446482 /* IOKitBatteryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = IOKitBatteryService.swift; path = Powerman/Services/Battery/IOKitBatteryService.swift; sourceTree = "<group>"; };
 		5CC5E871CBB5A28CEE0C2DC1 /* BatteryHistoryStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = BatteryHistoryStore.swift; path = Powerman/Services/Battery/BatteryHistoryStore.swift; sourceTree = "<group>"; };
 		748C3DE950CDE9D2B9F836C4 /* EnergyConsumerService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = EnergyConsumerService.swift; path = Powerman/Services/Battery/EnergyConsumerService.swift; sourceTree = "<group>"; };
@@ -64,6 +69,7 @@
 		31E744CEE4BD54A644BCA779 /* AlertEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AlertEngine.swift; path = Powerman/Services/Alerts/AlertEngine.swift; sourceTree = "<group>"; };
 		B2B25B566658D48A82E3CDB7 /* OverlayWindowManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = OverlayWindowManager.swift; path = Powerman/Services/Alerts/OverlayWindowManager.swift; sourceTree = "<group>"; };
 		0987D17F1964E355091F9937 /* BluetoothBatteryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = BluetoothBatteryService.swift; path = Powerman/Services/Bluetooth/BluetoothBatteryService.swift; sourceTree = "<group>"; };
+		265702B8826CC254CE1FF804 /* ChargeLimitService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ChargeLimitService.swift; path = Powerman/Services/Charging/ChargeLimitService.swift; sourceTree = "<group>"; };
 		08F0D085D0BF133F2DEBFBC3 /* MenuBarIconView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MenuBarIconView.swift; path = Powerman/UI/MenuBar/MenuBarIconView.swift; sourceTree = "<group>"; };
 		2EC242379EBC24EACB32D56A /* MenuBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MenuBarController.swift; path = Powerman/UI/MenuBar/MenuBarController.swift; sourceTree = "<group>"; };
 		DDB744BC83308BB9884D5654 /* MenuBarPopoverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MenuBarPopoverView.swift; path = Powerman/UI/MenuBar/MenuBarPopoverView.swift; sourceTree = "<group>"; };
@@ -74,10 +80,12 @@
 		D7AD7884185001809C3CDA9C /* BatteryOverviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = BatteryOverviewView.swift; path = Powerman/UI/Settings/BatteryOverviewView.swift; sourceTree = "<group>"; };
 		60E30A06FB849A684EE6C6AC /* AlertsSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AlertsSettingsView.swift; path = Powerman/UI/Settings/AlertsSettingsView.swift; sourceTree = "<group>"; };
 		78A25E44A2F940072D5A2C95 /* DevicesSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = DevicesSettingsView.swift; path = Powerman/UI/Settings/DevicesSettingsView.swift; sourceTree = "<group>"; };
+		212DA407C1C2DC5D8896851A /* ChargingSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ChargingSettingsView.swift; path = Powerman/UI/Settings/ChargingSettingsView.swift; sourceTree = "<group>"; };
 		DBCD320D71F3A26EEEDB250E /* BatteryInfoTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = BatteryInfoTests.swift; path = PowermanTests/BatteryInfoTests.swift; sourceTree = "<group>"; };
 		FD729F0677A8FD9A9C6CDB59 /* AlertEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AlertEngineTests.swift; path = PowermanTests/AlertEngineTests.swift; sourceTree = "<group>"; };
 		2BB8827D6688E4CFC5FE277A /* BluetoothBatteryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = BluetoothBatteryTests.swift; path = PowermanTests/BluetoothBatteryTests.swift; sourceTree = "<group>"; };
 		375EE0A3BC215F65B3C840E8 /* BatteryHistoryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = BatteryHistoryTests.swift; path = PowermanTests/BatteryHistoryTests.swift; sourceTree = "<group>"; };
+		28E3AC939E578A34F2EEA56F /* ChargeLimitTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ChargeLimitTests.swift; path = PowermanTests/ChargeLimitTests.swift; sourceTree = "<group>"; };
 		2784DD82DBAE4CF1C17FABBB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Info.plist; path = Powerman/Resources/Info.plist; sourceTree = "<group>"; };
 		A9C664FF117B198BCE0CB392 /* Powerman.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = Powerman.entitlements; path = Powerman/Resources/Powerman.entitlements; sourceTree = "<group>"; };
 		5141EFFF35ACD6C51F274E4D /* Powerman.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Powerman.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -131,6 +139,7 @@
 				BF7747963CEA53A8A9C91947,
 				45E5FBC18274B44139264A5C,
 				9606A6DFEC19E3A1356C8F2D,
+				F6B07438889565D62AE34762,
 				3DDA87CA76123ABD73446482,
 				5CC5E871CBB5A28CEE0C2DC1,
 				748C3DE950CDE9D2B9F836C4,
@@ -138,6 +147,7 @@
 				31E744CEE4BD54A644BCA779,
 				B2B25B566658D48A82E3CDB7,
 				0987D17F1964E355091F9937,
+				265702B8826CC254CE1FF804,
 				08F0D085D0BF133F2DEBFBC3,
 				2EC242379EBC24EACB32D56A,
 				DDB744BC83308BB9884D5654,
@@ -148,6 +158,7 @@
 				D7AD7884185001809C3CDA9C,
 				60E30A06FB849A684EE6C6AC,
 				78A25E44A2F940072D5A2C95,
+				212DA407C1C2DC5D8896851A,
 				2784DD82DBAE4CF1C17FABBB,
 				A9C664FF117B198BCE0CB392,
 			);
@@ -161,6 +172,7 @@
 				FD729F0677A8FD9A9C6CDB59,
 				2BB8827D6688E4CFC5FE277A,
 				375EE0A3BC215F65B3C840E8,
+				28E3AC939E578A34F2EEA56F,
 			);
 			name = PowermanTests;
 			sourceTree = "<group>";
@@ -271,6 +283,7 @@
 				2E30CD4BE6DC4165EABA3242 /* AlertRule.swift in Sources */,
 				8E7553352B2E2B19814E8D23 /* BluetoothDeviceBattery.swift in Sources */,
 				2CE180A324F8C488A2F07B35 /* BatteryHistory.swift in Sources */,
+				7AFB0EA071DB2B9AB52FECA1 /* ChargeLimitState.swift in Sources */,
 				16D9C9E9FA937D93C173EA18 /* IOKitBatteryService.swift in Sources */,
 				776276C545E0955567CA1ECF /* BatteryHistoryStore.swift in Sources */,
 				D6725F5387E2015984C2367B /* EnergyConsumerService.swift in Sources */,
@@ -278,6 +291,7 @@
 				6FC434DAFA3B75F53AE5D12E /* AlertEngine.swift in Sources */,
 				E49085103A80F14F00CEA034 /* OverlayWindowManager.swift in Sources */,
 				EB7570D83A1FCA72D86950A4 /* BluetoothBatteryService.swift in Sources */,
+				1FEE066C2CFC2328AF238BA8 /* ChargeLimitService.swift in Sources */,
 				9EF2159D7B64C959749E806F /* MenuBarIconView.swift in Sources */,
 				F2CEF443A293EB865BA81424 /* MenuBarController.swift in Sources */,
 				F53B9D167CCF6E6E2FBC08EA /* MenuBarPopoverView.swift in Sources */,
@@ -288,6 +302,7 @@
 				B8FC938D8E0C542EA0B91EF9 /* BatteryOverviewView.swift in Sources */,
 				35721BD687655660FD13AD8F /* AlertsSettingsView.swift in Sources */,
 				8D2305DE35AFB54C6EB614AE /* DevicesSettingsView.swift in Sources */,
+				4AC5F2C4A0B4E441585A9A2C /* ChargingSettingsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -299,6 +314,7 @@
 				DBE082EF91E0076BC3C325B1 /* AlertEngineTests.swift in Sources */,
 				3E3D8C8358416D67E9F6EDBA /* BluetoothBatteryTests.swift in Sources */,
 				FBEEF5D59B4286B7AAFEEC3B /* BatteryHistoryTests.swift in Sources */,
+				0446F25DE09E370EE38501D9 /* ChargeLimitTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -8,6 +8,10 @@ Tất cả các thay đổi đáng chú ý của dự án **Powerman** sẽ đư
 - **Phase 0 (Repo & Documentation):**
   - Thiết lập Git repository, `.gitignore`, GitHub Actions CI (`.github/workflows/ci.yml`).
   - Khởi tạo hệ thống tài liệu bàn giao chuẩn: `README.md`, `CONTRIBUTING.md`, `CHANGELOG.md`, `AGENTS.md`, `docs/ARCHITECTURE.md`, `docs/PROGRESS.md`.
+- **Phase 5 (Native Charge Limit 80–100%):**
+  - Tạo `ChargeLimitStatus`, `ChargeLimitHelpers` và `NativeChargeLimitService` tích hợp trực tiếp `PowerUISmartChargeClient` (`PowerUI.framework`) để đọc/ghi ngưỡng giới hạn sạc gốc của macOS (80–100%, bước 5%) không cần quyền root.
+  - Hoàn thiện tab `Charging` (`ChargingSettingsView`) với công tắc bật/tắt `Charge Limit`, thanh trượt 80–100%, popover giải thích, trạng thái đồng bộ trực tiếp với `System Settings → Battery` và hiển thị `Paused at X% Limit` trong Popover.
+  - Bổ sung `ChargeLimitTests` (2/2 test cases pass).
 - **Phase 4 (Battery History Charts & Energy Consumers):**
   - Thêm `BatteryHistorySample`, `DailyBatteryUsage`, `BatteryHistoryAnalytics` và `JSONBatteryHistoryStore` tự động lưu lịch sử pin 14 ngày và loại bỏ khoảng ngủ dài (> 15 phút) khi tính mức xả theo ngày.
   - Xây dựng `ProcessEnergyConsumerService` dùng `Darwin.proc_pidinfo` (không cần quyền root) gộp tiến trình con về app mẹ để hiển thị top ứng dụng tiêu thụ năng lượng trong Popover (`Apps Using Significant Energy`).

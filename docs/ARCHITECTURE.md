@@ -20,7 +20,7 @@ flowchart TD
         HistorySvc["BatteryHistoryStore & EnergyConsumerService"]
         AlertSvc["AlertEngine & SoundPlayer"]
         BTSvc["BluetoothBatteryService (IORegistry + SPBluetooth + BLE)"]
-        ChargeSvc["ChargeLimitService (Phase 5)"]
+        ChargeSvc["NativeChargeLimitService (PowerUI MCL 80-100%)"]
         SysSvc["SystemIntegration (Phase 6)"]
     end
 

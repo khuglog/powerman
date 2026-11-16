@@ -16,9 +16,9 @@ flowchart TD
     AppState["AppState (@Observable @MainActor)"]
 
     subgraph Services["Service Layer (Protocol-driven)"]
-        BatterySvc["IOKitBatteryService (IOPS + AppleSmartBattery)"]
+        BatterySvc["IOKitBatteryService (IOPS + AppleSmartBattery + Pack)"]
         HistorySvc["BatteryHistoryStore (SwiftData - Phase 4)"]
-        AlertSvc["AlertEngine & SoundPlayer (Phase 2)"]
+        AlertSvc["AlertEngine & SoundPlayer"]
         BTSvc["BluetoothBatteryService (Phase 3)"]
         ChargeSvc["ChargeLimitService (Phase 5)"]
         SysSvc["SystemIntegration (Phase 6)"]

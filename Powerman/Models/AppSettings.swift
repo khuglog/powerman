@@ -133,6 +133,9 @@ final class AppSettings {
         static let colorMode = "menubar.colorMode"
         static let size = "menubar.size"
         static let statusColorsEnabled = "menubar.statusColorsEnabled"
+        static let notificationsEnabled = "alerts.notificationsEnabled"
+        static let alertRules = "alerts.rules"
+        static let powerSourceAlerts = "alerts.powerSource"
     }
 
     private let defaults: UserDefaults
@@ -155,6 +158,26 @@ final class AppSettings {
 
     var statusColorsEnabled: Bool {
         didSet { defaults.set(statusColorsEnabled, forKey: Keys.statusColorsEnabled) }
+    }
+
+    var notificationsEnabled: Bool {
+        didSet { defaults.set(notificationsEnabled, forKey: Keys.notificationsEnabled) }
+    }
+
+    var alertRules: [AlertRule] {
+        didSet {
+            if let data = try? JSONEncoder().encode(alertRules) {
+                defaults.set(data, forKey: Keys.alertRules)
+            }
+        }
+    }
+
+    var powerSourceAlerts: PowerSourceAlertConfig {
+        didSet {
+            if let data = try? JSONEncoder().encode(powerSourceAlerts) {
+                defaults.set(data, forKey: Keys.powerSourceAlerts)
+            }
+        }
     }
 
     init(defaults: UserDefaults = .standard) {
@@ -193,5 +216,67 @@ final class AppSettings {
         } else {
             self.statusColorsEnabled = true
         }
+
+        if defaults.object(forKey: Keys.notificationsEnabled) != nil {
+            self.notificationsEnabled = defaults.bool(forKey: Keys.notificationsEnabled)
+        } else {
+            self.notificationsEnabled = true
+        }
+
+        if let data = defaults.data(forKey: Keys.alertRules),
+           let decoded = try? JSONDecoder().decode([AlertRule].self, from: data) {
+            self.alertRules = decoded
+        } else {
+            self.alertRules = AlertRule.defaultRules
+        }
+
+        if let data = defaults.data(forKey: Keys.powerSourceAlerts),
+           let decoded = try? JSONDecoder().decode(PowerSourceAlertConfig.self, from: data) {
+            self.powerSourceAlerts = decoded
+        } else {
+            self.powerSourceAlerts = PowerSourceAlertConfig()
+        }
+    }
+
+    func lowBatteryRules() -> [AlertRule] {
+        alertRules.filter { $0.kind == .lowBattery }.sorted { $0.threshold < $1.threshold }
+    }
+
+    func chargedRules() -> [AlertRule] {
+        alertRules.filter { $0.kind == .charged }.sorted { $0.threshold < $1.threshold }
+    }
+
+    @discardableResult
+    func addAlertRule(kind: AlertKind) -> AlertRule {
+        let existing = alertRules.filter { $0.kind == kind }.map(\.threshold)
+        let nextThreshold: Int
+        let colorHex: String
+        switch kind {
+        case .lowBattery:
+            let candidate = max(5, (existing.max() ?? 15) + 5)
+            nextThreshold = min(95, candidate)
+            colorHex = AlertColorPreset.orange.rawValue
+        case .charged:
+            let candidate = min(100, (existing.max() ?? 80) + 5)
+            nextThreshold = max(50, candidate)
+            colorHex = AlertColorPreset.green.rawValue
+        }
+
+        let newRule = AlertRule(
+            kind: kind,
+            threshold: nextThreshold,
+            colorHex: colorHex,
+            showPopup: true,
+            position: .topOfScreen,
+            sound: kind == .lowBattery ? .glass : .chime,
+            borderGlow: kind == .lowBattery,
+            persistent: false
+        )
+        alertRules.append(newRule)
+        return newRule
+    }
+
+    func removeAlertRule(id: UUID) {
+        alertRules.removeAll { $0.id == id }
     }
 }

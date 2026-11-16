@@ -1,0 +1,130 @@
+import XCTest
+@testable import Powerman
+
+final class AlertEngineTests: XCTestCase {
+    private func makeBattery(
+        percentage: Int,
+        isPluggedIn: Bool,
+        isCharging: Bool = false
+    ) -> BatteryInfo {
+        BatteryInfo(
+            percentage: percentage,
+            isCharging: isCharging,
+            isPluggedIn: isPluggedIn,
+            isFullyCharged: isPluggedIn && percentage >= 100,
+            timeRemainingMinutes: isPluggedIn ? nil : 45,
+            cycleCount: 167,
+            ratedCycleCount: 1000,
+            designCapacityMah: 6249,
+            maxCapacityMah: 5719,
+            currentCapacityMah: 3600,
+            temperatureCelsius: 32.5,
+            voltageMv: 11850,
+            amperageMa: isCharging ? 2000 : -1100,
+            batteryPowerMw: nil,
+            adapterWatts: isPluggedIn ? 96 : nil,
+            adapterName: nil,
+            hasBattery: true,
+            lastUpdated: Date()
+        )
+    }
+
+    @MainActor
+    func testLowBatteryAlertHysteresisAndReset() {
+        let engine = AlertEngine()
+        let rules = [
+            AlertRule(kind: .lowBattery, threshold: 20, colorHex: "#FFCC00"),
+            AlertRule(kind: .lowBattery, threshold: 10, colorHex: "#FF3B30", borderGlow: true, persistent: true)
+        ]
+        let powerSource = PowerSourceAlertConfig(pluggedInEnabled: false, unpluggedEnabled: false)
+
+        // Baseline at 25% -> no alert on launch
+        let r1 = engine.evaluate(battery: makeBattery(percentage: 25, isPluggedIn: false), rules: rules, powerSource: powerSource, notificationsEnabled: true)
+        XCTAssertNil(r1.triggeredAlert)
+
+        // Drop to 20% -> fires 20% rule
+        let r2 = engine.evaluate(battery: makeBattery(percentage: 20, isPluggedIn: false), rules: rules, powerSource: powerSource, notificationsEnabled: true)
+        XCTAssertEqual(r2.triggeredAlert?.ruleID, rules[0].id)
+
+        // Bounce to 21% and back to 20% -> hysteresis (requires >= 23%) prevents re-firing
+        _ = engine.evaluate(battery: makeBattery(percentage: 21, isPluggedIn: false), rules: rules, powerSource: powerSource, notificationsEnabled: true)
+        let r3 = engine.evaluate(battery: makeBattery(percentage: 20, isPluggedIn: false), rules: rules, powerSource: powerSource, notificationsEnabled: true)
+        XCTAssertNil(r3.triggeredAlert)
+
+        // Drop to 10% -> fires 10% rule
+        let r4 = engine.evaluate(battery: makeBattery(percentage: 10, isPluggedIn: false), rules: rules, powerSource: powerSource, notificationsEnabled: true)
+        XCTAssertEqual(r4.triggeredAlert?.ruleID, rules[1].id)
+        XCTAssertTrue(r4.triggeredAlert?.persistent == true)
+
+        // Plug in -> should request dismissal of active lowBattery persistent alert and reset flags
+        let r5 = engine.evaluate(battery: makeBattery(percentage: 10, isPluggedIn: true, isCharging: true), rules: rules, powerSource: powerSource, notificationsEnabled: true)
+        XCTAssertEqual(r5.dismissKind, .lowBattery)
+        XCTAssertNil(r5.triggeredAlert)
+
+        // Unplug again at 10% -> fires critical 10% rule once
+        let r6 = engine.evaluate(battery: makeBattery(percentage: 10, isPluggedIn: false), rules: rules, powerSource: powerSource, notificationsEnabled: true)
+        XCTAssertEqual(r6.triggeredAlert?.ruleID, rules[1].id)
+    }
+
+    @MainActor
+    func testChargedAlertAndPowerSourceTransitions() {
+        let engine = AlertEngine()
+        let chargedRule = AlertRule(kind: .charged, threshold: 80, colorHex: "#34C759", sound: .chime)
+        let powerSource = PowerSourceAlertConfig(pluggedInEnabled: true, pluggedInSound: .chime, unpluggedEnabled: true, unpluggedSound: .ping)
+
+        // Baseline at 78% on battery
+        _ = engine.evaluate(battery: makeBattery(percentage: 78, isPluggedIn: false), rules: [chargedRule], powerSource: powerSource, notificationsEnabled: true)
+
+        // Plug in at 78% -> fires Plugged In power source alert
+        let r1 = engine.evaluate(battery: makeBattery(percentage: 78, isPluggedIn: true, isCharging: true), rules: [chargedRule], powerSource: powerSource, notificationsEnabled: true)
+        XCTAssertEqual(r1.triggeredAlert?.title, "Power Connected")
+
+        // Reach 80% -> fires Charged rule
+        let r2 = engine.evaluate(battery: makeBattery(percentage: 80, isPluggedIn: true, isCharging: true), rules: [chargedRule], powerSource: powerSource, notificationsEnabled: true)
+        XCTAssertEqual(r2.triggeredAlert?.ruleID, chargedRule.id)
+        XCTAssertEqual(r2.triggeredAlert?.title, "80% Charged")
+
+        // Unplug -> dismisses charged alert & fires Unplugged notification
+        let r3 = engine.evaluate(battery: makeBattery(percentage: 80, isPluggedIn: false), rules: [chargedRule], powerSource: powerSource, notificationsEnabled: true)
+        XCTAssertEqual(r3.dismissKind, .charged)
+        XCTAssertEqual(r3.triggeredAlert?.title, "On Battery Power")
+    }
+
+    @MainActor
+    func testNotificationsDisabledSuppressesAlerts() {
+        let engine = AlertEngine()
+        let rule = AlertRule(kind: .lowBattery, threshold: 20, colorHex: "#FF3B30")
+        let powerSource = PowerSourceAlertConfig()
+
+        _ = engine.evaluate(battery: makeBattery(percentage: 25, isPluggedIn: false), rules: [rule], powerSource: powerSource, notificationsEnabled: false)
+        let r = engine.evaluate(battery: makeBattery(percentage: 15, isPluggedIn: false), rules: [rule], powerSource: powerSource, notificationsEnabled: false)
+        XCTAssertNil(r.triggeredAlert)
+    }
+
+    @MainActor
+    func testAlertRulesPersistenceAndCRUD() {
+        let suiteName = "com.powerman.alerts.tests.\(UUID().uuidString)"
+        guard let defaults = UserDefaults(suiteName: suiteName) else {
+            XCTFail("Failed to create UserDefaults suite")
+            return
+        }
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let settings = AppSettings(defaults: defaults)
+        let initialCount = settings.alertRules.count
+        let added = settings.addAlertRule(kind: .lowBattery)
+        XCTAssertEqual(settings.alertRules.count, initialCount + 1)
+
+        settings.notificationsEnabled = false
+        settings.powerSourceAlerts.pluggedInSound = .submarine
+
+        let reloaded = AppSettings(defaults: defaults)
+        XCTAssertEqual(reloaded.alertRules.count, initialCount + 1)
+        XCTAssertTrue(reloaded.alertRules.contains(where: { $0.id == added.id }))
+        XCTAssertFalse(reloaded.notificationsEnabled)
+        XCTAssertEqual(reloaded.powerSourceAlerts.pluggedInSound, .submarine)
+
+        reloaded.removeAlertRule(id: added.id)
+        XCTAssertEqual(reloaded.alertRules.count, initialCount)
+    }
+}

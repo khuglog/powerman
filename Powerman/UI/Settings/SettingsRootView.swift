@@ -43,11 +43,7 @@ struct SettingsRootView: View {
                 case .menuBar:
                     MenuBarSettingsView(appState: appState)
                 case .alerts:
-                    PhasePlaceholderView(
-                        tab: .alerts,
-                        phase: "Phase 2",
-                        description: "Configure multi-level Low Battery and Charged alerts with floating popups, screen border glow, custom colors, sounds, and persistent mode."
-                    )
+                    AlertsSettingsView(appState: appState)
                 case .devices:
                     PhasePlaceholderView(
                         tab: .devices,
@@ -86,11 +82,10 @@ struct SettingsRootView: View {
 
     private func upcomingPhaseTag(for tab: SettingsTab) -> String? {
         switch tab {
-        case .alerts: return "P2"
         case .devices: return "P3"
         case .charging: return "P5"
         case .general: return "P6"
-        case .battery, .menuBar: return nil
+        case .battery, .alerts, .menuBar: return nil
         }
     }
 }

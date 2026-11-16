@@ -12,14 +12,22 @@
 		3F5555F0218408D90A10320F /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22EB57F604E8F65C92440FCA /* AppState.swift */; };
 		32F869E9622524AE3707EF8B /* BatteryInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5275A77AE727965A79CFC305 /* BatteryInfo.swift */; };
 		64A906C969EFAF38E2D94ECA /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7BE124EA22CF73C36D3BDEF8 /* AppSettings.swift */; };
+		2E30CD4BE6DC4165EABA3242 /* AlertRule.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF7747963CEA53A8A9C91947 /* AlertRule.swift */; };
 		16D9C9E9FA937D93C173EA18 /* IOKitBatteryService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3DDA87CA76123ABD73446482 /* IOKitBatteryService.swift */; };
+		6688D5226868C953D5825251 /* SoundPlayer.swift in Sources */ = {isa = PBXBuildFile; fileRef = F16F38CD7EFAFC5BE684E226 /* SoundPlayer.swift */; };
+		6FC434DAFA3B75F53AE5D12E /* AlertEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31E744CEE4BD54A644BCA779 /* AlertEngine.swift */; };
+		E49085103A80F14F00CEA034 /* OverlayWindowManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2B25B566658D48A82E3CDB7 /* OverlayWindowManager.swift */; };
 		9EF2159D7B64C959749E806F /* MenuBarIconView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08F0D085D0BF133F2DEBFBC3 /* MenuBarIconView.swift */; };
 		F2CEF443A293EB865BA81424 /* MenuBarController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EC242379EBC24EACB32D56A /* MenuBarController.swift */; };
 		F53B9D167CCF6E6E2FBC08EA /* MenuBarPopoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDB744BC83308BB9884D5654 /* MenuBarPopoverView.swift */; };
+		182082FFFA0E167499EB03C0 /* FloatingAlertBubbleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C0C47D58023367EBBB876D6 /* FloatingAlertBubbleView.swift */; };
+		F06A5E50244E3A655C3D6E8F /* ScreenBorderGlowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0CFD863900241708EE0D66C /* ScreenBorderGlowView.swift */; };
 		1461C1A9F41D39F2D01E8BB3 /* SettingsRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDCAC49A20EC67B74D8C983B /* SettingsRootView.swift */; };
 		7BA2DFE633EDF6E6F89B57B1 /* MenuBarSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46AD1E8A8DA73E2346DDF1ED /* MenuBarSettingsView.swift */; };
 		B8FC938D8E0C542EA0B91EF9 /* BatteryOverviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7AD7884185001809C3CDA9C /* BatteryOverviewView.swift */; };
+		35721BD687655660FD13AD8F /* AlertsSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 60E30A06FB849A684EE6C6AC /* AlertsSettingsView.swift */; };
 		EAA0F09024966A491D900C41 /* BatteryInfoTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBCD320D71F3A26EEEDB250E /* BatteryInfoTests.swift */; };
+		DBE082EF91E0076BC3C325B1 /* AlertEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD729F0677A8FD9A9C6CDB59 /* AlertEngineTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -38,14 +46,22 @@
 		22EB57F604E8F65C92440FCA /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppState.swift; path = Powerman/App/AppState.swift; sourceTree = "<group>"; };
 		5275A77AE727965A79CFC305 /* BatteryInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = BatteryInfo.swift; path = Powerman/Models/BatteryInfo.swift; sourceTree = "<group>"; };
 		7BE124EA22CF73C36D3BDEF8 /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppSettings.swift; path = Powerman/Models/AppSettings.swift; sourceTree = "<group>"; };
+		BF7747963CEA53A8A9C91947 /* AlertRule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AlertRule.swift; path = Powerman/Models/AlertRule.swift; sourceTree = "<group>"; };
 		3DDA87CA76123ABD73446482 /* IOKitBatteryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = IOKitBatteryService.swift; path = Powerman/Services/Battery/IOKitBatteryService.swift; sourceTree = "<group>"; };
+		F16F38CD7EFAFC5BE684E226 /* SoundPlayer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SoundPlayer.swift; path = Powerman/Services/Alerts/SoundPlayer.swift; sourceTree = "<group>"; };
+		31E744CEE4BD54A644BCA779 /* AlertEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AlertEngine.swift; path = Powerman/Services/Alerts/AlertEngine.swift; sourceTree = "<group>"; };
+		B2B25B566658D48A82E3CDB7 /* OverlayWindowManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = OverlayWindowManager.swift; path = Powerman/Services/Alerts/OverlayWindowManager.swift; sourceTree = "<group>"; };
 		08F0D085D0BF133F2DEBFBC3 /* MenuBarIconView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MenuBarIconView.swift; path = Powerman/UI/MenuBar/MenuBarIconView.swift; sourceTree = "<group>"; };
 		2EC242379EBC24EACB32D56A /* MenuBarController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MenuBarController.swift; path = Powerman/UI/MenuBar/MenuBarController.swift; sourceTree = "<group>"; };
 		DDB744BC83308BB9884D5654 /* MenuBarPopoverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MenuBarPopoverView.swift; path = Powerman/UI/MenuBar/MenuBarPopoverView.swift; sourceTree = "<group>"; };
+		1C0C47D58023367EBBB876D6 /* FloatingAlertBubbleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = FloatingAlertBubbleView.swift; path = Powerman/UI/Overlays/FloatingAlertBubbleView.swift; sourceTree = "<group>"; };
+		F0CFD863900241708EE0D66C /* ScreenBorderGlowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ScreenBorderGlowView.swift; path = Powerman/UI/Overlays/ScreenBorderGlowView.swift; sourceTree = "<group>"; };
 		CDCAC49A20EC67B74D8C983B /* SettingsRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SettingsRootView.swift; path = Powerman/UI/Settings/SettingsRootView.swift; sourceTree = "<group>"; };
 		46AD1E8A8DA73E2346DDF1ED /* MenuBarSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MenuBarSettingsView.swift; path = Powerman/UI/Settings/MenuBarSettingsView.swift; sourceTree = "<group>"; };
 		D7AD7884185001809C3CDA9C /* BatteryOverviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = BatteryOverviewView.swift; path = Powerman/UI/Settings/BatteryOverviewView.swift; sourceTree = "<group>"; };
+		60E30A06FB849A684EE6C6AC /* AlertsSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AlertsSettingsView.swift; path = Powerman/UI/Settings/AlertsSettingsView.swift; sourceTree = "<group>"; };
 		DBCD320D71F3A26EEEDB250E /* BatteryInfoTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = BatteryInfoTests.swift; path = PowermanTests/BatteryInfoTests.swift; sourceTree = "<group>"; };
+		FD729F0677A8FD9A9C6CDB59 /* AlertEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AlertEngineTests.swift; path = PowermanTests/AlertEngineTests.swift; sourceTree = "<group>"; };
 		2784DD82DBAE4CF1C17FABBB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Info.plist; path = Powerman/Resources/Info.plist; sourceTree = "<group>"; };
 		A9C664FF117B198BCE0CB392 /* Powerman.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = Powerman.entitlements; path = Powerman/Resources/Powerman.entitlements; sourceTree = "<group>"; };
 		5141EFFF35ACD6C51F274E4D /* Powerman.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Powerman.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -96,13 +112,20 @@
 				22EB57F604E8F65C92440FCA,
 				5275A77AE727965A79CFC305,
 				7BE124EA22CF73C36D3BDEF8,
+				BF7747963CEA53A8A9C91947,
 				3DDA87CA76123ABD73446482,
+				F16F38CD7EFAFC5BE684E226,
+				31E744CEE4BD54A644BCA779,
+				B2B25B566658D48A82E3CDB7,
 				08F0D085D0BF133F2DEBFBC3,
 				2EC242379EBC24EACB32D56A,
 				DDB744BC83308BB9884D5654,
+				1C0C47D58023367EBBB876D6,
+				F0CFD863900241708EE0D66C,
 				CDCAC49A20EC67B74D8C983B,
 				46AD1E8A8DA73E2346DDF1ED,
 				D7AD7884185001809C3CDA9C,
+				60E30A06FB849A684EE6C6AC,
 				2784DD82DBAE4CF1C17FABBB,
 				A9C664FF117B198BCE0CB392,
 			);
@@ -113,6 +136,7 @@
 			isa = PBXGroup;
 			children = (
 				DBCD320D71F3A26EEEDB250E,
+				FD729F0677A8FD9A9C6CDB59,
 			);
 			name = PowermanTests;
 			sourceTree = "<group>";
@@ -220,13 +244,20 @@
 				3F5555F0218408D90A10320F /* AppState.swift in Sources */,
 				32F869E9622524AE3707EF8B /* BatteryInfo.swift in Sources */,
 				64A906C969EFAF38E2D94ECA /* AppSettings.swift in Sources */,
+				2E30CD4BE6DC4165EABA3242 /* AlertRule.swift in Sources */,
 				16D9C9E9FA937D93C173EA18 /* IOKitBatteryService.swift in Sources */,
+				6688D5226868C953D5825251 /* SoundPlayer.swift in Sources */,
+				6FC434DAFA3B75F53AE5D12E /* AlertEngine.swift in Sources */,
+				E49085103A80F14F00CEA034 /* OverlayWindowManager.swift in Sources */,
 				9EF2159D7B64C959749E806F /* MenuBarIconView.swift in Sources */,
 				F2CEF443A293EB865BA81424 /* MenuBarController.swift in Sources */,
 				F53B9D167CCF6E6E2FBC08EA /* MenuBarPopoverView.swift in Sources */,
+				182082FFFA0E167499EB03C0 /* FloatingAlertBubbleView.swift in Sources */,
+				F06A5E50244E3A655C3D6E8F /* ScreenBorderGlowView.swift in Sources */,
 				1461C1A9F41D39F2D01E8BB3 /* SettingsRootView.swift in Sources */,
 				7BA2DFE633EDF6E6F89B57B1 /* MenuBarSettingsView.swift in Sources */,
 				B8FC938D8E0C542EA0B91EF9 /* BatteryOverviewView.swift in Sources */,
+				35721BD687655660FD13AD8F /* AlertsSettingsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -235,6 +266,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				EAA0F09024966A491D900C41 /* BatteryInfoTests.swift in Sources */,
+				DBE082EF91E0076BC3C325B1 /* AlertEngineTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

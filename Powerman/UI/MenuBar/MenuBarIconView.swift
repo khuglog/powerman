@@ -10,10 +10,10 @@ struct MenuBarIconView: View {
     let statusColorsEnabled: Bool
     var isDarkMenuBar: Bool = false
     var isTemplateMode: Bool = false
-    var isStartingCharge: Bool = false
+    var isNegotiatingPower: Bool = false
 
-    private var effectiveCharging: Bool {
-        battery.isCharging || (battery.isPluggedIn && isStartingCharge)
+    private var isNegotiating: Bool {
+        !battery.isCharging && !battery.isFullyCharged && battery.isPluggedIn && isNegotiatingPower
     }
 
     private var scaleFactor: CGFloat {
@@ -37,7 +37,7 @@ struct MenuBarIconView: View {
     private var isStatusColored: Bool {
         guard colorMode != .monochrome, !isTemplateMode else { return false }
         if statusColorsEnabled {
-            return effectiveCharging || battery.isFullyCharged || battery.percentage <= 20
+            return battery.isCharging || battery.isFullyCharged || isNegotiating || battery.percentage <= 20
         }
         return battery.percentage <= 10
     }
@@ -48,8 +48,10 @@ struct MenuBarIconView: View {
         }
 
         if statusColorsEnabled {
-            if effectiveCharging || battery.isFullyCharged {
+            if battery.isCharging || battery.isFullyCharged {
                 return .green
+            } else if isNegotiating {
+                return Color(red: 0.08, green: 0.72, blue: 0.85)
             } else if battery.percentage <= 10 {
                 return .red
             } else if battery.percentage <= 20 {
@@ -112,7 +114,7 @@ struct MenuBarIconView: View {
         case .minimal:
             minimalPillIndicator(showDigitsInside: displayMode != .iconOnly)
         case .powermanLogo:
-            Image(systemName: effectiveCharging ? "bolt.shield.fill" : "bolt.circle.fill")
+            Image(systemName: battery.isCharging ? "bolt.shield.fill" : (isNegotiating ? "powerplug.fill" : "bolt.circle.fill"))
                 .font(.system(size: 13.5 * scaleFactor, weight: .semibold))
                 .foregroundStyle(fillColor)
         }
@@ -133,8 +135,8 @@ struct MenuBarIconView: View {
                     )
                     .padding(.leading, 1.8 * scaleFactor)
 
-                if effectiveCharging {
-                    Image(systemName: "bolt.fill")
+                if battery.isCharging || isNegotiating {
+                    Image(systemName: battery.isCharging ? "bolt.fill" : "powerplug.portrait.fill")
                         .font(.system(size: 7.5 * scaleFactor, weight: .bold))
                         .foregroundStyle(isStatusColored ? .white : (isDarkMenuBar ? .black : .white))
                         .shadow(color: .black.opacity(0.35), radius: 0.5)
@@ -248,9 +250,12 @@ struct MenuBarIconView: View {
 
     private var pillLabel: some View {
         HStack(spacing: 1) {
-            if effectiveCharging {
+            if battery.isCharging {
                 Image(systemName: "bolt.fill")
                     .font(.system(size: 6.5 * scaleFactor, weight: .bold))
+            } else if isNegotiating {
+                Image(systemName: "powerplug.portrait.fill")
+                    .font(.system(size: 6.2 * scaleFactor, weight: .bold))
             }
             Text("\(battery.percentage)")
                 .font(.system(size: 9 * scaleFactor, weight: .bold, design: .rounded))

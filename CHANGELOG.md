@@ -4,14 +4,19 @@ Tất cả các thay đổi đáng chú ý của dự án **Powerman** sẽ đư
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-11-17
+
+### Added
+- **USB-C PD Negotiating Status (`Negotiating USB-C Power...`):**
+  - Thêm trạng thái phụ chuyên biệt ngay tại `t = 0s` khi vừa cắm nguồn USB-C/MagSafe nhưng bộ sạc đang trong 2–10s đàm phán công suất (`AppState.isNegotiatingUSBCPower`, `AppState.batteryStatusLabel`):
+    - **Menu Bar (`MenuBarIconView`):** Đổi ngay sang màu **Cyan/Teal** (`#14B8D9`) kèm icon phích cắm (`powerplug.portrait.fill` / `powerplug.fill`), tách bạch rõ ràng với màu xanh lá + tia sét (`⚡`) khi dòng sạc bắt đầu nạp thật.
+    - **Popover & Live Telemetry (`MenuBarPopoverView`, `BatteryOverviewView`):** Hiển thị `"Negotiating USB-C Power..."` kèm icon phích cắm và thanh tiến trình Cyan/Teal; cập nhật thông báo nổi `"Power Connected"` (`AlertRule`) hiển thị `"Negotiating USB-C Power • X%"` khi adapter chưa kịp báo công suất.
+    - **Adaptive PD Polling & Charge Limit Guard:** Tự động hủy trạng thái đàm phán nếu đang tạm dừng ở ngưỡng Charge Limit (`isPausedAtChargeLimit`) hoặc sau tối đa 12s nếu phần cứng không kích hoạt sạc.
+  - Bổ sung & cập nhật unit test `testInstantPlugInStatusSyncAndChargeLimitPause` trong `ChargeLimitTests` (26/26 unit tests pass) và nâng `MARKETING_VERSION` lên `1.0.1` (build `2`).
+
 ## [1.0.0] - 2026-11-16
 
 ### Fixed
-- **Zero-Delay Plug-in Menu Bar Status Sync (`t = 0s`):**
-  - `AppState` & `MenuBarIconView` & `MenuBarController`: Đồng bộ phản hồi trạng thái sạc tức thì ngay thời điểm vừa cắm nguồn (`isPluggedChargeTransitionActive`, hết chờ 2–10 giây đàm phán USB-C PD) cùng lúc với thông báo nổi `"Power Connected"`, đồng thời vẫn giữ nguyên trạng thái trung tính khi `isPausedAtChargeLimit` tạm dừng ở giới hạn sạc (và tự dọn nếu sau 12s phần cứng không kích hoạt sạc).
-  - `IOKitBatteryService`: Mở rộng chu kỳ xác nhận thích nghi trong cửa sổ PD handshake lên đến 12s (dừng sớm ngay khi `isCharging` chuyển `true` hoặc rút nguồn).
-  - `MenuBarPopoverView`: Tái sử dụng `appState.isPausedAtChargeLimit` và `appState.menuBarShowsChargingStatus` để đồng bộ màu sắc và icon tia sét với Menu Bar.
-  - Bổ sung unit test `testInstantPlugInStatusSyncAndChargeLimitPause` trong `ChargeLimitTests` (26/26 unit tests pass).
 - **Instant Menu Bar Status & Appearance Response:**
   - `IOKitBatteryService`: Đăng ký trực tiếp thông báo nhân macOS `IOServiceAddInterestNotification` (`kIOGeneralInterest`) trên `AppleSmartBattery` / `AppleSmartBatteryPack`, bổ sung `IOPSCreateLimitedPowerNotification`, chạy mọi nguồn RunLoop & timer trên `.commonModes`, theo dõi `NSWorkspace.didWakeNotification`, gộp sự kiện telemetry nhiễu (`hasVisualOrStatusChange` vs `hasTelemetryChange`), và kiểm tra xác nhận chuyển tiếp USB-PD sau 1s/2.5s khi cắm/rút nguồn để cập nhật tức thì thay vì chờ timer dự phòng.
   - `BatterySnapshotParser` (`BatteryInfo`): Ưu tiên đọc trực tiếp cờ `IsCharging` và `FullyCharged` từ kernel IORegistry (`AppleSmartBattery`) trước cache `IOPS` (`powerd`), cùng 2 unit tests mới trong `BatteryInfoTests` (tổng 25/25 unit tests pass).

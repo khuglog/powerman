@@ -18,7 +18,7 @@ final class AppState {
     let settings: AppSettings
     var selectedTab: SettingsTab = .battery
     var activeTestRuleID: UUID?
-    var isPluggedChargeTransitionActive: Bool = false
+    var isNegotiatingUSBCPower: Bool = false
 
     private let batteryService: BatteryMonitoring
     private let bluetoothService: BluetoothBatteryMonitoring
@@ -84,9 +84,14 @@ final class AppState {
         isPausedAtChargeLimit(for: batteryInfo)
     }
 
-    var menuBarShowsChargingStatus: Bool {
-        batteryInfo.isCharging
-            || (batteryInfo.isPluggedIn && isPluggedChargeTransitionActive && !isPausedAtChargeLimit)
+    var batteryStatusLabel: String {
+        if isPausedAtChargeLimit {
+            return "Paused at \(chargeLimitStatus.limitPercentage)% Limit"
+        }
+        if isNegotiatingUSBCPower {
+            return "Negotiating USB-C Power..."
+        }
+        return batteryInfo.chargingState.displayLabel
     }
 
     private func isPausedAtChargeLimit(for info: BatteryInfo) -> Bool {
@@ -119,7 +124,7 @@ final class AppState {
     func stop() {
         chargeTransitionTask?.cancel()
         chargeTransitionTask = nil
-        isPluggedChargeTransitionActive = false
+        isNegotiatingUSBCPower = false
         batteryService.stopMonitoring()
         bluetoothService.stopMonitoring()
         systemService.stopLowPowerObserver()
@@ -315,18 +320,18 @@ final class AppState {
         if !current.isPluggedIn || current.isCharging || current.isFullyCharged || isPausedAtChargeLimit(for: current) {
             chargeTransitionTask?.cancel()
             chargeTransitionTask = nil
-            isPluggedChargeTransitionActive = false
+            isNegotiatingUSBCPower = false
             return
         }
 
         // Reflect newly attached AC power immediately while USB-PD negotiates IsCharging.
         if !previous.isPluggedIn && current.isPluggedIn {
-            isPluggedChargeTransitionActive = true
+            isNegotiatingUSBCPower = true
             chargeTransitionTask?.cancel()
             chargeTransitionTask = Task { @MainActor [weak self] in
                 try? await Task.sleep(nanoseconds: 12_000_000_000)
                 guard !Task.isCancelled else { return }
-                self?.isPluggedChargeTransitionActive = false
+                self?.isNegotiatingUSBCPower = false
                 self?.chargeTransitionTask = nil
             }
         }

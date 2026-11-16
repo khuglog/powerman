@@ -390,7 +390,7 @@ struct BatteryOverviewView: View {
 
             HStack(spacing: 24) {
                 telemetryItem("Current Charge", "\(battery.percentage)% (\(battery.currentCapacityMah) mAh)")
-                telemetryItem("Source", battery.chargingState.displayLabel)
+                telemetryItem("Source", appState.batteryStatusLabel)
                 telemetryItem(
                     "Voltage",
                     battery.voltageMv.map { String(format: "%.2f V", Double($0) / 1000.0) } ?? "--"

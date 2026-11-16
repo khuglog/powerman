@@ -187,29 +187,29 @@ final class ChargeLimitTests: XCTestCase {
         appState.start()
         defer { appState.stop() }
 
-        XCTAssertFalse(appState.menuBarShowsChargingStatus)
-        XCTAssertFalse(appState.isPluggedChargeTransitionActive)
+        XCTAssertFalse(appState.isNegotiatingUSBCPower)
+        XCTAssertEqual(appState.batteryStatusLabel, "On Battery")
 
         // 1. Just plugged in at 40% while USB-PD negotiates (ExternalConnected=true, IsCharging=false).
         stubBattery.push(makeBattery(percentage: 40, isPluggedIn: true, isCharging: false))
-        XCTAssertTrue(appState.isPluggedChargeTransitionActive)
-        XCTAssertTrue(appState.menuBarShowsChargingStatus)
+        XCTAssertTrue(appState.isNegotiatingUSBCPower)
+        XCTAssertEqual(appState.batteryStatusLabel, "Negotiating USB-C Power...")
 
         // 2. Hardware finishes PD negotiation and begins active charging.
         stubBattery.push(makeBattery(percentage: 40, isPluggedIn: true, isCharging: true))
-        XCTAssertFalse(appState.isPluggedChargeTransitionActive)
-        XCTAssertTrue(appState.menuBarShowsChargingStatus)
+        XCTAssertFalse(appState.isNegotiatingUSBCPower)
+        XCTAssertEqual(appState.batteryStatusLabel, "Charging")
 
-        // 3. Charger unplugged clears charging status immediately.
+        // 3. Charger unplugged clears negotiating state immediately.
         stubBattery.push(makeBattery(percentage: 40, isPluggedIn: false, isCharging: false))
-        XCTAssertFalse(appState.isPluggedChargeTransitionActive)
-        XCTAssertFalse(appState.menuBarShowsChargingStatus)
+        XCTAssertFalse(appState.isNegotiatingUSBCPower)
+        XCTAssertEqual(appState.batteryStatusLabel, "On Battery")
 
-        // 4. Plugged in at 82% while 80% Charge Limit pauses charging must NOT show fake charging.
+        // 4. Plugged in at 82% while 80% Charge Limit pauses charging must show paused, not negotiating.
         appState.setChargeLimitEnabled(true)
         stubBattery.push(makeBattery(percentage: 82, isPluggedIn: true, isCharging: false))
         XCTAssertTrue(appState.isPausedAtChargeLimit)
-        XCTAssertFalse(appState.isPluggedChargeTransitionActive)
-        XCTAssertFalse(appState.menuBarShowsChargingStatus)
+        XCTAssertFalse(appState.isNegotiatingUSBCPower)
+        XCTAssertEqual(appState.batteryStatusLabel, "Paused at 80% Limit")
     }
 }

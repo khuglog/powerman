@@ -9,8 +9,10 @@ struct MenuBarPopoverView: View {
     private var battery: BatteryInfo { appState.batteryInfo }
 
     private var accentStatusColor: Color {
-        if appState.menuBarShowsChargingStatus || battery.isFullyCharged {
+        if battery.isCharging || battery.isFullyCharged {
             return .green
+        } else if appState.isNegotiatingUSBCPower {
+            return Color(red: 0.08, green: 0.72, blue: 0.85)
         } else if battery.percentage <= 10 {
             return .red
         } else if battery.percentage <= 20 {
@@ -21,7 +23,7 @@ struct MenuBarPopoverView: View {
     }
 
     private var appVersion: String {
-        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.0"
+        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.1"
     }
 
     var body: some View {
@@ -40,10 +42,19 @@ struct MenuBarPopoverView: View {
     }
 
     private var statusDisplayText: String {
-        if appState.isPausedAtChargeLimit {
-            return "Paused at \(appState.chargeLimitStatus.limitPercentage)% Limit"
+        appState.batteryStatusLabel
+    }
+
+    private var statusIconName: String {
+        if battery.isCharging {
+            return "bolt.fill"
+        } else if appState.isNegotiatingUSBCPower {
+            return "powerplug.fill"
+        } else if appState.isPausedAtChargeLimit {
+            return "pause.circle.fill"
+        } else {
+            return "battery.100"
         }
-        return battery.chargingState.displayLabel
     }
 
     private var batteryHeaderCard: some View {
@@ -72,7 +83,7 @@ struct MenuBarPopoverView: View {
             }
 
             HStack(spacing: 6) {
-                Image(systemName: appState.menuBarShowsChargingStatus ? "bolt.fill" : "battery.100")
+                Image(systemName: statusIconName)
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundStyle(accentStatusColor)
                 Text(statusDisplayText)

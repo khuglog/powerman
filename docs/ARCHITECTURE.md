@@ -19,7 +19,7 @@ flowchart TD
         BatterySvc["IOKitBatteryService (IOPS + AppleSmartBattery + Pack)"]
         HistorySvc["BatteryHistoryStore (SwiftData - Phase 4)"]
         AlertSvc["AlertEngine & SoundPlayer"]
-        BTSvc["BluetoothBatteryService (Phase 3)"]
+        BTSvc["BluetoothBatteryService (IORegistry + SPBluetooth + BLE)"]
         ChargeSvc["ChargeLimitService (Phase 5)"]
         SysSvc["SystemIntegration (Phase 6)"]
     end

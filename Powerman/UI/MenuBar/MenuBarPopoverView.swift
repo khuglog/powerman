@@ -162,7 +162,8 @@ struct MenuBarPopoverView: View {
     }
 
     private var connectedDevicesCard: some View {
-        VStack(spacing: 0) {
+        let devices = appState.visibleDropdownDevices
+        return VStack(spacing: 0) {
             HStack(spacing: 8) {
                 Image(systemName: "airpodspro")
                     .foregroundStyle(.secondary)
@@ -170,7 +171,7 @@ struct MenuBarPopoverView: View {
                     .font(.system(size: 13, weight: .medium))
                 Spacer()
                 Button {
-                    appState.refreshBattery()
+                    appState.refreshDevices()
                 } label: {
                     Image(systemName: "arrow.clockwise")
                         .font(.system(size: 11))
@@ -194,14 +195,89 @@ struct MenuBarPopoverView: View {
 
             if isDevicesExpanded {
                 Divider().padding(.horizontal, 12)
-                Text("Bluetooth peripheral battery tracking coming in Phase 3.")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                if !appState.settings.showBluetoothDevices {
+                    HStack {
+                        Text("Bluetooth devices hidden in Settings.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        Spacer()
+                        Button("Enable") {
+                            appState.settings.showBluetoothDevices = true
+                            appState.refreshDevices()
+                        }
+                        .font(.caption.weight(.semibold))
+                        .buttonStyle(.plain)
+                        .foregroundStyle(Color.accentColor)
+                    }
                     .padding(12)
+                } else if devices.isEmpty {
+                    HStack {
+                        Text("No connected Bluetooth battery devices detected.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        Spacer()
+                        Button("Manage") {
+                            appState.openSettings(tab: .devices)
+                        }
+                        .font(.caption.weight(.semibold))
+                        .buttonStyle(.plain)
+                        .foregroundStyle(Color.accentColor)
+                    }
+                    .padding(12)
+                } else {
+                    VStack(spacing: 10) {
+                        ForEach(devices) { device in
+                            deviceRow(device)
+                        }
+                    }
+                    .padding(12)
+                }
             }
         }
         .background(cardBackground)
+    }
+
+    private func deviceRow(_ device: BluetoothDeviceBattery) -> some View {
+        let pct = device.displayPercentage ?? 0
+        let barColor: Color = pct <= 15 ? .red : (pct <= 25 ? .orange : .primary)
+
+        return VStack(alignment: .leading, spacing: 5) {
+            HStack(spacing: 8) {
+                Image(systemName: device.category.symbolName)
+                    .font(.system(size: 13))
+                    .foregroundStyle(.secondary)
+                    .frame(width: 18)
+
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(device.name)
+                        .font(.system(size: 12.5, weight: .medium))
+                        .lineLimit(1)
+                    if let sub = device.subBatterySummary {
+                        Text(sub)
+                            .font(.system(size: 10))
+                            .foregroundStyle(.secondary)
+                    }
+                }
+
+                Spacer()
+
+                Text(device.formattedPercentage)
+                    .font(.system(size: 12.5, weight: .semibold, design: .rounded))
+                    .monospacedDigit()
+                    .foregroundStyle(pct <= 15 ? .red : .primary)
+            }
+
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    Capsule()
+                        .fill(Color.primary.opacity(0.1))
+                    Capsule()
+                        .fill(barColor.opacity(0.85))
+                        .frame(width: max(4, geo.size.width * CGFloat(pct) / 100.0))
+                }
+            }
+            .frame(height: 4)
+        }
     }
 
     private var actionMenuCard: some View {

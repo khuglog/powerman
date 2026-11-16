@@ -218,6 +218,7 @@ struct MenuBarSettingsView: View {
                         Spacer()
                         MenuBarIconView(
                             battery: appState.batteryInfo,
+                            pinnedDevices: appState.pinnedMenuBarDevices,
                             style: settings.menuBarIconStyle,
                             displayMode: settings.menuBarDisplayMode,
                             colorMode: settings.menuBarColorMode,
@@ -254,28 +255,92 @@ struct MenuBarSettingsView: View {
     }
 
     private var deviceBatteriesSection: some View {
-        VStack(alignment: .leading, spacing: 10) {
+        let pinned = settings.orderedPinnedDevices(from: appState.bluetoothDevices)
+        let availableToPin = appState.bluetoothDevices.filter { !settings.preference(for: $0.id).isPinnedToMenuBar }
+
+        return VStack(alignment: .leading, spacing: 10) {
             Label("Device Batteries", systemImage: "keyboard")
                 .font(.headline)
 
-            HStack(spacing: 12) {
-                settingBadgeIcon("computermouse.fill", color: .cyan)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Devices in the menu bar")
-                        .font(.system(size: 13, weight: .semibold))
-                    Text("Show battery percentages for your keyboard, mouse, or AirPods right in the menu bar.")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+            VStack(spacing: 0) {
+                HStack(spacing: 12) {
+                    settingBadgeIcon("computermouse.fill", color: .cyan)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Devices in the menu bar")
+                            .font(.system(size: 13, weight: .semibold))
+                        Text("Show battery percentages for your keyboard, mouse, or AirPods right in the menu bar.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    Spacer()
+
+                    Menu("Add Device") {
+                        if availableToPin.isEmpty {
+                            Text("No unpinned Bluetooth devices")
+                        } else {
+                            ForEach(availableToPin) { device in
+                                Button {
+                                    settings.togglePinDevice(device.id)
+                                } label: {
+                                    Label(
+                                        "\(device.name) (\(device.formattedPercentage))",
+                                        systemImage: device.category.symbolName
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    .frame(width: 125)
                 }
-                Spacer()
-                Text("Phase 3")
-                    .font(.caption.weight(.semibold))
-                    .foregroundStyle(.secondary)
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 5)
-                    .background(RoundedRectangle(cornerRadius: 6).fill(Color.primary.opacity(0.06)))
+                .padding(14)
+
+                if !pinned.isEmpty {
+                    ForEach(Array(pinned.enumerated()), id: \.element.id) { index, device in
+                        Divider().padding(.horizontal, 14)
+                        HStack(spacing: 10) {
+                            Image(systemName: device.category.symbolName)
+                                .foregroundStyle(.secondary)
+                                .frame(width: 20)
+                            Text(device.name)
+                                .font(.system(size: 13, weight: .medium))
+                            Text(device.isConnected ? device.formattedPercentage : "Offline")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            Spacer()
+
+                            Button {
+                                settings.movePinnedDevice(id: device.id, direction: -1, allDevices: appState.bluetoothDevices)
+                            } label: {
+                                Image(systemName: "arrow.up")
+                                    .font(.system(size: 11))
+                            }
+                            .buttonStyle(.plain)
+                            .disabled(index == 0)
+
+                            Button {
+                                settings.movePinnedDevice(id: device.id, direction: 1, allDevices: appState.bluetoothDevices)
+                            } label: {
+                                Image(systemName: "arrow.down")
+                                    .font(.system(size: 11))
+                            }
+                            .buttonStyle(.plain)
+                            .disabled(index == pinned.count - 1)
+
+                            Button {
+                                settings.togglePinDevice(device.id)
+                            } label: {
+                                Image(systemName: "pin.slash.fill")
+                                    .font(.system(size: 12))
+                                    .foregroundStyle(.red)
+                            }
+                            .buttonStyle(.plain)
+                            .help("Unpin from menu bar")
+                        }
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 10)
+                    }
+                }
             }
-            .padding(14)
             .background(settingsCardBackground)
         }
     }

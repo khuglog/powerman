@@ -137,6 +137,8 @@ final class AppSettings {
         static let alertRules = "alerts.rules"
         static let powerSourceAlerts = "alerts.powerSource"
         static let soundDefaultsVersion = "alerts.soundDefaultsVersion"
+        static let showBluetoothDevices = "devices.showBluetoothDevices"
+        static let devicePreferences = "devices.preferences"
     }
 
     private let defaults: UserDefaults
@@ -177,6 +179,18 @@ final class AppSettings {
         didSet {
             if let data = try? JSONEncoder().encode(powerSourceAlerts) {
                 defaults.set(data, forKey: Keys.powerSourceAlerts)
+            }
+        }
+    }
+
+    var showBluetoothDevices: Bool {
+        didSet { defaults.set(showBluetoothDevices, forKey: Keys.showBluetoothDevices) }
+    }
+
+    var devicePreferences: [String: DeviceUserPreference] {
+        didSet {
+            if let data = try? JSONEncoder().encode(devicePreferences) {
+                defaults.set(data, forKey: Keys.devicePreferences)
             }
         }
     }
@@ -236,6 +250,19 @@ final class AppSettings {
             self.powerSourceAlerts = decoded
         } else {
             self.powerSourceAlerts = PowerSourceAlertConfig()
+        }
+
+        if defaults.object(forKey: Keys.showBluetoothDevices) != nil {
+            self.showBluetoothDevices = defaults.bool(forKey: Keys.showBluetoothDevices)
+        } else {
+            self.showBluetoothDevices = true
+        }
+
+        if let data = defaults.data(forKey: Keys.devicePreferences),
+           let decoded = try? JSONDecoder().decode([String: DeviceUserPreference].self, from: data) {
+            self.devicePreferences = decoded
+        } else {
+            self.devicePreferences = [:]
         }
 
         migrateLegacySoundDefaultsIfNeeded()
@@ -314,5 +341,59 @@ final class AppSettings {
 
     func removeAlertRule(id: UUID) {
         alertRules.removeAll { $0.id == id }
+    }
+
+    func preference(for deviceID: String) -> DeviceUserPreference {
+        devicePreferences[deviceID] ?? DeviceUserPreference()
+    }
+
+    func togglePinDevice(_ deviceID: String) {
+        var pref = preference(for: deviceID)
+        pref.isPinnedToMenuBar.toggle()
+        if pref.isPinnedToMenuBar {
+            let maxOrder = devicePreferences.values.filter(\.isPinnedToMenuBar).map(\.pinOrder).max() ?? -1
+            pref.pinOrder = maxOrder + 1
+        }
+        devicePreferences[deviceID] = pref
+    }
+
+    func toggleHideDevice(_ deviceID: String) {
+        var pref = preference(for: deviceID)
+        pref.isHiddenFromDropdown.toggle()
+        devicePreferences[deviceID] = pref
+    }
+
+    func setDeviceAlertThreshold(_ threshold: Int?, for deviceID: String) {
+        var pref = preference(for: deviceID)
+        pref.lowBatteryAlertThreshold = threshold
+        devicePreferences[deviceID] = pref
+    }
+
+    func movePinnedDevice(id: String, direction: Int, allDevices: [BluetoothDeviceBattery]) {
+        let pinned = orderedPinnedDevices(from: allDevices)
+        guard let index = pinned.firstIndex(where: { $0.id == id }) else { return }
+        let targetIndex = index + direction
+        guard pinned.indices.contains(targetIndex) else { return }
+
+        var reordered = pinned.map(\.id)
+        reordered.swapAt(index, targetIndex)
+        for (order, devID) in reordered.enumerated() {
+            var pref = preference(for: devID)
+            pref.pinOrder = order
+            devicePreferences[devID] = pref
+        }
+    }
+
+    func orderedPinnedDevices(from devices: [BluetoothDeviceBattery]) -> [BluetoothDeviceBattery] {
+        devices
+            .filter { preference(for: $0.id).isPinnedToMenuBar }
+            .sorted { lhs, rhs in
+                let lOrder = preference(for: lhs.id).pinOrder
+                let rOrder = preference(for: rhs.id).pinOrder
+                if lOrder != rOrder {
+                    return lOrder < rOrder
+                }
+                return lhs.name < rhs.name
+            }
     }
 }

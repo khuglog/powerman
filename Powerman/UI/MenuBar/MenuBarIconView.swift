@@ -2,6 +2,7 @@ import SwiftUI
 
 struct MenuBarIconView: View {
     let battery: BatteryInfo
+    var pinnedDevices: [BluetoothDeviceBattery] = []
     let style: MenuBarIconStyle
     let displayMode: MenuBarDisplayMode
     let colorMode: MenuBarColorMode
@@ -57,23 +58,41 @@ struct MenuBarIconView: View {
     }
 
     var body: some View {
-        HStack(spacing: 4 * scaleFactor) {
-            if displayMode != .percentage {
-                iconGraphic
+        HStack(spacing: 6 * scaleFactor) {
+            if !pinnedDevices.isEmpty {
+                HStack(spacing: 6 * scaleFactor) {
+                    ForEach(pinnedDevices) { device in
+                        HStack(spacing: 2.5 * scaleFactor) {
+                            Image(systemName: device.category.symbolName)
+                                .font(.system(size: 10.5 * scaleFactor, weight: .semibold))
+                                .foregroundStyle(baseForeground.opacity(0.9))
+                            Text(device.formattedPercentage)
+                                .font(.system(size: 11 * scaleFactor, weight: .semibold, design: .rounded))
+                                .monospacedDigit()
+                                .foregroundStyle(baseForeground)
+                        }
+                    }
+                }
             }
 
-            if displayMode == .iconAndPercentage || displayMode == .percentage {
-                if style != .minimal || displayMode == .percentage {
-                    Text("\(battery.percentage)%")
-                        .font(.system(size: 11.5 * scaleFactor, weight: .semibold, design: .rounded))
+            HStack(spacing: 4 * scaleFactor) {
+                if displayMode != .percentage {
+                    iconGraphic
+                }
+
+                if displayMode == .iconAndPercentage || displayMode == .percentage {
+                    if style != .minimal || displayMode == .percentage {
+                        Text("\(battery.percentage)%")
+                            .font(.system(size: 11.5 * scaleFactor, weight: .semibold, design: .rounded))
+                            .monospacedDigit()
+                            .foregroundStyle(baseForeground)
+                    }
+                } else if displayMode == .timeRemaining {
+                    Text(battery.formattedTimeRemaining)
+                        .font(.system(size: 11.5 * scaleFactor, weight: .medium, design: .rounded))
                         .monospacedDigit()
                         .foregroundStyle(baseForeground)
                 }
-            } else if displayMode == .timeRemaining {
-                Text(battery.formattedTimeRemaining)
-                    .font(.system(size: 11.5 * scaleFactor, weight: .medium, design: .rounded))
-                    .monospacedDigit()
-                    .foregroundStyle(baseForeground)
             }
         }
         .padding(.horizontal, 3)

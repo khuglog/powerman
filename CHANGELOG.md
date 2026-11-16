@@ -8,6 +8,12 @@ Tất cả các thay đổi đáng chú ý của dự án **Powerman** sẽ đư
 - **Phase 0 (Repo & Documentation):**
   - Thiết lập Git repository, `.gitignore`, GitHub Actions CI (`.github/workflows/ci.yml`).
   - Khởi tạo hệ thống tài liệu bàn giao chuẩn: `README.md`, `CONTRIBUTING.md`, `CHANGELOG.md`, `AGENTS.md`, `docs/ARCHITECTURE.md`, `docs/PROGRESS.md`.
+- **Phase 3 (Bluetooth Devices & Menu Bar Pinning):**
+  - Thêm model `BluetoothDeviceBattery`, `DeviceCategory` và `DeviceUserPreference` lưu trữ tùy chọn ghim Menu Bar, ẩn khỏi dropdown và ngưỡng cảnh báo riêng theo thiết bị.
+  - Xây dựng `BluetoothBatteryService` & `BluetoothBatteryParser` tổng hợp dữ liệu từ `SPBluetoothDataType`, `IORegistry` (`BatteryPercent`), `IOPS` accessories, `IOBluetooth` connect/disconnect notifications và `CoreBluetooth` (`0x180F`).
+  - Cập nhật `MenuBarIconView` & `MenuBarController` hiển thị pin các thiết bị đã ghim lên thanh Menu Bar; cập nhật `MenuBarPopoverView` mục `Connected Devices` (xếp pin thấp nhất lên đầu, hiển thị L/R/Case cho AirPods).
+  - Hoàn thiện `DevicesSettingsView` (cài cảnh báo pin yếu cho từng thiết bị, ghim Menu Bar, ẩn khỏi Popover) và phần `Device Batteries` trong `MenuBarSettingsView` (thêm thiết bị & sắp xếp thứ tự).
+  - Bổ sung `BluetoothBatteryTests` (3/3 test cases pass).
 - **Phase 2 (Multi-level Alerts & Visual Overlays):**
   - Thêm model `AlertRule`, `PowerSourceAlertConfig`, `ActiveAlertPresentation` hỗ trợ lưu trữ nhiều mức Low Battery và Charged Alerts.
   - Xây dựng `AlertEngine` với chống lặp (3% hysteresis), cảnh báo cắm/rút sạc (`Plugged In` / `Unplugged`), và tự động ẩn persistent alert khi đổi trạng thái nguồn.

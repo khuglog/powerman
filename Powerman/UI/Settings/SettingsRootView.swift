@@ -45,11 +45,7 @@ struct SettingsRootView: View {
                 case .alerts:
                     AlertsSettingsView(appState: appState)
                 case .devices:
-                    PhasePlaceholderView(
-                        tab: .devices,
-                        phase: "Phase 3",
-                        description: "Monitor paired Bluetooth devices (AirPods, Magic Mouse, Keyboard, Trackpad) and pin device batteries directly to the Menu Bar."
-                    )
+                    DevicesSettingsView(appState: appState)
                 case .charging:
                     PhasePlaceholderView(
                         tab: .charging,
@@ -82,10 +78,9 @@ struct SettingsRootView: View {
 
     private func upcomingPhaseTag(for tab: SettingsTab) -> String? {
         switch tab {
-        case .devices: return "P3"
         case .charging: return "P5"
         case .general: return "P6"
-        case .battery, .alerts, .menuBar: return nil
+        case .battery, .alerts, .menuBar, .devices: return nil
         }
     }
 }

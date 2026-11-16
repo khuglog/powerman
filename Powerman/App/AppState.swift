@@ -6,26 +6,31 @@ import Observation
 @MainActor
 final class AppState {
     var batteryInfo: BatteryInfo
+    var bluetoothDevices: [BluetoothDeviceBattery] = []
     let settings: AppSettings
     var selectedTab: SettingsTab = .battery
     var activeTestRuleID: UUID?
 
     private let batteryService: BatteryMonitoring
+    private let bluetoothService: BluetoothBatteryMonitoring
     private let alertEngine: AlertEngine
     private let alertPresenter: AlertPresenting
     private let soundPreviewPlayer: SoundPlaying
+    private var firedDeviceAlertIDs: Set<String> = []
 
     var onOpenSettings: (() -> Void)?
     var onQuitApp: (() -> Void)?
 
     init(
         batteryService: BatteryMonitoring = IOKitBatteryService(),
+        bluetoothService: BluetoothBatteryMonitoring = BluetoothBatteryService(),
         settings: AppSettings = AppSettings(),
         alertEngine: AlertEngine = AlertEngine(),
         alertPresenter: AlertPresenting = OverlayWindowManager(),
         soundPreviewPlayer: SoundPlaying = SystemSoundPlayer()
     ) {
         self.batteryService = batteryService
+        self.bluetoothService = bluetoothService
         self.settings = settings
         self.alertEngine = alertEngine
         self.alertPresenter = alertPresenter
@@ -33,20 +38,44 @@ final class AppState {
         self.batteryInfo = batteryService.currentBattery
     }
 
+    var visibleDropdownDevices: [BluetoothDeviceBattery] {
+        guard settings.showBluetoothDevices else { return [] }
+        return bluetoothDevices.filter { device in
+            let pref = settings.preference(for: device.id)
+            guard !pref.isHiddenFromDropdown else { return false }
+            return device.isConnected && device.displayPercentage != nil
+        }
+    }
+
+    var pinnedMenuBarDevices: [BluetoothDeviceBattery] {
+        settings.orderedPinnedDevices(from: bluetoothDevices).filter {
+            $0.isConnected && $0.displayPercentage != nil
+        }
+    }
+
     func start() {
         batteryService.startMonitoring { [weak self] info in
             self?.handleBatteryUpdate(info)
+        }
+        bluetoothService.startMonitoring { [weak self] devices in
+            self?.handleBluetoothUpdate(devices)
         }
     }
 
     func stop() {
         batteryService.stopMonitoring()
+        bluetoothService.stopMonitoring()
         alertPresenter.dismiss()
+        soundPreviewPlayer.stop()
     }
 
     func refreshBattery() {
         let info = batteryService.refreshNow()
         handleBatteryUpdate(info)
+    }
+
+    func refreshDevices() {
+        bluetoothService.refreshNow()
     }
 
     func testAlert(rule: AlertRule) {
@@ -128,6 +157,46 @@ final class AppState {
         if let alert = result.triggeredAlert {
             activeTestRuleID = nil
             alertPresenter.present(alert, onDismiss: nil)
+        }
+    }
+
+    private func handleBluetoothUpdate(_ devices: [BluetoothDeviceBattery]) {
+        bluetoothDevices = devices
+        guard settings.notificationsEnabled else { return }
+
+        for device in devices {
+            guard device.isConnected, let pct = device.displayPercentage else {
+                firedDeviceAlertIDs.remove(device.id)
+                continue
+            }
+
+            let pref = settings.preference(for: device.id)
+            guard let threshold = pref.lowBatteryAlertThreshold else {
+                firedDeviceAlertIDs.remove(device.id)
+                continue
+            }
+
+            if pct >= threshold + 5 {
+                firedDeviceAlertIDs.remove(device.id)
+            } else if pct <= threshold && !firedDeviceAlertIDs.contains(device.id) {
+                firedDeviceAlertIDs.insert(device.id)
+                let alert = ActiveAlertPresentation(
+                    id: UUID(),
+                    ruleID: nil,
+                    kind: nil,
+                    title: "\(device.name) • \(device.formattedPercentage)",
+                    subtitle: "Device battery is below \(threshold)%",
+                    percentage: pct,
+                    colorHex: AlertColorPreset.orange.rawValue,
+                    showPopup: true,
+                    position: .topOfScreen,
+                    sound: .lowWarning,
+                    borderGlow: false,
+                    persistent: false,
+                    isChargingIcon: false
+                )
+                alertPresenter.present(alert, onDismiss: nil)
+            }
         }
     }
 }

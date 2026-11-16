@@ -85,6 +85,7 @@ final class MenuBarController: NSObject {
     private func showPopover() {
         guard let button = statusItem.button else { return }
         appState.refreshBattery()
+        appState.refreshDevices()
         popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
         NSApp.activate(ignoringOtherApps: true)
 
@@ -106,6 +107,8 @@ final class MenuBarController: NSObject {
     private func observeStateChanges() {
         withObservationTracking {
             _ = appState.batteryInfo
+            _ = appState.bluetoothDevices
+            _ = appState.settings.devicePreferences
             _ = appState.settings.menuBarIconStyle
             _ = appState.settings.menuBarDisplayMode
             _ = appState.settings.menuBarColorMode
@@ -133,6 +136,7 @@ final class MenuBarController: NSObject {
 
         let iconView = MenuBarIconView(
             battery: appState.batteryInfo,
+            pinnedDevices: appState.pinnedMenuBarDevices,
             style: settings.menuBarIconStyle,
             displayMode: settings.menuBarDisplayMode,
             colorMode: settings.menuBarColorMode,

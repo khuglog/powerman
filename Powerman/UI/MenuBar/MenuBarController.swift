@@ -20,6 +20,7 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
         let isDarkMenuBar: Bool
         let useTemplate: Bool
         let scale: CGFloat
+        let language: AppLanguageOption
     }
 
     private let appState: AppState
@@ -125,6 +126,7 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
     private func showPopover() {
         guard let button = statusItem.button else { return }
         appState.refreshBattery()
+        appState.refreshChargeLimit()
         appState.refreshDevices()
         appState.refreshEnergyConsumers()
         popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
@@ -165,6 +167,8 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
             _ = appState.settings.menuBarColorMode
             _ = appState.settings.menuBarSize
             _ = appState.settings.statusColorsEnabled
+            _ = appState.settings.appLanguage
+            _ = appState.settings.temporaryChargeOverride
         } onChange: { [weak self] in
             Task { @MainActor [weak self] in
                 guard let self else { return }
@@ -203,7 +207,8 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
             statusColorsEnabled: settings.statusColorsEnabled,
             isDarkMenuBar: effectiveDark,
             useTemplate: useTemplate,
-            scale: backingScale
+            scale: backingScale,
+            language: settings.appLanguage
         )
         guard signature != lastRenderSignature else { return }
         lastRenderSignature = signature
@@ -217,7 +222,8 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
             size: settings.menuBarSize,
             statusColorsEnabled: settings.statusColorsEnabled,
             isDarkMenuBar: effectiveDark,
-            isTemplateMode: useTemplate
+            isTemplateMode: useTemplate,
+            locale: settings.appLanguage.effectiveLocalizationLocale
         )
         .environment(\.colorScheme, effectiveDark ? .dark : .light)
 

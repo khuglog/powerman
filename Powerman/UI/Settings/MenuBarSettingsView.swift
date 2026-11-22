@@ -4,6 +4,7 @@ struct MenuBarSettingsView: View {
     @Bindable var appState: AppState
 
     private var settings: AppSettings { appState.settings }
+    private var locale: Locale { appState.effectiveLocale }
 
     var body: some View {
         ScrollView {
@@ -29,11 +30,11 @@ struct MenuBarSettingsView: View {
                             .foregroundStyle(.white)
                     }
 
-                Text("Menu Bar")
+                Text(L10n.string("Menu Bar", locale: locale))
                     .font(.title2.bold())
             }
 
-            Text("Customize how Powerman appears in your menu bar")
+            Text(L10n.string("Customize how Powerman appears in your menu bar", locale: locale))
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
         }
@@ -41,7 +42,7 @@ struct MenuBarSettingsView: View {
 
     private var menuBarIconSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Label("Menu Bar Icon", systemImage: "menubar.dock.rectangle")
+            Label(L10n.string("Menu Bar Icon", locale: locale), systemImage: "menubar.dock.rectangle")
                 .font(.headline)
 
             VStack(spacing: 0) {
@@ -56,15 +57,15 @@ struct MenuBarSettingsView: View {
                 pickerRow(
                     icon: "list.bullet.rectangle",
                     iconColor: .purple,
-                    title: "Display",
-                    subtitle: "Choose what to display in the menu bar icon"
+                    title: L10n.string("Display", locale: locale),
+                    subtitle: L10n.string("Choose what to display in the menu bar icon", locale: locale)
                 ) {
                     Picker("", selection: Binding(
                         get: { settings.menuBarDisplayMode },
                         set: { settings.menuBarDisplayMode = $0 }
                     )) {
                         ForEach(MenuBarDisplayMode.allCases) { mode in
-                            Text(mode.title).tag(mode)
+                            Text(mode.title(in: locale)).tag(mode)
                         }
                     }
                     .labelsHidden()
@@ -75,15 +76,15 @@ struct MenuBarSettingsView: View {
                 pickerRow(
                     icon: "circle.lefthalf.filled",
                     iconColor: .orange,
-                    title: "Color",
-                    subtitle: "Match your menu bar style"
+                    title: L10n.string("Color", locale: locale),
+                    subtitle: L10n.string("Match your menu bar style", locale: locale)
                 ) {
                     Picker("", selection: Binding(
                         get: { settings.menuBarColorMode },
                         set: { settings.menuBarColorMode = $0 }
                     )) {
                         ForEach(MenuBarColorMode.allCases) { mode in
-                            Text(mode.title).tag(mode)
+                            Text(mode.title(in: locale)).tag(mode)
                         }
                     }
                     .labelsHidden()
@@ -94,15 +95,15 @@ struct MenuBarSettingsView: View {
                 pickerRow(
                     icon: "textformat.size",
                     iconColor: .blue,
-                    title: "Size",
-                    subtitle: "Make the icon and its text larger and easier to read"
+                    title: L10n.string("Size", locale: locale),
+                    subtitle: L10n.string("Make the icon and its text larger and easier to read", locale: locale)
                 ) {
                     Picker("", selection: Binding(
                         get: { settings.menuBarSize },
                         set: { settings.menuBarSize = $0 }
                     )) {
                         ForEach(MenuBarSize.allCases) { size in
-                            Text(size.title).tag(size)
+                            Text(size.title(in: locale)).tag(size)
                         }
                     }
                     .labelsHidden()
@@ -113,12 +114,12 @@ struct MenuBarSettingsView: View {
                 HStack(spacing: 12) {
                     settingBadgeIcon("paintpalette.fill", color: .green)
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Status colors")
+                        Text(L10n.string("Status colors", locale: locale))
                             .font(.system(size: 13, weight: .semibold))
                         Text(
                             settings.menuBarColorMode == .monochrome
-                            ? "Disabled while Color is set to Monochrome."
-                            : "Green when charging, orange for low battery. Off keeps the icon neutral and only turns red when critical."
+                            ? L10n.string("Disabled while Color is set to Monochrome.", locale: locale)
+                            : L10n.string("Green when charging, orange for low battery. Off keeps the icon neutral and only turns red when critical.", locale: locale)
                         )
                         .font(.caption)
                         .foregroundStyle(.secondary)
@@ -149,10 +150,10 @@ struct MenuBarSettingsView: View {
         } label: {
             HStack {
                 VStack(alignment: .leading, spacing: 3) {
-                    Text(style.title)
+                    Text(style.title(in: locale))
                         .font(.system(size: 13, weight: .semibold))
                         .foregroundStyle(.primary)
-                    Text(style.subtitle)
+                    Text(style.subtitle(in: locale))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -192,7 +193,7 @@ struct MenuBarSettingsView: View {
     private var previewSection: some View {
         let previewIsLightBar = (settings.menuBarColorMode == .black)
         return VStack(alignment: .leading, spacing: 10) {
-            Text("Preview")
+            Text(L10n.string("Preview", locale: locale))
                 .font(.caption.weight(.semibold))
                 .foregroundStyle(.secondary)
 
@@ -224,7 +225,8 @@ struct MenuBarSettingsView: View {
                             colorMode: settings.menuBarColorMode,
                             size: settings.menuBarSize,
                             statusColorsEnabled: settings.statusColorsEnabled,
-                            isDarkMenuBar: !previewIsLightBar
+                            isDarkMenuBar: !previewIsLightBar,
+                            locale: locale
                         )
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
@@ -240,8 +242,8 @@ struct MenuBarSettingsView: View {
                     Spacer()
 
                     VStack(alignment: .leading, spacing: 6) {
-                        Label("Control Powerman directly from the menu bar", systemImage: "1.circle")
-                        Label("You can hide macOS default battery icon in System Settings", systemImage: "2.circle")
+                        Label(L10n.string("Control Powerman directly from the menu bar", locale: locale), systemImage: "1.circle")
+                        Label(L10n.string("You can hide macOS default battery icon in System Settings", locale: locale), systemImage: "2.circle")
                     }
                     .font(.caption)
                     .foregroundStyle(.white.opacity(0.78))
@@ -259,24 +261,24 @@ struct MenuBarSettingsView: View {
         let availableToPin = appState.bluetoothDevices.filter { !settings.preference(for: $0.id).isPinnedToMenuBar }
 
         return VStack(alignment: .leading, spacing: 10) {
-            Label("Device Batteries", systemImage: "keyboard")
+            Label(L10n.string("Device Batteries", locale: locale), systemImage: "keyboard")
                 .font(.headline)
 
             VStack(spacing: 0) {
                 HStack(spacing: 12) {
                     settingBadgeIcon("computermouse.fill", color: .cyan)
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Devices in the menu bar")
+                        Text(L10n.string("Devices in the menu bar", locale: locale))
                             .font(.system(size: 13, weight: .semibold))
-                        Text("Show battery percentages for your keyboard, mouse, or AirPods right in the menu bar.")
+                        Text(L10n.string("Show battery percentages for your keyboard, mouse, or AirPods right in the menu bar.", locale: locale))
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
                     Spacer()
 
-                    Menu("Add Device") {
+                    Menu(L10n.string("Add Device", locale: locale)) {
                         if availableToPin.isEmpty {
-                            Text("No unpinned Bluetooth devices")
+                            Text(L10n.string("No unpinned Bluetooth devices", locale: locale))
                         } else {
                             ForEach(availableToPin) { device in
                                 Button {
@@ -303,7 +305,7 @@ struct MenuBarSettingsView: View {
                                 .frame(width: 20)
                             Text(device.name)
                                 .font(.system(size: 13, weight: .medium))
-                            Text(device.isConnected ? device.formattedPercentage : "Offline")
+                            Text(device.isConnected ? device.formattedPercentage : L10n.string("Offline", locale: locale))
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                             Spacer()
@@ -334,7 +336,7 @@ struct MenuBarSettingsView: View {
                                     .foregroundStyle(.red)
                             }
                             .buttonStyle(.plain)
-                            .help("Unpin from menu bar")
+                            .help(L10n.string("Unpin from menu bar", locale: locale))
                         }
                         .padding(.horizontal, 14)
                         .padding(.vertical, 10)

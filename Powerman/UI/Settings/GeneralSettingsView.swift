@@ -5,6 +5,7 @@ struct GeneralSettingsView: View {
     @State private var showGlowPreview = false
 
     private var settings: AppSettings { appState.settings }
+    private var locale: Locale { appState.effectiveLocale }
 
     var body: some View {
         ScrollView {
@@ -41,11 +42,11 @@ struct GeneralSettingsView: View {
                             .foregroundStyle(.white)
                     }
 
-                Text("General")
+                Text(L10n.string("General", locale: locale))
                     .font(.title2.bold())
             }
 
-            Text("Configure language, appearance, startup behavior, and alert styling.")
+            Text(L10n.string("Configure language, appearance, startup behavior, and alert styling.", locale: locale))
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
         }
@@ -55,9 +56,9 @@ struct GeneralSettingsView: View {
         HStack(spacing: 12) {
             badgeIcon("globe", color: .blue)
             VStack(alignment: .leading, spacing: 2) {
-                Text("App Language")
+                Text(L10n.string("App Language", locale: locale))
                     .font(.system(size: 13, weight: .semibold))
-                Text("Choose the language Powerman uses for date, time, and numbers")
+                Text(L10n.string("Choose the language Powerman uses across the interface, dates, and numbers", locale: locale))
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -67,11 +68,11 @@ struct GeneralSettingsView: View {
                 set: { settings.appLanguage = $0 }
             )) {
                 ForEach(AppLanguageOption.allCases) { option in
-                    Text(option.title).tag(option)
+                    Text(option.title(in: locale)).tag(option)
                 }
             }
             .labelsHidden()
-            .frame(width: 155)
+            .frame(width: 165)
         }
         .padding(14)
         .background(cardBackground)
@@ -79,15 +80,15 @@ struct GeneralSettingsView: View {
 
     private var appearanceSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Label("Appearance", systemImage: "circle.lefthalf.filled")
+            Label(L10n.string("Appearance", locale: locale), systemImage: "circle.lefthalf.filled")
                 .font(.headline)
 
             HStack(spacing: 12) {
                 badgeIcon("circle.righthalf.filled", color: .indigo)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("App Appearance")
+                    Text(L10n.string("App Appearance", locale: locale))
                         .font(.system(size: 13, weight: .semibold))
-                    Text("Auto follows your Mac's system appearance")
+                    Text(L10n.string("Auto follows your Mac's system appearance", locale: locale))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -97,7 +98,7 @@ struct GeneralSettingsView: View {
                     set: { appState.applyAppAppearance($0) }
                 )) {
                     ForEach(AppAppearanceOption.allCases) { option in
-                        Text(option.title).tag(option)
+                        Text(option.title(in: locale)).tag(option)
                     }
                 }
                 .labelsHidden()
@@ -110,16 +111,16 @@ struct GeneralSettingsView: View {
 
     private var systemIntegrationSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Label("System Integration", systemImage: "power")
+            Label(L10n.string("System Integration", locale: locale), systemImage: "power")
                 .font(.headline)
 
             VStack(alignment: .leading, spacing: 8) {
                 HStack(spacing: 12) {
                     badgeIcon("power", color: .green)
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Launch at Login")
+                        Text(L10n.string("Launch at Login", locale: locale))
                             .font(.system(size: 13, weight: .semibold))
-                        Text("Start Powerman automatically when you log in")
+                        Text(L10n.string("Start Powerman automatically when you log in", locale: locale))
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
@@ -133,7 +134,7 @@ struct GeneralSettingsView: View {
                 }
 
                 if appState.launchAtLoginRequiresApproval {
-                    Text("Approval required in System Settings → General → Login Items.")
+                    Text(L10n.string("Approval required in System Settings → General → Login Items.", locale: locale))
                         .font(.caption)
                         .foregroundStyle(.orange)
                         .padding(.leading, 40)
@@ -151,16 +152,16 @@ struct GeneralSettingsView: View {
 
     private var systemNotificationsSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Label("System Notifications", systemImage: "app.badge")
+            Label(L10n.string("System Notifications", locale: locale), systemImage: "app.badge")
                 .font(.headline)
 
             VStack(alignment: .leading, spacing: 10) {
                 HStack(spacing: 12) {
                     badgeIcon("bell.slash.fill", color: .red)
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Dismiss macOS Battery Notifications")
+                        Text(L10n.string("Dismiss macOS Battery Notifications", locale: locale))
                             .font(.system(size: 13, weight: .semibold))
-                        Text("Automatically closes system battery notification on the top right so you don't have to click it away.")
+                        Text(L10n.string("Automatically closes system battery notification on the top right so you don't have to click it away.", locale: locale))
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
@@ -180,14 +181,14 @@ struct GeneralSettingsView: View {
                         .foregroundStyle(appState.isAccessibilityGranted ? .green : .orange)
                         .font(.caption)
 
-                    Text(appState.isAccessibilityGranted ? "Accessibility permission granted" : "Accessibility permission required")
+                    Text(L10n.string(appState.isAccessibilityGranted ? "Accessibility permission granted" : "Accessibility permission required", locale: locale))
                         .font(.caption)
                         .foregroundStyle(.secondary)
 
                     Spacer()
 
                     if !appState.isAccessibilityGranted {
-                        Button("Grant Access") {
+                        Button(L10n.string("Grant Access", locale: locale)) {
                             appState.requestAccessibilityPermission()
                         }
                         .font(.caption.weight(.semibold))
@@ -202,15 +203,15 @@ struct GeneralSettingsView: View {
 
     private var lowPowerModeSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Label("Low Power Mode", systemImage: "leaf.fill")
+            Label(L10n.string("Low Power Mode", locale: locale), systemImage: "leaf.fill")
                 .font(.headline)
 
             HStack(spacing: 12) {
                 badgeIcon("sun.max.fill", color: .yellow)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Restore Brightness")
+                    Text(L10n.string("Restore Brightness", locale: locale))
                         .font(.system(size: 13, weight: .semibold))
-                    Text("Brings back your previous brightness when you turn Low Power Mode off from Powerman's menu.")
+                    Text(L10n.string("Brings back your previous brightness when you turn Low Power Mode off from Powerman's menu.", locale: locale))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -232,8 +233,8 @@ struct GeneralSettingsView: View {
             id: UUID(),
             ruleID: nil,
             kind: .lowBattery,
-            title: "15% Remaining",
-            subtitle: "9min until empty",
+            title: L10n.format("%d%% Remaining", locale: locale, 15),
+            subtitle: L10n.format("%dmin until empty", locale: locale, 9),
             percentage: 15,
             colorHex: AlertColorPreset.orange.rawValue,
             showPopup: true,
@@ -245,12 +246,12 @@ struct GeneralSettingsView: View {
         )
 
         return VStack(alignment: .leading, spacing: 10) {
-            Label("Notification Appearance", systemImage: "sparkles")
+            Label(L10n.string("Notification Appearance", locale: locale), systemImage: "sparkles")
                 .font(.headline)
 
             VStack(spacing: 0) {
                 HStack {
-                    Text("Alert Bubble Size")
+                    Text(L10n.string("Alert Bubble Size", locale: locale))
                         .font(.system(size: 13, weight: .medium))
                     Spacer()
                     Picker("", selection: Binding(
@@ -258,7 +259,7 @@ struct GeneralSettingsView: View {
                         set: { settings.alertBubbleSize = $0 }
                     )) {
                         ForEach(AlertBubbleSize.allCases) { size in
-                            Text(size.title).tag(size)
+                            Text(size.title(in: locale)).tag(size)
                         }
                     }
                     .labelsHidden()
@@ -269,7 +270,7 @@ struct GeneralSettingsView: View {
                 Divider().padding(.horizontal, 14)
 
                 HStack {
-                    Text("Screen Edge Glow")
+                    Text(L10n.string("Screen Edge Glow", locale: locale))
                         .font(.system(size: 13, weight: .medium))
                     Spacer()
                     Picker("", selection: Binding(
@@ -277,7 +278,7 @@ struct GeneralSettingsView: View {
                         set: { settings.screenEdgeGlowIntensity = $0 }
                     )) {
                         ForEach(ScreenEdgeGlowIntensity.allCases) { intensity in
-                            Text(intensity.title).tag(intensity)
+                            Text(intensity.title(in: locale)).tag(intensity)
                         }
                     }
                     .labelsHidden()
@@ -289,11 +290,11 @@ struct GeneralSettingsView: View {
 
                 VStack(alignment: .leading, spacing: 10) {
                     HStack {
-                        Text("Preview")
+                        Text(L10n.string("Preview", locale: locale))
                             .font(.caption.weight(.semibold))
                             .foregroundStyle(.secondary)
                         Spacer()
-                        Toggle("Show Glow", isOn: $showGlowPreview)
+                        Toggle(L10n.string("Show Glow", locale: locale), isOn: $showGlowPreview)
                             .font(.caption)
                             .toggleStyle(.switch)
                             .controlSize(.small)
@@ -317,6 +318,7 @@ struct GeneralSettingsView: View {
                             alert: previewAlert,
                             bubbleSize: settings.alertBubbleSize,
                             compact: false,
+                            locale: locale,
                             onDismiss: {}
                         )
                         .scaleEffect(0.82)
@@ -331,10 +333,10 @@ struct GeneralSettingsView: View {
     }
 
     private var aboutSection: some View {
-        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.1"
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.2"
 
         return VStack(alignment: .leading, spacing: 10) {
-            Label("About Powerman", systemImage: "info.circle.fill")
+            Label(L10n.string("About Powerman", locale: locale), systemImage: "info.circle.fill")
                 .font(.headline)
 
             VStack(spacing: 0) {
@@ -343,7 +345,7 @@ struct GeneralSettingsView: View {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Powerman")
                             .font(.system(size: 13.5, weight: .bold))
-                        Text("macOS Battery Manager • Version \(version)")
+                        Text(L10n.format("macOS Battery Manager • Version %@", locale: locale, version))
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
@@ -359,7 +361,7 @@ struct GeneralSettingsView: View {
 
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
-                        Text("Author")
+                        Text(L10n.string("Author", locale: locale))
                             .font(.caption)
                             .foregroundStyle(.secondary)
                             .frame(width: 64, alignment: .leading)
@@ -369,7 +371,7 @@ struct GeneralSettingsView: View {
                     }
 
                     HStack {
-                        Text("Email")
+                        Text(L10n.string("Email", locale: locale))
                             .font(.caption)
                             .foregroundStyle(.secondary)
                             .frame(width: 64, alignment: .leading)
@@ -381,7 +383,7 @@ struct GeneralSettingsView: View {
                     }
 
                     HStack {
-                        Text("Phone")
+                        Text(L10n.string("Phone", locale: locale))
                             .font(.caption)
                             .foregroundStyle(.secondary)
                             .frame(width: 64, alignment: .leading)

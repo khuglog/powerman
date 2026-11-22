@@ -7,6 +7,7 @@ struct MenuBarPopoverView: View {
     @State private var isDevicesExpanded = true
 
     private var battery: BatteryInfo { appState.batteryInfo }
+    private var locale: Locale { appState.effectiveLocale }
 
     private var accentStatusColor: Color {
         if battery.isCharging || battery.isPluggedIn || battery.isFullyCharged {
@@ -21,7 +22,7 @@ struct MenuBarPopoverView: View {
     }
 
     private var appVersion: String {
-        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.1"
+        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.2"
     }
 
     var body: some View {
@@ -37,6 +38,8 @@ struct MenuBarPopoverView: View {
         .padding(12)
         .frame(width: 312)
         .background(.regularMaterial)
+        .environment(\.locale, appState.settings.appLanguage.locale)
+        .environment(\.appLocale, locale)
     }
 
     private var statusDisplayText: String {
@@ -69,10 +72,10 @@ struct MenuBarPopoverView: View {
                 Spacer()
 
                 VStack(alignment: .trailing, spacing: 2) {
-                    Text(battery.isCharging ? "TIME TO FULL" : "TIME LEFT")
+                    Text(L10n.string(battery.isCharging ? "TIME TO FULL" : "TIME LEFT", locale: locale))
                         .font(.system(size: 10, weight: .semibold))
                         .foregroundStyle(.secondary)
-                    Text(battery.formattedTimeRemaining)
+                    Text(battery.formattedTimeRemaining(in: locale))
                         .font(.system(size: 15, weight: .semibold, design: .rounded))
                         .monospacedDigit()
                 }
@@ -90,6 +93,66 @@ struct MenuBarPopoverView: View {
                 percentage: battery.percentage,
                 tint: accentStatusColor
             )
+
+            if appState.canActivateTemporaryChargeOverride {
+                Button {
+                    appState.activateTemporaryChargeOverride()
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "bolt.badge.checkmark")
+                            .font(.system(size: 11.5, weight: .semibold))
+                        Text(L10n.string("Override Charge Limit Once", locale: locale))
+                            .font(.system(size: 11.5, weight: .semibold))
+                            .multilineTextAlignment(.leading)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .layoutPriority(1)
+                        Spacer(minLength: 4)
+                        Text("\(appState.chargeLimitStatus.limitPercentage)% → 100%")
+                            .font(.system(size: 10.5, weight: .semibold, design: .rounded))
+                            .monospacedDigit()
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: true, vertical: false)
+                    }
+                    .foregroundStyle(.green)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 6)
+                    .background(
+                        RoundedRectangle(cornerRadius: 7, style: .continuous)
+                            .fill(Color.green.opacity(0.12))
+                    )
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+            } else if appState.isTemporaryChargeOverrideActive,
+                      let restoreLimit = appState.temporaryChargeOverrideRestoreLimit {
+                HStack(spacing: 6) {
+                    Image(systemName: "bolt.circle.fill")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(.orange)
+                    Text(L10n.format("Temporarily overriding %d%% limit for this charge", locale: locale, restoreLimit))
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(.primary)
+                        .multilineTextAlignment(.leading)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .layoutPriority(1)
+                    Spacer(minLength: 4)
+                    Button {
+                        appState.cancelTemporaryChargeOverride()
+                    } label: {
+                        Text(L10n.string("Restore", locale: locale))
+                            .font(.system(size: 10.5, weight: .semibold))
+                            .foregroundStyle(.orange)
+                            .fixedSize(horizontal: true, vertical: false)
+                    }
+                    .buttonStyle(.plain)
+                }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .background(
+                    RoundedRectangle(cornerRadius: 7, style: .continuous)
+                        .fill(Color.orange.opacity(0.12))
+                )
+            }
         }
         .padding(12)
         .background(cardBackground)
@@ -105,7 +168,7 @@ struct MenuBarPopoverView: View {
                 HStack(spacing: 8) {
                     Image(systemName: "info.circle.fill")
                         .foregroundStyle(.blue)
-                    Text("Battery Information")
+                    Text(L10n.string("Battery Information", locale: locale))
                         .font(.system(size: 13, weight: .medium))
                     Spacer()
                     Image(systemName: isBatteryInfoExpanded ? "chevron.up" : "chevron.down")
@@ -121,17 +184,17 @@ struct MenuBarPopoverView: View {
             if isBatteryInfoExpanded {
                 Divider().padding(.horizontal, 12)
                 VStack(spacing: 6) {
-                    infoRow("Health", value: "\(battery.roundedHealthPercentage)% (\(battery.healthStatus.rawValue))")
-                    infoRow("Capacity", value: "\(battery.maxCapacityMah) / \(battery.designCapacityMah) mAh")
-                    infoRow("Cycle Count", value: "\(battery.cycleCount) / \(battery.ratedCycleCount)")
+                    infoRow(L10n.string("Health", locale: locale), value: "\(battery.roundedHealthPercentage)% (\(battery.healthStatus.localizedTitle(in: locale)))")
+                    infoRow(L10n.string("Capacity", locale: locale), value: "\(battery.maxCapacityMah) / \(battery.designCapacityMah) mAh")
+                    infoRow(L10n.string("Cycle Count", locale: locale), value: "\(battery.cycleCount) / \(battery.ratedCycleCount)")
                     if let temp = battery.temperatureCelsius {
-                        infoRow("Temperature", value: String(format: "%.1f°C (%@)", temp, battery.temperatureStatus.rawValue))
+                        infoRow(L10n.string("Temperature", locale: locale), value: String(format: "%.1f°C (%@)", temp, battery.temperatureStatus.localizedTitle(in: locale)))
                     }
                     if let wattage = battery.wattage {
-                        infoRow("Power Draw", value: String(format: "%.1f W", wattage))
+                        infoRow(L10n.string("Power Draw", locale: locale), value: String(format: "%.1f W", wattage))
                     }
                     if let adapterWatts = battery.adapterWatts {
-                        infoRow("Adapter", value: "\(adapterWatts) W")
+                        infoRow(L10n.string("Adapter", locale: locale), value: "\(adapterWatts) W")
                     }
                 }
                 .padding(12)
@@ -153,7 +216,7 @@ struct MenuBarPopoverView: View {
                 HStack(spacing: 8) {
                     Image(systemName: "bolt.circle")
                         .foregroundStyle(.secondary)
-                    Text("Apps Using Significant Energy")
+                    Text(L10n.string("Apps Using Significant Energy", locale: locale))
                         .font(.system(size: 13, weight: .medium))
                     Spacer()
                     Image(systemName: isEnergyAppsExpanded ? "chevron.up" : "chevron.down")
@@ -169,7 +232,7 @@ struct MenuBarPopoverView: View {
             if isEnergyAppsExpanded {
                 Divider().padding(.horizontal, 12)
                 if appState.topEnergyApps.isEmpty {
-                    Text("No apps using significant energy right now.")
+                    Text(L10n.string("No apps using significant energy right now.", locale: locale))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -215,7 +278,7 @@ struct MenuBarPopoverView: View {
             HStack(spacing: 8) {
                 Image(systemName: "airpodspro")
                     .foregroundStyle(.secondary)
-                Text("Connected Devices")
+                Text(L10n.string("Connected Devices", locale: locale))
                     .font(.system(size: 13, weight: .medium))
                 Spacer()
                 Button {
@@ -245,11 +308,11 @@ struct MenuBarPopoverView: View {
                 Divider().padding(.horizontal, 12)
                 if !appState.settings.showBluetoothDevices {
                     HStack {
-                        Text("Bluetooth devices hidden in Settings.")
+                        Text(L10n.string("Bluetooth devices hidden in Settings.", locale: locale))
                             .font(.caption)
                             .foregroundStyle(.secondary)
                         Spacer()
-                        Button("Enable") {
+                        Button(L10n.string("Enable", locale: locale)) {
                             appState.settings.showBluetoothDevices = true
                             appState.refreshDevices()
                         }
@@ -260,11 +323,11 @@ struct MenuBarPopoverView: View {
                     .padding(12)
                 } else if devices.isEmpty {
                     HStack {
-                        Text("No connected Bluetooth battery devices detected.")
+                        Text(L10n.string("No connected Bluetooth battery devices detected.", locale: locale))
                             .font(.caption)
                             .foregroundStyle(.secondary)
                         Spacer()
-                        Button("Manage") {
+                        Button(L10n.string("Manage", locale: locale)) {
                             appState.openSettings(tab: .devices)
                         }
                         .font(.caption.weight(.semibold))
@@ -330,11 +393,11 @@ struct MenuBarPopoverView: View {
 
     private var actionMenuCard: some View {
         VStack(spacing: 0) {
-            actionRow(icon: "gearshape.fill", title: "Settings...", showChevron: true) {
+            actionRow(icon: "gearshape.fill", title: L10n.string("Settings...", locale: locale), showChevron: true) {
                 appState.openSettings(tab: .menuBar)
             }
             Divider().padding(.leading, 36)
-            actionRow(icon: "battery.100", title: "Battery Settings...", showChevron: true) {
+            actionRow(icon: "battery.100", title: L10n.string("Battery Settings...", locale: locale), showChevron: true) {
                 appState.openSystemBatterySettings()
             }
             Divider().padding(.leading, 36)
@@ -342,7 +405,7 @@ struct MenuBarPopoverView: View {
                 Image(systemName: "leaf.fill")
                     .foregroundStyle(appState.isLowPowerModeEnabled ? .orange : .primary.opacity(0.75))
                     .frame(width: 18)
-                Text("Low Power Mode")
+                Text(L10n.string("Low Power Mode", locale: locale))
                     .font(.system(size: 13, weight: .medium))
                 Spacer()
                 Toggle("", isOn: Binding(
@@ -356,7 +419,7 @@ struct MenuBarPopoverView: View {
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
             Divider().padding(.leading, 36)
-            actionRow(icon: "envelope.fill", title: "Send Us Feedback", showChevron: false) {
+            actionRow(icon: "envelope.fill", title: L10n.string("Send Us Feedback", locale: locale), showChevron: false) {
                 appState.dismissPopover()
                 if let url = URL(string: "mailto:hungnq719@gmail.com?subject=Powerman%20v\(appVersion)%20Feedback") {
                     NSWorkspace.shared.open(url)
@@ -370,7 +433,7 @@ struct MenuBarPopoverView: View {
                     Image(systemName: "power")
                         .foregroundStyle(.red)
                         .frame(width: 18)
-                    Text("Quit Powerman")
+                    Text(L10n.string("Quit Powerman", locale: locale))
                         .font(.system(size: 13, weight: .medium))
                     Spacer()
                     Text("v\(appVersion)")
@@ -450,12 +513,12 @@ private struct SegmentedBatteryProgressBar: View {
                     .frame(width: max(0, geo.size.width * CGFloat(percentage) / 100.0))
 
                 HStack(spacing: 0) {
-                    Spacer()
-                    Rectangle().fill(Color(nsColor: .windowBackgroundColor).opacity(0.6)).frame(width: 1)
-                    Spacer()
-                    Rectangle().fill(Color(nsColor: .windowBackgroundColor).opacity(0.6)).frame(width: 1)
-                    Spacer()
-                    Rectangle().fill(Color(nsColor: .windowBackgroundColor).opacity(0.6)).frame(width: 1)
+                    ForEach(0..<4, id: \.self) { _ in
+                        Spacer()
+                        Rectangle()
+                            .fill(Color(nsColor: .windowBackgroundColor).opacity(0.6))
+                            .frame(width: 1)
+                    }
                     Spacer()
                 }
             }

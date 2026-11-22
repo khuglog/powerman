@@ -80,21 +80,37 @@ final class AppState {
         systemService.launchAtLoginRequiresApproval
     }
 
+    var effectiveLocale: Locale {
+        settings.appLanguage.effectiveLocalizationLocale
+    }
+
     var isPausedAtChargeLimit: Bool {
         isPausedAtChargeLimit(for: batteryInfo)
     }
 
+    var isTemporaryChargeOverrideActive: Bool {
+        settings.temporaryChargeOverride != nil
+    }
+
+    var temporaryChargeOverrideRestoreLimit: Int? {
+        settings.temporaryChargeOverride?.restoreLimitPercentage
+    }
+
+    var canActivateTemporaryChargeOverride: Bool {
+        chargeLimitStatus.isSupported && chargeLimitStatus.isEnabled && !isTemporaryChargeOverrideActive
+    }
+
     var batteryStatusLabel: String {
         if isPausedAtChargeLimit {
-            return "Paused at \(chargeLimitStatus.limitPercentage)% Limit"
+            return L10n.format("Paused at %d%% Limit", locale: effectiveLocale, chargeLimitStatus.limitPercentage)
         }
         if batteryInfo.isFullyCharged && batteryInfo.isPluggedIn {
-            return "Fully Charged"
+            return L10n.string("Fully Charged", locale: effectiveLocale)
         }
         if batteryInfo.isCharging || batteryInfo.isPluggedIn {
-            return "Charging"
+            return L10n.string("Charging", locale: effectiveLocale)
         }
-        return "On Battery"
+        return L10n.string("On Battery", locale: effectiveLocale)
     }
 
     private func isPausedAtChargeLimit(for info: BatteryInfo) -> Bool {
@@ -109,6 +125,7 @@ final class AppState {
         historyStore.load()
         historySamples = historyStore.samples
         refreshChargeLimit()
+        evaluateTemporaryChargeOverride(for: batteryInfo)
         syncSystemIntegrationState()
 
         systemService.startLowPowerObserver { [weak self] enabled in
@@ -152,13 +169,25 @@ final class AppState {
         chargeLimitStatus = chargeLimitService.fetchStatus()
         if chargeLimitStatus.isEnabled, chargeLimitStatus.limitPercentage < 100 {
             lastActiveChargeLimit = chargeLimitStatus.limitPercentage
+            if settings.temporaryChargeOverride != nil {
+                settings.temporaryChargeOverride = nil
+            }
         }
     }
 
     func setChargeLimitEnabled(_ enabled: Bool) {
-        let target = (chargeLimitStatus.limitPercentage >= 80 && chargeLimitStatus.limitPercentage < 100)
-            ? chargeLimitStatus.limitPercentage
-            : lastActiveChargeLimit
+        let savedOverrideLimit = settings.temporaryChargeOverride?.restoreLimitPercentage
+        settings.temporaryChargeOverride = nil
+
+        let target: Int
+        if chargeLimitStatus.limitPercentage >= 80 && chargeLimitStatus.limitPercentage < 100 {
+            target = chargeLimitStatus.limitPercentage
+        } else if let savedOverrideLimit, (80..<100).contains(savedOverrideLimit) {
+            target = savedOverrideLimit
+        } else {
+            target = lastActiveChargeLimit
+        }
+
         chargeLimitStatus = chargeLimitService.setEnabled(enabled, targetLimit: target)
         if chargeLimitStatus.isEnabled, chargeLimitStatus.limitPercentage < 100 {
             lastActiveChargeLimit = chargeLimitStatus.limitPercentage
@@ -168,10 +197,64 @@ final class AppState {
     func setChargeLimitPercentage(_ percentage: Int) {
         if percentage < 100 {
             lastActiveChargeLimit = percentage
+            settings.temporaryChargeOverride = nil
         }
         chargeLimitStatus = chargeLimitService.setLimit(percentage)
         if chargeLimitStatus.isEnabled, chargeLimitStatus.limitPercentage < 100 {
             lastActiveChargeLimit = chargeLimitStatus.limitPercentage
+        }
+    }
+
+    func activateTemporaryChargeOverride() {
+        guard canActivateTemporaryChargeOverride else { return }
+        let restoreLimit = (chargeLimitStatus.limitPercentage >= 80 && chargeLimitStatus.limitPercentage < 100)
+            ? chargeLimitStatus.limitPercentage
+            : lastActiveChargeLimit
+        lastActiveChargeLimit = restoreLimit
+        settings.temporaryChargeOverride = TemporaryChargeOverrideState(
+            restoreLimitPercentage: restoreLimit,
+            hasObservedPluggedIn: batteryInfo.isPluggedIn,
+            activatedAt: Date()
+        )
+        chargeLimitStatus = chargeLimitService.setEnabled(false, targetLimit: restoreLimit)
+        if chargeLimitStatus.isEnabled {
+            settings.temporaryChargeOverride = nil
+        }
+        onMenuBarUpdate?()
+    }
+
+    func cancelTemporaryChargeOverride() {
+        guard let overrideState = settings.temporaryChargeOverride else { return }
+        settings.temporaryChargeOverride = nil
+        let target = (80..<100).contains(overrideState.restoreLimitPercentage)
+            ? overrideState.restoreLimitPercentage
+            : lastActiveChargeLimit
+        lastActiveChargeLimit = target
+        chargeLimitStatus = chargeLimitService.setEnabled(true, targetLimit: target)
+        if chargeLimitStatus.isEnabled, chargeLimitStatus.limitPercentage < 100 {
+            lastActiveChargeLimit = chargeLimitStatus.limitPercentage
+        }
+        onMenuBarUpdate?()
+    }
+
+    private func evaluateTemporaryChargeOverride(for info: BatteryInfo) {
+        guard var overrideState = settings.temporaryChargeOverride else { return }
+
+        if info.isPluggedIn && !overrideState.hasObservedPluggedIn {
+            overrideState.hasObservedPluggedIn = true
+            settings.temporaryChargeOverride = overrideState
+        }
+
+        let shouldEnd: Bool
+        switch settings.chargeLimitOverrideEndCondition {
+        case .onUnplug:
+            shouldEnd = overrideState.hasObservedPluggedIn && !info.isPluggedIn
+        case .onFirstFullCharge:
+            shouldEnd = info.percentage >= 100 || (info.isPluggedIn && info.isFullyCharged)
+        }
+
+        if shouldEnd {
+            cancelTemporaryChargeOverride()
         }
     }
 
@@ -253,7 +336,7 @@ final class AppState {
             lastUpdated: Date()
         )
 
-        let presentation = ActiveAlertPresentation.from(rule: rule, battery: previewBattery)
+        let presentation = ActiveAlertPresentation.from(rule: rule, battery: previewBattery, locale: effectiveLocale)
         activeTestRuleID = rule.id
         alertPresenter.present(
             presentation,
@@ -299,6 +382,7 @@ final class AppState {
 
     private func handleBatteryUpdate(_ info: BatteryInfo) {
         batteryInfo = info
+        evaluateTemporaryChargeOverride(for: info)
         onMenuBarUpdate?()
         if historyStore.recordIfNeeded(from: info) {
             historySamples = historyStore.samples
@@ -307,7 +391,8 @@ final class AppState {
             battery: info,
             rules: settings.alertRules,
             powerSource: settings.powerSourceAlerts,
-            notificationsEnabled: settings.notificationsEnabled
+            notificationsEnabled: settings.notificationsEnabled,
+            locale: effectiveLocale
         )
 
         if let dismissKind = result.dismissKind,
@@ -353,7 +438,7 @@ final class AppState {
                     ruleID: nil,
                     kind: nil,
                     title: "\(device.name) • \(device.formattedPercentage)",
-                    subtitle: "Device battery is below \(threshold)%",
+                    subtitle: L10n.format("Device battery is below %d%%", locale: effectiveLocale, threshold),
                     percentage: pct,
                     colorHex: AlertColorPreset.orange.rawValue,
                     showPopup: true,

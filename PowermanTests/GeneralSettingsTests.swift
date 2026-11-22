@@ -59,6 +59,7 @@ final class GeneralSettingsTests: XCTestCase {
         settings.restoreBrightnessOnLowPowerOff = false
         settings.alertBubbleSize = .large
         settings.screenEdgeGlowIntensity = .intense
+        settings.chargeLimitOverrideEndCondition = .onFirstFullCharge
 
         let reloaded = AppSettings(defaults: defaults)
         XCTAssertEqual(reloaded.appLanguage, .vietnamese)
@@ -67,6 +68,7 @@ final class GeneralSettingsTests: XCTestCase {
         XCTAssertFalse(reloaded.restoreBrightnessOnLowPowerOff)
         XCTAssertEqual(reloaded.alertBubbleSize, .large)
         XCTAssertEqual(reloaded.screenEdgeGlowIntensity, .intense)
+        XCTAssertEqual(reloaded.chargeLimitOverrideEndCondition, .onFirstFullCharge)
     }
 
     @MainActor
@@ -105,5 +107,30 @@ final class GeneralSettingsTests: XCTestCase {
         XCTAssertGreaterThan(AlertBubbleSize.large.scale, AlertBubbleSize.default.scale)
         XCTAssertLessThan(ScreenEdgeGlowIntensity.subtle.edgeThickness, ScreenEdgeGlowIntensity.default.edgeThickness)
         XCTAssertGreaterThan(ScreenEdgeGlowIntensity.intense.edgeThickness, ScreenEdgeGlowIntensity.default.edgeThickness)
+    }
+
+    func testLocalizationResolvesPopularLanguages() {
+        let expectedChargeLimit: [(AppLanguageOption, String)] = [
+            (.english, "Charge Limit"),
+            (.vietnamese, "Giới hạn sạc"),
+            (.japanese, "充電上限"),
+            (.korean, "충전 제한"),
+            (.chineseSimplified, "充电上限"),
+            (.chineseTraditional, "充電上限"),
+            (.french, "Limite de charge"),
+            (.german, "Ladelimit"),
+            (.spanish, "Límite de carga")
+        ]
+
+        for (option, expected) in expectedChargeLimit {
+            let resolved = L10n.string("Charge Limit", locale: option.effectiveLocalizationLocale)
+            XCTAssertEqual(resolved, expected, "Unexpected translation for \(option.rawValue)")
+
+            let formatted = L10n.format("Temporarily overriding %d%% limit for this charge", locale: option.effectiveLocalizationLocale, 80)
+            XCTAssertTrue(formatted.contains("80"), "Formatted string should contain limit for \(option.rawValue): \(formatted)")
+            if option != .english {
+                XCTAssertNotEqual(formatted, "Temporarily overriding 80% limit for this charge")
+            }
+        }
     }
 }

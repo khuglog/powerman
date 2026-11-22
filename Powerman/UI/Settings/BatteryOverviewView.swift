@@ -6,6 +6,7 @@ struct BatteryOverviewView: View {
     @State private var selectedTimeframe: HistoryTimeframe = .twentyFourHours
 
     private var battery: BatteryInfo { appState.batteryInfo }
+    private var locale: Locale { appState.effectiveLocale }
 
     private var filteredSamples: [BatteryHistorySample] {
         BatteryHistoryAnalytics.filter(appState.historySamples, timeframe: selectedTimeframe)
@@ -44,11 +45,11 @@ struct BatteryOverviewView: View {
                                 .foregroundStyle(.white)
                         }
 
-                    Text("Battery")
+                    Text(L10n.string("Battery", locale: locale))
                         .font(.title2.bold())
                 }
 
-                Text("Daily usage, health, cycle, and temperature trends about your Mac over time")
+                Text(L10n.string("Daily usage, health, cycle, and temperature trends about your Mac over time", locale: locale))
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
@@ -58,7 +59,7 @@ struct BatteryOverviewView: View {
             Button {
                 appState.refreshBattery()
             } label: {
-                Label("Refresh", systemImage: "arrow.clockwise")
+                Label(L10n.string("Refresh", locale: locale), systemImage: "arrow.clockwise")
             }
         }
     }
@@ -68,27 +69,27 @@ struct BatteryOverviewView: View {
             kpiCard(
                 icon: "heart.fill",
                 iconColor: .green,
-                title: "HEALTH",
+                title: L10n.string("HEALTH", locale: locale),
                 value: battery.designCapacityMah > 0 ? "\(battery.roundedHealthPercentage)%" : "--",
-                subtitle: battery.healthStatus.rawValue,
+                subtitle: battery.healthStatus.localizedTitle(in: locale),
                 subtitleColor: healthColor
             )
 
             kpiCard(
                 icon: "thermometer.medium",
                 iconColor: .green,
-                title: "TEMPERATURE",
+                title: L10n.string("TEMPERATURE", locale: locale),
                 value: battery.temperatureCelsius.map { String(format: "%.1f°C", $0) } ?? "--",
-                subtitle: battery.temperatureStatus.rawValue,
+                subtitle: battery.temperatureStatus.localizedTitle(in: locale),
                 subtitleColor: temperatureColor
             )
 
             kpiCard(
                 icon: "arrow.triangle.2.circlepath",
                 iconColor: .blue,
-                title: "CYCLES",
+                title: L10n.string("CYCLES", locale: locale),
                 value: "\(battery.cycleCount)",
-                subtitle: "of \(battery.ratedCycleCount) rated",
+                subtitle: L10n.format("of %d rated", locale: locale, battery.ratedCycleCount),
                 subtitleColor: .blue
             )
         }
@@ -128,7 +129,7 @@ struct BatteryOverviewView: View {
     private var batteryLevelChartCard: some View {
         VStack(alignment: .leading, spacing: 14) {
             HStack {
-                Label("Battery Level", systemImage: "battery.100percent")
+                Label(L10n.string("Battery Level", locale: locale), systemImage: "battery.100percent")
                     .font(.headline)
                     .foregroundStyle(.primary)
 
@@ -160,11 +161,11 @@ struct BatteryOverviewView: View {
                     Image(systemName: "hourglass")
                         .font(.title3)
                         .foregroundStyle(.secondary)
-                    Text("Building your battery-level history — your charge timeline fills in as you use your Mac.")
+                    Text(L10n.string("Building your battery-level history — your charge timeline fills in as you use your Mac.", locale: locale))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
-                    Text("\(filteredSamples.count) sample collected in \(selectedTimeframe.rawValue)")
+                    Text(L10n.format("%d sample(s) collected in %@", locale: locale, filteredSamples.count, selectedTimeframe.rawValue))
                         .font(.caption2)
                         .foregroundStyle(.tertiary)
                 }
@@ -224,19 +225,19 @@ struct BatteryOverviewView: View {
                     Image(systemName: "chart.bar.fill")
                         .font(.system(size: 12))
                         .foregroundStyle(.green)
-                    Text("DAILY USAGE")
+                    Text(L10n.string("DAILY USAGE", locale: locale))
                         .font(.system(size: 11.5, weight: .bold))
                         .foregroundStyle(.secondary)
                 }
 
-                Text("• \(appState.historySamples.count) samples")
+                Text(L10n.format("• %d samples", locale: locale, appState.historySamples.count))
                     .font(.caption)
                     .foregroundStyle(.secondary)
 
                 Spacer()
 
                 if let today = days.last {
-                    Text("Today: \(today.dischargedPercent)% used • \(today.activeHoursFormatted) on battery")
+                    Text(L10n.format("Today: %d%% used • %@ on battery", locale: locale, today.dischargedPercent, today.activeHoursFormatted))
                         .font(.caption.weight(.medium))
                         .foregroundStyle(.secondary)
                 }
@@ -247,14 +248,14 @@ struct BatteryOverviewView: View {
                     Image(systemName: "calendar.badge.clock")
                         .font(.title2)
                         .foregroundStyle(.green)
-                    Text("Building your daily usage")
+                    Text(L10n.string("Building your daily usage", locale: locale))
                         .font(.subheadline.weight(.semibold))
-                    Text("Powerman tracks battery discharge and active battery time across each day. Keep Powerman running to fill in your daily charts.")
+                    Text(L10n.string("Powerman tracks battery discharge and active battery time across each day. Keep Powerman running to fill in your daily charts.", locale: locale))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
                         .frame(maxWidth: 420)
-                    Text("\(max(1, totalTrackedDays)) day(s) collected so far")
+                    Text(L10n.format("%d day(s) collected so far", locale: locale, max(1, totalTrackedDays)))
                         .font(.caption2.weight(.semibold))
                         .foregroundStyle(.secondary)
                         .padding(.horizontal, 10)
@@ -302,7 +303,7 @@ struct BatteryOverviewView: View {
     private var capacityDetailsCard: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Label("Battery Health", systemImage: "heart.fill")
+                Label(L10n.string("Battery Health", locale: locale), systemImage: "heart.fill")
                     .font(.headline)
                     .foregroundStyle(.primary)
                 Spacer()
@@ -317,7 +318,7 @@ struct BatteryOverviewView: View {
             HStack(alignment: .firstTextBaseline, spacing: 8) {
                 Text(battery.designCapacityMah > 0 ? "\(battery.roundedHealthPercentage)%" : "--")
                     .font(.system(size: 24, weight: .bold, design: .rounded))
-                Text(battery.healthStatus.rawValue)
+                Text(battery.healthStatus.localizedTitle(in: locale))
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(healthColor)
             }
@@ -334,10 +335,10 @@ struct BatteryOverviewView: View {
 
         return VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Label("Battery Cycles & Temperature", systemImage: "thermometer.medium")
+                Label(L10n.string("Battery Cycles & Temperature", locale: locale), systemImage: "thermometer.medium")
                     .font(.headline)
                 Spacer()
-                Text("\(battery.cycleCount) cycles")
+                Text(L10n.format("%d cycles", locale: locale, battery.cycleCount))
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(.blue)
             }
@@ -372,7 +373,7 @@ struct BatteryOverviewView: View {
                 .frame(height: 110)
                 .padding(.top, 4)
             } else {
-                Text("Temperature trend appears as more samples are collected.")
+                Text(L10n.string("Temperature trend appears as more samples are collected.", locale: locale))
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -383,25 +384,25 @@ struct BatteryOverviewView: View {
 
     private var liveTelemetryCard: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Label("Live Telemetry", systemImage: "waveform.path.ecg")
+            Label(L10n.string("Live Telemetry", locale: locale), systemImage: "waveform.path.ecg")
                 .font(.headline)
 
             Divider()
 
             HStack(spacing: 24) {
-                telemetryItem("Current Charge", "\(battery.percentage)% (\(battery.currentCapacityMah) mAh)")
-                telemetryItem("Source", appState.batteryStatusLabel)
+                telemetryItem(L10n.string("Current Charge", locale: locale), "\(battery.percentage)% (\(battery.currentCapacityMah) mAh)")
+                telemetryItem(L10n.string("Source", locale: locale), appState.batteryStatusLabel)
                 telemetryItem(
-                    "Voltage",
+                    L10n.string("Voltage", locale: locale),
                     battery.voltageMv.map { String(format: "%.2f V", Double($0) / 1000.0) } ?? "--"
                 )
                 telemetryItem(
-                    "Power",
+                    L10n.string("Power", locale: locale),
                     battery.wattage.map { String(format: "%.1f W", $0) } ?? "--"
                 )
                 telemetryItem(
-                    "Adapter",
-                    battery.adapterWatts.map { "\($0) W" } ?? (battery.isPluggedIn ? "Connected" : "Unplugged")
+                    L10n.string("Adapter", locale: locale),
+                    battery.adapterWatts.map { "\($0) W" } ?? (battery.isPluggedIn ? L10n.string("Connected", locale: locale) : L10n.string("Unplugged", locale: locale))
                 )
             }
         }

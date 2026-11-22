@@ -4,6 +4,7 @@ struct FloatingAlertBubbleView: View {
     let alert: ActiveAlertPresentation
     var bubbleSize: AlertBubbleSize = .default
     var compact: Bool = false
+    var locale: Locale = Locale(identifier: "en")
     var onDismiss: () -> Void
 
     private var accentColor: Color { alert.color }
@@ -44,7 +45,7 @@ struct FloatingAlertBubbleView: View {
                         .background(Circle().fill(.white.opacity(0.12)))
                 }
                 .buttonStyle(.plain)
-                .help("Dismiss alert")
+                .help(L10n.string("Dismiss alert", locale: locale))
             }
         }
         .padding(.leading, (compact ? 8 : 12) * sizeScale)
@@ -67,6 +68,6 @@ struct FloatingAlertBubbleView: View {
                     )
             }
         }
-        .shadow(color: .black.opacity(0.42), radius: compact ? 8 : 18, y: compact ? 4 : 8)
+        .clipShape(Capsule(style: .continuous))
     }
 }

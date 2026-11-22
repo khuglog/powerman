@@ -21,7 +21,8 @@ final class AlertEngine {
         battery: BatteryInfo,
         rules: [AlertRule],
         powerSource: PowerSourceAlertConfig,
-        notificationsEnabled: Bool
+        notificationsEnabled: Bool,
+        locale: Locale = Locale(identifier: "en")
     ) -> AlertEvaluationResult {
         guard battery.hasBattery else {
             return AlertEvaluationResult(triggeredAlert: nil, dismissKind: nil)
@@ -83,7 +84,7 @@ final class AlertEngine {
                     firedLowRuleIDs.insert(rule.id)
                 }
                 return AlertEvaluationResult(
-                    triggeredAlert: .from(rule: criticalRule, battery: battery),
+                    triggeredAlert: .from(rule: criticalRule, battery: battery, locale: locale),
                     dismissKind: dismissKind
                 )
             }
@@ -100,7 +101,7 @@ final class AlertEngine {
                     firedChargedRuleIDs.insert(rule.id)
                 }
                 return AlertEvaluationResult(
-                    triggeredAlert: .from(rule: targetRule, battery: battery),
+                    triggeredAlert: .from(rule: targetRule, battery: battery, locale: locale),
                     dismissKind: dismissKind
                 )
             }
@@ -110,12 +111,12 @@ final class AlertEngine {
         if previous.isPluggedIn != battery.isPluggedIn {
             if battery.isPluggedIn && powerSource.pluggedInEnabled {
                 return AlertEvaluationResult(
-                    triggeredAlert: .powerSource(pluggedIn: true, battery: battery, sound: powerSource.pluggedInSound),
+                    triggeredAlert: .powerSource(pluggedIn: true, battery: battery, sound: powerSource.pluggedInSound, locale: locale),
                     dismissKind: dismissKind
                 )
             } else if !battery.isPluggedIn && powerSource.unpluggedEnabled {
                 return AlertEvaluationResult(
-                    triggeredAlert: .powerSource(pluggedIn: false, battery: battery, sound: powerSource.unpluggedSound),
+                    triggeredAlert: .powerSource(pluggedIn: false, battery: battery, sound: powerSource.unpluggedSound, locale: locale),
                     dismissKind: dismissKind
                 )
             }

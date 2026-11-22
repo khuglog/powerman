@@ -5,6 +5,7 @@ struct AlertsSettingsView: View {
     @State private var expandedRuleID: UUID?
 
     private var settings: AppSettings { appState.settings }
+    private var locale: Locale { appState.effectiveLocale }
 
     var body: some View {
         ScrollView {
@@ -33,18 +34,18 @@ struct AlertsSettingsView: View {
                                 .foregroundStyle(.white)
                         }
 
-                    Text("Alerts")
+                    Text(L10n.string("Alerts", locale: locale))
                         .font(.title2.bold())
                 }
 
-                Text("Configure battery notifications and visual effects")
+                Text(L10n.string("Configure battery notifications and visual effects", locale: locale))
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
 
             Spacer()
 
-            Button("Reset Defaults") {
+            Button(L10n.string("Reset Defaults", locale: locale)) {
                 appState.stopTestAlert()
                 settings.resetAlertDefaults()
                 expandedRuleID = nil
@@ -55,7 +56,7 @@ struct AlertsSettingsView: View {
 
     private var generalSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Label("General", systemImage: "gearshape")
+            Label(L10n.string("General", locale: locale), systemImage: "gearshape")
                 .font(.headline)
 
             HStack(spacing: 12) {
@@ -69,9 +70,9 @@ struct AlertsSettingsView: View {
                     }
 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Enable Notifications")
+                    Text(L10n.string("Enable Notifications", locale: locale))
                         .font(.system(size: 13, weight: .semibold))
-                    Text("Show battery alerts and notifications")
+                    Text(L10n.string("Show battery alerts and notifications", locale: locale))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -92,11 +93,11 @@ struct AlertsSettingsView: View {
 
     private var lowBatterySection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Label("Low Battery Alerts", systemImage: "battery.25")
+            Label(L10n.string("Low Battery Alerts", locale: locale), systemImage: "battery.25")
                 .font(.headline)
                 .foregroundStyle(.primary)
 
-            Label("Notify when battery goes below percentage", systemImage: "info.circle.fill")
+            Label(L10n.string("Notify when battery goes below percentage", locale: locale), systemImage: "info.circle.fill")
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
@@ -105,6 +106,7 @@ struct AlertsSettingsView: View {
                     if let binding = bindingForRule(id: rule.id) {
                         AlertRuleCard(
                             rule: binding,
+                            locale: locale,
                             isExpanded: expandedRuleID == rule.id,
                             isTesting: appState.activeTestRuleID == rule.id,
                             onToggleExpand: {
@@ -135,7 +137,7 @@ struct AlertsSettingsView: View {
                     expandedRuleID = added.id
                 }
             } label: {
-                Label("Add Low Battery Alert", systemImage: "plus")
+                Label(L10n.string("Add Low Battery Alert", locale: locale), systemImage: "plus")
                     .font(.system(size: 13, weight: .medium))
                     .padding(.horizontal, 14)
                     .padding(.vertical, 8)
@@ -153,10 +155,10 @@ struct AlertsSettingsView: View {
 
     private var chargedSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Label("Charged Alerts", systemImage: "battery.100percent.bolt")
+            Label(L10n.string("Charged Alerts", locale: locale), systemImage: "battery.100percent.bolt")
                 .font(.headline)
 
-            Label("Notify when battery reaches percentage", systemImage: "info.circle.fill")
+            Label(L10n.string("Notify when battery reaches percentage", locale: locale), systemImage: "info.circle.fill")
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
@@ -165,6 +167,7 @@ struct AlertsSettingsView: View {
                     if let binding = bindingForRule(id: rule.id) {
                         AlertRuleCard(
                             rule: binding,
+                            locale: locale,
                             isExpanded: expandedRuleID == rule.id,
                             isTesting: appState.activeTestRuleID == rule.id,
                             onToggleExpand: {
@@ -195,7 +198,7 @@ struct AlertsSettingsView: View {
                     expandedRuleID = added.id
                 }
             } label: {
-                Label("Add Charged Alert", systemImage: "plus")
+                Label(L10n.string("Add Charged Alert", locale: locale), systemImage: "plus")
                     .font(.system(size: 13, weight: .medium))
                     .padding(.horizontal, 14)
                     .padding(.vertical, 8)
@@ -213,7 +216,7 @@ struct AlertsSettingsView: View {
 
     private var powerSourceSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Label("Power Source Alerts", systemImage: "powerplug.fill")
+            Label(L10n.string("Power Source Alerts", locale: locale), systemImage: "powerplug.fill")
                 .font(.headline)
 
             VStack(spacing: 0) {
@@ -221,9 +224,9 @@ struct AlertsSettingsView: View {
                     HStack(spacing: 12) {
                         badgeIcon("bolt.fill", color: .yellow)
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("Plugged In")
+                            Text(L10n.string("Plugged In", locale: locale))
                                 .font(.system(size: 13, weight: .semibold))
-                            Text("Notify when power adapter is connected")
+                            Text(L10n.string("Notify when power adapter is connected", locale: locale))
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
@@ -238,7 +241,7 @@ struct AlertsSettingsView: View {
 
                     if settings.powerSourceAlerts.pluggedInEnabled {
                         HStack(spacing: 8) {
-                            Text("Sound")
+                            Text(L10n.string("Sound", locale: locale))
                                 .font(.caption.weight(.medium))
                                 .foregroundStyle(.secondary)
                             AlertSoundPicker(
@@ -246,6 +249,7 @@ struct AlertsSettingsView: View {
                                     get: { settings.powerSourceAlerts.pluggedInSound },
                                     set: { settings.powerSourceAlerts.pluggedInSound = $0 }
                                 ),
+                                locale: locale,
                                 onPreview: { appState.previewSound($0) }
                             )
                             Spacer()
@@ -261,9 +265,9 @@ struct AlertsSettingsView: View {
                     HStack(spacing: 12) {
                         badgeIcon("bolt.slash.fill", color: .orange)
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("Unplugged")
+                            Text(L10n.string("Unplugged", locale: locale))
                                 .font(.system(size: 13, weight: .semibold))
-                            Text("Notify when power adapter is disconnected")
+                            Text(L10n.string("Notify when power adapter is disconnected", locale: locale))
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
                         }
@@ -278,7 +282,7 @@ struct AlertsSettingsView: View {
 
                     if settings.powerSourceAlerts.unpluggedEnabled {
                         HStack(spacing: 8) {
-                            Text("Sound")
+                            Text(L10n.string("Sound", locale: locale))
                                 .font(.caption.weight(.medium))
                                 .foregroundStyle(.secondary)
                             AlertSoundPicker(
@@ -286,6 +290,7 @@ struct AlertsSettingsView: View {
                                     get: { settings.powerSourceAlerts.unpluggedSound },
                                     set: { settings.powerSourceAlerts.unpluggedSound = $0 }
                                 ),
+                                locale: locale,
                                 onPreview: { appState.previewSound($0) }
                             )
                             Spacer()
@@ -337,22 +342,23 @@ struct AlertsSettingsView: View {
 
 private struct AlertSoundPicker: View {
     @Binding var selection: AlertSoundOption
+    let locale: Locale
     let onPreview: (AlertSoundOption) -> Void
 
     var body: some View {
         HStack(spacing: 6) {
             Picker("", selection: $selection) {
-                Text(AlertSoundOption.none.title).tag(AlertSoundOption.none)
+                Text(AlertSoundOption.none.title(in: locale)).tag(AlertSoundOption.none)
 
-                Section("Powerman Alerts") {
+                Section(L10n.string("Powerman Alerts", locale: locale)) {
                     ForEach(AlertSoundOption.customAlertSounds) { option in
-                        Text(option.title).tag(option)
+                        Text(option.title(in: locale)).tag(option)
                     }
                 }
 
-                Section("macOS System Sounds") {
+                Section(L10n.string("macOS System Sounds", locale: locale)) {
                     ForEach(AlertSoundOption.systemSounds) { option in
-                        Text(option.title).tag(option)
+                        Text(option.title(in: locale)).tag(option)
                     }
                 }
             }
@@ -373,13 +379,14 @@ private struct AlertSoundPicker: View {
             }
             .buttonStyle(.plain)
             .disabled(selection == .none)
-            .help("Preview sound")
+            .help(L10n.string("Preview sound", locale: locale))
         }
     }
 }
 
 private struct AlertRuleCard: View {
     @Binding var rule: AlertRule
+    let locale: Locale
     let isExpanded: Bool
     let isTesting: Bool
     let onToggleExpand: () -> Void
@@ -410,7 +417,7 @@ private struct AlertRuleCard: View {
                                 .fill(rule.color.opacity(0.14))
                         )
 
-                    Text(rule.summaryText)
+                    Text(rule.summaryText(in: locale))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -456,7 +463,7 @@ private struct AlertRuleCard: View {
         VStack(alignment: .leading, spacing: 16) {
             VStack(alignment: .leading, spacing: 6) {
                 HStack {
-                    Text("Battery Percentage")
+                    Text(L10n.string("Battery Percentage", locale: locale))
                         .font(.system(size: 12, weight: .semibold))
                         .foregroundStyle(.secondary)
                     Spacer()
@@ -478,7 +485,7 @@ private struct AlertRuleCard: View {
 
             HStack(alignment: .top, spacing: 20) {
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("Color")
+                    Text(L10n.string("Color", locale: locale))
                         .font(.system(size: 12, weight: .semibold))
                         .foregroundStyle(.secondary)
 
@@ -508,7 +515,7 @@ private struct AlertRuleCard: View {
                 }
 
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("Position")
+                    Text(L10n.string("Position", locale: locale))
                         .font(.system(size: 12, weight: .semibold))
                         .foregroundStyle(.secondary)
 
@@ -521,18 +528,18 @@ private struct AlertRuleCard: View {
                 }
 
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("Sound")
+                    Text(L10n.string("Sound", locale: locale))
                         .font(.system(size: 12, weight: .semibold))
                         .foregroundStyle(.secondary)
 
-                    AlertSoundPicker(selection: $rule.sound, onPreview: onPreviewSound)
+                    AlertSoundPicker(selection: $rule.sound, locale: locale, onPreview: onPreviewSound)
                 }
             }
 
             HStack(spacing: 24) {
-                toggleColumn(title: "Floating Popup", isOn: $rule.showPopup)
-                toggleColumn(title: "Border Glow", isOn: $rule.borderGlow)
-                toggleColumn(title: "Persistent", isOn: $rule.persistent)
+                toggleColumn(title: L10n.string("Floating Popup", locale: locale), isOn: $rule.showPopup)
+                toggleColumn(title: L10n.string("Border Glow", locale: locale), isOn: $rule.borderGlow)
+                toggleColumn(title: L10n.string("Persistent", locale: locale), isOn: $rule.persistent)
                 Spacer()
             }
 
@@ -567,7 +574,7 @@ private struct AlertRuleCard: View {
                 )
         }
         .buttonStyle(.plain)
-        .help(pos.title)
+        .help(pos.title(in: locale))
     }
 
     private var previewBox: some View {
@@ -592,16 +599,17 @@ private struct AlertRuleCard: View {
                 adapterName: nil,
                 hasBattery: true,
                 lastUpdated: Date()
-            )
+            ),
+            locale: locale
         )
 
         return VStack(alignment: .leading, spacing: 10) {
             HStack {
-                Label("Alert Preview", systemImage: "eye")
+                Label(L10n.string("Alert Preview", locale: locale), systemImage: "eye")
                     .font(.system(size: 13, weight: .semibold))
                 Spacer()
                 Button(action: onTest) {
-                    Label(isTesting ? "Stop" : "Test", systemImage: isTesting ? "stop.fill" : "play.fill")
+                    Label(L10n.string(isTesting ? "Stop" : "Test", locale: locale), systemImage: isTesting ? "stop.fill" : "play.fill")
                         .font(.system(size: 12, weight: .semibold))
                         .foregroundStyle(.white)
                         .padding(.horizontal, 12)
@@ -638,10 +646,10 @@ private struct AlertRuleCard: View {
                         Spacer()
                     }
                     if rule.showPopup {
-                        FloatingAlertBubbleView(alert: previewPresentation, compact: true, onDismiss: {})
+                        FloatingAlertBubbleView(alert: previewPresentation, compact: true, locale: locale, onDismiss: {})
                             .padding(.top, rule.position == .topOfScreen ? 12 : 0)
                     } else if !rule.borderGlow {
-                        Text("Sound-only alert")
+                        Text(L10n.string("Sound-only alert", locale: locale))
                             .font(.caption)
                             .foregroundStyle(.white.opacity(0.6))
                     }

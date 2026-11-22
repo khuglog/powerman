@@ -4,6 +4,7 @@ struct DevicesSettingsView: View {
     @Bindable var appState: AppState
 
     private var settings: AppSettings { appState.settings }
+    private var locale: Locale { appState.effectiveLocale }
 
     var body: some View {
         ScrollView {
@@ -31,11 +32,11 @@ struct DevicesSettingsView: View {
                                 .foregroundStyle(.white)
                         }
 
-                    Text("Devices")
+                    Text(L10n.string("Devices", locale: locale))
                         .font(.title2.bold())
                 }
 
-                Text("Monitor battery levels of your AirPods, Beats, Magic Mouse, Keyboard, Trackpad, and other paired Bluetooth devices.")
+                Text(L10n.string("Monitor battery levels of your AirPods, Beats, Magic Mouse, Keyboard, Trackpad, and other paired Bluetooth devices.", locale: locale))
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
@@ -45,14 +46,14 @@ struct DevicesSettingsView: View {
             Button {
                 appState.refreshDevices()
             } label: {
-                Label("Refresh", systemImage: "arrow.clockwise")
+                Label(L10n.string("Refresh", locale: locale), systemImage: "arrow.clockwise")
             }
         }
     }
 
     private var bluetoothToggleSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Label("Bluetooth Devices", systemImage: "dot.radiowaves.left.and.right")
+            Label(L10n.string("Bluetooth Devices", locale: locale), systemImage: "dot.radiowaves.left.and.right")
                 .font(.headline)
 
             HStack(spacing: 12) {
@@ -66,9 +67,9 @@ struct DevicesSettingsView: View {
                     }
 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Show Connected Devices")
+                    Text(L10n.string("Show Connected Devices", locale: locale))
                         .font(.system(size: 13, weight: .semibold))
-                    Text("Display battery levels for paired Bluetooth devices in the menu bar dropdown")
+                    Text(L10n.string("Display battery levels for paired Bluetooth devices in the menu bar dropdown", locale: locale))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -89,7 +90,7 @@ struct DevicesSettingsView: View {
 
     private var detectedDevicesSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            Label("Detected Devices", systemImage: "sensor.tag.radiowaves.forward")
+            Label(L10n.string("Detected Devices", locale: locale), systemImage: "sensor.tag.radiowaves.forward")
                 .font(.headline)
 
             if appState.bluetoothDevices.isEmpty {
@@ -97,9 +98,9 @@ struct DevicesSettingsView: View {
                     Image(systemName: "wave.3.right.circle")
                         .font(.title2)
                         .foregroundStyle(.secondary)
-                    Text("No Bluetooth devices detected yet")
+                    Text(L10n.string("No Bluetooth devices detected yet", locale: locale))
                         .font(.subheadline.weight(.semibold))
-                    Text("Pair your AirPods, Magic Mouse, Keyboard, or other Bluetooth accessories in System Settings → Bluetooth, then click Refresh.")
+                    Text(L10n.string("Pair your AirPods, Magic Mouse, Keyboard, or other Bluetooth accessories in System Settings → Bluetooth, then click Refresh.", locale: locale))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
@@ -133,7 +134,7 @@ struct DevicesSettingsView: View {
                         .font(.system(size: 13.5, weight: .semibold))
 
                     if !device.isConnected {
-                        Text("Offline")
+                        Text(L10n.string("Offline", locale: locale))
                             .font(.system(size: 10, weight: .semibold))
                             .foregroundStyle(.secondary)
                             .padding(.horizontal, 6)
@@ -143,7 +144,7 @@ struct DevicesSettingsView: View {
                 }
 
                 HStack(spacing: 8) {
-                    Text(device.displayPercentage != nil ? device.formattedPercentage : "Battery not reported")
+                    Text(device.displayPercentage != nil ? device.formattedPercentage : L10n.string("Battery not reported", locale: locale))
                         .font(.caption.weight(.medium))
                         .foregroundStyle((device.displayPercentage ?? 100) <= 15 ? .red : .secondary)
 
@@ -154,7 +155,7 @@ struct DevicesSettingsView: View {
                     }
 
                     if let threshold = pref.lowBatteryAlertThreshold {
-                        Text("• Alert < \(threshold)%")
+                        Text(L10n.format("• Alert < %d%%", locale: locale, threshold))
                             .font(.caption.weight(.medium))
                             .foregroundStyle(.orange)
                     }
@@ -174,12 +175,12 @@ struct DevicesSettingsView: View {
                     .foregroundStyle(pref.lowBatteryAlertThreshold != nil ? Color.orange : Color.secondary)
 
                 Menu {
-                    Button("Off") {
+                    Button(L10n.string("Off", locale: locale)) {
                         settings.setDeviceAlertThreshold(nil, for: device.id)
                     }
                     Divider()
                     ForEach([10, 15, 20, 30], id: \.self) { level in
-                        Button("Alert below \(level)%") {
+                        Button(L10n.format("Alert below %d%%", locale: locale, level)) {
                             settings.setDeviceAlertThreshold(level, for: device.id)
                         }
                     }
@@ -191,9 +192,9 @@ struct DevicesSettingsView: View {
                 .menuStyle(.borderlessButton)
                 .menuIndicator(.hidden)
                 .frame(width: 28, height: 28)
-                .accessibilityLabel("Set low battery alert for \(device.name)")
+                .accessibilityLabel(L10n.format("Set low battery alert for %@", locale: locale, device.name))
             }
-            .help("Set low battery alert for this device")
+            .help(L10n.string("Set low battery alert for this device", locale: locale))
 
             // Pin to menu bar
             Button {
@@ -206,7 +207,7 @@ struct DevicesSettingsView: View {
                     .background(Circle().fill(pref.isPinnedToMenuBar ? Color.cyan.opacity(0.16) : Color.primary.opacity(0.06)))
             }
             .buttonStyle(.plain)
-            .help("Pin battery percentage to the menu bar")
+            .help(L10n.string("Pin battery percentage to the menu bar", locale: locale))
 
             // Hide from dropdown
             Button {
@@ -219,7 +220,7 @@ struct DevicesSettingsView: View {
                     .background(Circle().fill(Color.primary.opacity(0.06)))
             }
             .buttonStyle(.plain)
-            .help(pref.isHiddenFromDropdown ? "Show in menu bar dropdown" : "Hide from menu bar dropdown")
+            .help(L10n.string(pref.isHiddenFromDropdown ? "Show in menu bar dropdown" : "Hide from menu bar dropdown", locale: locale))
         }
         .padding(14)
         .background(cardBackground)
@@ -227,7 +228,7 @@ struct DevicesSettingsView: View {
 
     private var tipsLegendSection: some View {
         VStack(alignment: .leading, spacing: 10) {
-            tipRow(icon: "bell.fill", color: .orange, text: "Tap the notification icon on any device to set low battery alerts.")
+            tipRow(icon: "bell.fill", color: .orange, text: L10n.string("Tap the notification icon on any device to set low battery alerts.", locale: locale))
             HStack(spacing: 10) {
                 Image(systemName: "pin.fill")
                     .font(.system(size: 12))
@@ -235,10 +236,10 @@ struct DevicesSettingsView: View {
                     .frame(width: 22, height: 22)
                     .background(RoundedRectangle(cornerRadius: 6).fill(Color.cyan.opacity(0.14)))
                 HStack(spacing: 4) {
-                    Text("Tap the pin icon to show a device's battery right in the menu bar. Arrange the order in")
+                    Text(L10n.string("Tap the pin icon to show a device's battery right in the menu bar. Arrange the order in", locale: locale))
                         .font(.caption)
                         .foregroundStyle(.secondary)
-                    Button("Menu Bar settings.") {
+                    Button(L10n.string("Menu Bar settings.", locale: locale)) {
                         appState.selectedTab = .menuBar
                     }
                     .font(.caption.weight(.semibold))
@@ -246,9 +247,9 @@ struct DevicesSettingsView: View {
                     .foregroundStyle(.cyan)
                 }
             }
-            tipRow(icon: "eye.fill", color: .blue, text: "Tap the eye icon to hide a device from the dropdown.")
-            tipRow(icon: "arrow.up.arrow.down", color: .secondary, text: "Devices are ranked by battery level, lowest first, so the one that needs charging is always at the top.")
-            tipRow(icon: "checkmark.seal.fill", color: .green, text: "Most devices provide exact battery levels. Approximate values are prefixed with a tilde (~).")
+            tipRow(icon: "eye.fill", color: .blue, text: L10n.string("Tap the eye icon to hide a device from the dropdown.", locale: locale))
+            tipRow(icon: "arrow.up.arrow.down", color: .secondary, text: L10n.string("Devices are ranked by battery level, lowest first, so the one that needs charging is always at the top.", locale: locale))
+            tipRow(icon: "checkmark.seal.fill", color: .green, text: L10n.string("Most devices provide exact battery levels. Approximate values are prefixed with a tilde (~).", locale: locale))
         }
         .padding(.top, 4)
     }

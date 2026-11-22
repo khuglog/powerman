@@ -1,3 +1,5 @@
+import AppKit
+import SwiftUI
 import XCTest
 @testable import Powerman
 
@@ -159,5 +161,61 @@ final class AlertEngineTests: XCTestCase {
         let powerDefaults = PowerSourceAlertConfig()
         XCTAssertEqual(powerDefaults.pluggedInSound, .powerConnect)
         XCTAssertEqual(powerDefaults.unpluggedSound, .powerDisconnect)
+    }
+
+    @MainActor
+    func testFloatingAlertBubbleCornersAreFullyTransparent() {
+        let alert = ActiveAlertPresentation(
+            id: UUID(),
+            ruleID: nil,
+            kind: .lowBattery,
+            title: "15% Remaining",
+            subtitle: "9min until empty",
+            percentage: 15,
+            colorHex: AlertColorPreset.orange.rawValue,
+            showPopup: true,
+            position: .topOfScreen,
+            sound: .none,
+            borderGlow: false,
+            persistent: false,
+            isChargingIcon: false
+        )
+        let hosting = NSHostingController(rootView: FloatingAlertBubbleView(alert: alert, bubbleSize: .default, onDismiss: {}))
+        hosting.view.wantsLayer = true
+        hosting.view.layer?.backgroundColor = NSColor.clear.cgColor
+        hosting.view.layer?.isOpaque = false
+
+        let fittingSize = hosting.sizeThatFits(in: NSSize(width: 600, height: 200))
+        let frame = NSRect(x: 0, y: 0, width: fittingSize.width, height: fittingSize.height)
+        let panel = NSPanel(
+            contentRect: frame,
+            styleMask: [.borderless, .nonactivatingPanel],
+            backing: .buffered,
+            defer: false
+        )
+        panel.isOpaque = false
+        panel.backgroundColor = .clear
+        panel.hasShadow = false
+        panel.contentViewController = hosting
+        panel.setFrame(frame, display: true)
+        panel.displayIfNeeded()
+
+        guard let contentView = panel.contentView,
+              let rep = contentView.bitmapImageRepForCachingDisplay(in: contentView.bounds) else {
+            XCTFail("Failed to create bitmap image representation for popup contentView")
+            return
+        }
+        contentView.cacheDisplay(in: contentView.bounds, to: rep)
+
+        let cornerCoords = [
+            (2, 2),
+            (rep.pixelsWide - 3, 2),
+            (2, rep.pixelsHigh - 3),
+            (rep.pixelsWide - 3, rep.pixelsHigh - 3)
+        ]
+        for (x, y) in cornerCoords {
+            let alpha = rep.colorAt(x: x, y: y)?.alphaComponent ?? 1.0
+            XCTAssertEqual(alpha, 0.0, accuracy: 0.001, "Corner pixel (\(x), \(y)) should be completely transparent")
+        }
     }
 }

@@ -37,6 +37,7 @@ struct SettingsRootView: View {
         }
         .frame(minWidth: 780, minHeight: 560)
         .environment(\.locale, appState.settings.appLanguage.locale)
+        .environment(\.appLocale, appState.effectiveLocale)
     }
 
     @ViewBuilder
@@ -59,7 +60,7 @@ struct SettingsRootView: View {
                             .foregroundStyle(Color(red: 1, green: 1, blue: 1))
                     }
 
-                Text(tab.title)
+                Text(tab.title(in: appState.effectiveLocale))
                     .font(.system(size: 13, weight: isSelected ? .semibold : .medium))
                     .foregroundStyle(labelColor)
 

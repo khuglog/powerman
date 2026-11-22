@@ -44,6 +44,8 @@
 		0446F25DE09E370EE38501D9 /* ChargeLimitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28E3AC939E578A34F2EEA56F /* ChargeLimitTests.swift */; };
 		A8EC81CF1A27BEC372483390 /* GeneralSettingsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 90B9729B2D3050605B76044A /* GeneralSettingsTests.swift */; };
 		B904E3333EB6C05F545F68B0 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D7F19F2D471C68872D7B14D5 /* Assets.xcassets */; };
+		A1B2C3D4E5F6000100000001 /* Localization.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6000200000001 /* Localization.swift */; };
+		A1B2C3D4E5F6000100000002 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6000200000002 /* Localizable.xcstrings */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -96,6 +98,8 @@
 		2784DD82DBAE4CF1C17FABBB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Info.plist; path = Powerman/Resources/Info.plist; sourceTree = "<group>"; };
 		A9C664FF117B198BCE0CB392 /* Powerman.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = Powerman.entitlements; path = Powerman/Resources/Powerman.entitlements; sourceTree = "<group>"; };
 		D7F19F2D471C68872D7B14D5 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Assets.xcassets; path = Powerman/Resources/Assets.xcassets; sourceTree = "<group>"; };
+		A1B2C3D4E5F6000200000001 /* Localization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Localization.swift; path = Powerman/App/Localization.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F6000200000002 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; name = Localizable.xcstrings; path = Powerman/Resources/Localizable.xcstrings; sourceTree = "<group>"; };
 		5141EFFF35ACD6C51F274E4D /* Powerman.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Powerman.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		68D128FAC7073081D8355714 /* PowermanTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PowermanTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -172,6 +176,8 @@
 				2784DD82DBAE4CF1C17FABBB,
 				A9C664FF117B198BCE0CB392,
 				D7F19F2D471C68872D7B14D5,
+				A1B2C3D4E5F6000200000001,
+				A1B2C3D4E5F6000200000002,
 			);
 			name = Powerman;
 			sourceTree = "<group>";
@@ -253,6 +259,14 @@
 			knownRegions = (
 				en,
 				Base,
+				vi,
+				ja,
+				ko,
+				"zh-Hans",
+				"zh-Hant",
+				fr,
+				de,
+				es,
 			);
 			mainGroup = 0A85897F1A32FE9B91C081CD;
 			productRefGroup = B88D7E26791946AEFDCC8BB7 /* Products */;
@@ -271,6 +285,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B904E3333EB6C05F545F68B0 /* Assets.xcassets in Resources */,
+				A1B2C3D4E5F6000100000002 /* Localizable.xcstrings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -318,6 +333,7 @@
 				8D2305DE35AFB54C6EB614AE /* DevicesSettingsView.swift in Sources */,
 				4AC5F2C4A0B4E441585A9A2C /* ChargingSettingsView.swift in Sources */,
 				2B354289EE329C608DC8D867 /* GeneralSettingsView.swift in Sources */,
+				A1B2C3D4E5F6000100000001 /* Localization.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -390,14 +406,14 @@
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 5;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Powerman/Resources/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.0.1;
+				MARKETING_VERSION = 1.0.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.khuglog.powerman;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -413,14 +429,14 @@
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 5;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = Powerman/Resources/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.0.1;
+				MARKETING_VERSION = 1.0.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.khuglog.powerman;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -434,9 +450,9 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 5;
 				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.0.1;
+				MARKETING_VERSION = 1.0.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.khuglog.powerman.tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Powerman.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Powerman";
@@ -449,9 +465,9 @@
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 4;
+				CURRENT_PROJECT_VERSION = 5;
 				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.0.1;
+				MARKETING_VERSION = 1.0.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.khuglog.powerman.tests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Powerman.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Powerman";

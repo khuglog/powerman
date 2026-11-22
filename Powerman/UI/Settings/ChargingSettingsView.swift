@@ -8,12 +8,14 @@ struct ChargingSettingsView: View {
     @State private var pendingCommitTask: Task<Void, Never>?
 
     private var status: ChargeLimitStatus { appState.chargeLimitStatus }
+    private var locale: Locale { appState.effectiveLocale }
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 headerSection
                 chargeLimitCard
+                temporaryOverrideSection
                 macOSExplanationCard
             }
             .padding(24)
@@ -54,11 +56,11 @@ struct ChargingSettingsView: View {
                                 .foregroundStyle(.white)
                         }
 
-                    Text("Charging")
+                    Text(L10n.string("Charging", locale: locale))
                         .font(.title2.bold())
                 }
 
-                Text("Protect your battery's long-term health with a suite of safeguards.")
+                Text(L10n.string("Protect your battery's long-term health with a suite of safeguards.", locale: locale))
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }
@@ -68,7 +70,7 @@ struct ChargingSettingsView: View {
             Button {
                 appState.refreshChargeLimit()
             } label: {
-                Label("Refresh", systemImage: "arrow.clockwise")
+                Label(L10n.string("Refresh", locale: locale), systemImage: "arrow.clockwise")
             }
         }
     }
@@ -86,9 +88,9 @@ struct ChargingSettingsView: View {
                     }
 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("Charge Limit")
+                    Text(L10n.string("Charge Limit", locale: locale))
                         .font(.system(size: 14, weight: .semibold))
-                    Text("Pause charging at your target so the battery sits in a healthier range.")
+                    Text(L10n.string("Pause charging at your target so the battery sits in a healthier range.", locale: locale))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
@@ -105,9 +107,9 @@ struct ChargingSettingsView: View {
                 .buttonStyle(.plain)
                 .popover(isPresented: $showInfoPopover) {
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("Why limit charging?")
+                        Text(L10n.string("Why limit charging?", locale: locale))
                             .font(.headline)
-                        Text("Lithium-ion batteries wear faster when kept continuously at 100% charge. Stopping at 80–90% while plugged in significantly reduces chemical aging.")
+                        Text(L10n.string("Lithium-ion batteries wear faster when kept continuously at 100% charge. Stopping at 80–90% while plugged in significantly reduces chemical aging.", locale: locale))
                             .font(.caption)
                             .foregroundStyle(.secondary)
                             .frame(width: 260)
@@ -134,22 +136,45 @@ struct ChargingSettingsView: View {
                 HStack(spacing: 10) {
                     Image(systemName: "exclamationmark.triangle.fill")
                         .foregroundStyle(.orange)
-                    Text("Built-in macOS Charge Limit is unavailable on this Mac or macOS version.")
+                    Text(L10n.string("Built-in macOS Charge Limit is unavailable on this Mac or macOS version.", locale: locale))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                     Spacer()
-                    Button("Open Battery Settings") {
+                    Button(L10n.string("Open Battery Settings", locale: locale)) {
                         appState.openSystemBatterySettings()
                     }
                     .font(.caption.weight(.semibold))
                 }
                 .padding(16)
+            } else if appState.isTemporaryChargeOverrideActive,
+                      let restoreLimit = appState.temporaryChargeOverrideRestoreLimit {
+                Divider().padding(.horizontal, 16)
+                HStack(spacing: 10) {
+                    Image(systemName: "bolt.circle.fill")
+                        .font(.system(size: 16))
+                        .foregroundStyle(.orange)
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(L10n.format("Temporarily overriding %d%% limit for this charge", locale: locale, restoreLimit))
+                            .font(.system(size: 13, weight: .semibold))
+                        Text(appState.settings.chargeLimitOverrideEndCondition.subtitle(in: locale))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                    Button(L10n.format("Restore %d%%", locale: locale, restoreLimit)) {
+                        appState.cancelTemporaryChargeOverride()
+                    }
+                    .font(.caption.weight(.semibold))
+                }
+                .padding(14)
+                .background(Color.orange.opacity(0.08))
             } else if status.isEnabled {
                 Divider().padding(.horizontal, 16)
 
                 VStack(alignment: .leading, spacing: 14) {
                     HStack(spacing: 8) {
-                        Text("Stop charging at")
+                        Text(L10n.string("Stop charging at", locale: locale))
                             .font(.system(size: 13.5, weight: .semibold))
 
                         Text("\(Int(sliderValue.rounded()))%")
@@ -163,7 +188,7 @@ struct ChargingSettingsView: View {
                             )
                     }
 
-                    Text("macOS offers limits from 80 to 100 percent, in steps of 5.")
+                    Text(L10n.string("macOS offers limits from 80 to 100 percent, in steps of 5.", locale: locale))
                         .font(.caption)
                         .foregroundStyle(.secondary)
 
@@ -200,9 +225,9 @@ struct ChargingSettingsView: View {
                         .foregroundStyle(.green)
 
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Limit set to \(status.limitPercentage)%")
+                        Text(L10n.format("Limit set to %d%%", locale: locale, status.limitPercentage))
                             .font(.system(size: 13, weight: .semibold))
-                        Text("Enforced by macOS through its built-in Charge Limit.")
+                        Text(L10n.string("Enforced by macOS through its built-in Charge Limit.", locale: locale))
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
@@ -236,6 +261,71 @@ struct ChargingSettingsView: View {
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 
+    private var temporaryOverrideSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Label(L10n.string("Temporary Limit Override", locale: locale), systemImage: "bolt.badge.clock")
+                .font(.headline)
+
+            VStack(spacing: 0) {
+                HStack(spacing: 12) {
+                    RoundedRectangle(cornerRadius: 7, style: .continuous)
+                        .fill(Color.orange.opacity(0.16))
+                        .frame(width: 28, height: 28)
+                        .overlay {
+                            Image(systemName: "bolt.badge.checkmark")
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundStyle(.orange)
+                        }
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(L10n.string("End Temporary Override", locale: locale))
+                            .font(.system(size: 13.5, weight: .semibold))
+                        Text(L10n.string("Choose when a temporary override triggered from the menu bar ends automatically.", locale: locale))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                }
+                .padding(16)
+
+                ForEach(ChargeLimitOverrideEndCondition.allCases) { condition in
+                    Divider().padding(.horizontal, 16)
+                    let isSelected = appState.settings.chargeLimitOverrideEndCondition == condition
+                    Button {
+                        appState.settings.chargeLimitOverrideEndCondition = condition
+                    } label: {
+                        HStack(spacing: 12) {
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(condition.title(in: locale))
+                                    .font(.system(size: 13, weight: .semibold))
+                                    .foregroundStyle(.primary)
+                                Text(condition.subtitle(in: locale))
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                            Spacer()
+                            Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                                .font(.system(size: 18))
+                                .foregroundStyle(isSelected ? Color.green : Color.secondary.opacity(0.4))
+                        }
+                        .contentShape(Rectangle())
+                        .padding(14)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .background(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(Color(nsColor: .controlBackgroundColor))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .stroke(Color.primary.opacity(0.08), lineWidth: 1)
+                    )
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        }
+    }
+
     private var macOSExplanationCard: some View {
         HStack(alignment: .top, spacing: 12) {
             Image(systemName: "apple.logo")
@@ -244,14 +334,14 @@ struct ChargingSettingsView: View {
                 .padding(.top, 2)
 
             VStack(alignment: .leading, spacing: 8) {
-                Text("On this Mac, Powerman sets your charge limit through macOS's own Charge Limit. macOS enforces it even while your Mac sleeps or Powerman isn't running, and lets the battery settle down to the limit if it currently sits above it.")
+                Text(L10n.string("On this Mac, Powerman sets your charge limit through macOS's own Charge Limit. macOS enforces it even while your Mac sleeps or Powerman isn't running, and lets the battery settle down to the limit if it currently sits above it.", locale: locale))
                     .font(.caption)
                     .foregroundStyle(.secondary)
 
                 Button {
                     appState.openSystemBatterySettings()
                 } label: {
-                    Text("You'll find the same limit in System Settings → Battery.")
+                    Text(L10n.string("You'll find the same limit in System Settings → Battery.", locale: locale))
                         .font(.caption.weight(.medium))
                         .underline()
                         .foregroundStyle(.secondary)

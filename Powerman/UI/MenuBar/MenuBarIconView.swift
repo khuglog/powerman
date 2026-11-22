@@ -10,6 +10,7 @@ struct MenuBarIconView: View {
     let statusColorsEnabled: Bool
     var isDarkMenuBar: Bool = false
     var isTemplateMode: Bool = false
+    var locale: Locale = Locale(identifier: "en")
 
     private var isChargingOrConnected: Bool {
         battery.isCharging || battery.isPluggedIn
@@ -92,7 +93,7 @@ struct MenuBarIconView: View {
                             .foregroundStyle(baseForeground)
                     }
                 } else if displayMode == .timeRemaining {
-                    Text(battery.formattedTimeRemaining)
+                    Text(battery.formattedTimeRemaining(in: locale))
                         .font(.system(size: 11.5 * scaleFactor, weight: .medium, design: .rounded))
                         .monospacedDigit()
                         .foregroundStyle(baseForeground)

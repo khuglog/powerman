@@ -4,6 +4,23 @@ Tất cả các thay đổi đáng chú ý của dự án **Powerman** sẽ đư
 
 ## [Unreleased]
 
+## [1.0.2] - 2026-11-22
+
+### Added
+- **Đa ngôn ngữ bằng String Catalog (`Localizable.xcstrings`, `Localization.swift`, `AppLanguageOption`):**
+  - Bổ sung `Localizable.xcstrings` hỗ trợ 9 ngôn ngữ phổ biến (`en`, `vi`, `ja`, `ko`, `zh-Hans`, `zh-Hant`, `fr`, `de`, `es`) cùng tùy chọn `Match System`, cập nhật `knownRegions` trong `Powerman.xcodeproj` và bản địa hóa toàn bộ chuỗi UI, Menu Bar Popover, Settings và Alerts với cơ chế đổi ngôn ngữ tức thì trong ứng dụng (`L10n`).
+  - Bổ sung unit test `GeneralSettingsTests.testLocalizationResolvesPopularLanguages`.
+- **Tạm thời vượt giới hạn sạc trong lượt sạc (`MenuBarPopoverView`, `ChargingSettingsView`, `AppState`, `ChargeLimitState`):**
+  - Thêm nút bấm nhanh một chạm ngay trong Menu Bar Popover (`Override Charge Limit Once`) khi `Charge Limit` đang bật — bấm vào sẽ kích hoạt ngay lập tức không hỏi xác nhận và hiển thị 1 dòng thông báo trạng thái đang tạm thời vượt giới hạn sạc trong lần sạc này (kèm nút `Restore` nhanh).
+  - Thêm mục cấu hình `Temporary Limit Override` trong tab `Charging` với 2 tùy chọn kết thúc tự động: **Ngay khi rút bộ sạc** (`onUnplug`, mặc định) hoặc **Khi đạt 100% pin lần đầu** (`onFirstFullCharge`).
+  - Bổ sung 2 unit tests trong `ChargeLimitTests` kiểm tra cả hai điều kiện kết thúc và khôi phục thủ công.
+
+### Changed
+- **Thanh tiến trình pin Popover (`SegmentedBatteryProgressBar`):** Đổi vạch chia từ 4 phần (mốc 25%) sang **5 phần bằng nhau** (4 vạch chia tại các mốc 20%, 40%, 60%, 80%).
+
+### Fixed
+- **Floating Alert Popup Transparent Background (`FloatingAlertBubbleView`, `OverlayWindowManager`):** Loại bỏ `.shadow` tràn viền bị cắt vuông bởi khung `NSPanel` (`masksToBounds`) phía dưới viên thuốc thông báo (`Capsule`), áp dụng `.clipShape(Capsule(style: .continuous))` và ép layer của `NSHostingController` / `contentView` trong suốt hoàn toàn (`alpha = 0` ở toàn bộ vùng ngoài `Capsule`).
+
 ## [1.0.1] - 2026-11-17
 
 ### Fixed

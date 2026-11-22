@@ -5,6 +5,10 @@ enum BatteryHealthStatus: String, Sendable, Equatable {
     case fair = "Fair"
     case poor = "Poor"
     case unknown = "Unknown"
+
+    func localizedTitle(in locale: Locale) -> String {
+        L10n.string(rawValue, locale: locale)
+    }
 }
 
 enum TemperatureStatus: String, Sendable, Equatable {
@@ -12,6 +16,10 @@ enum TemperatureStatus: String, Sendable, Equatable {
     case warm = "Warm"
     case hot = "Hot"
     case unknown = "Unknown"
+
+    func localizedTitle(in locale: Locale) -> String {
+        L10n.string(rawValue, locale: locale)
+    }
 }
 
 enum ChargingState: Sendable, Equatable {
@@ -21,15 +29,19 @@ enum ChargingState: Sendable, Equatable {
     case pluggedNotCharging
 
     var displayLabel: String {
+        displayLabel(in: Locale(identifier: "en"))
+    }
+
+    func displayLabel(in locale: Locale) -> String {
         switch self {
         case .onBattery:
-            return "On Battery"
+            return L10n.string("On Battery", locale: locale)
         case .charging:
-            return "Charging"
+            return L10n.string("Charging", locale: locale)
         case .charged:
-            return "Fully Charged"
+            return L10n.string("Fully Charged", locale: locale)
         case .pluggedNotCharging:
-            return "Plugged In (Not Charging)"
+            return L10n.string("Plugged In (Not Charging)", locale: locale)
         }
     }
 }
@@ -110,15 +122,19 @@ struct BatteryInfo: Sendable, Equatable {
     }
 
     var formattedTimeRemaining: String {
+        formattedTimeRemaining(in: Locale(identifier: "en"))
+    }
+
+    func formattedTimeRemaining(in locale: Locale) -> String {
         guard let minutes = timeRemainingMinutes, minutes > 0 else {
-            return isFullyCharged ? "Full" : "--"
+            return isFullyCharged ? L10n.string("Full", locale: locale) : "--"
         }
         let hours = minutes / 60
         let mins = minutes % 60
         if hours > 0 {
-            return "\(hours)h \(mins)m"
+            return L10n.format("%dh %dm", locale: locale, hours, mins)
         } else {
-            return "\(mins)m"
+            return L10n.format("%dm", locale: locale, mins)
         }
     }
 

@@ -16,6 +16,41 @@ struct ChargeLimitStatus: Equatable, Sendable {
     )
 }
 
+enum ChargeLimitOverrideEndCondition: String, CaseIterable, Identifiable, Codable, Sendable {
+    case onUnplug = "onUnplug"
+    case onFirstFullCharge = "onFirstFullCharge"
+
+    var id: String { rawValue }
+
+    var title: String {
+        title(in: Locale(identifier: "en"))
+    }
+
+    func title(in locale: Locale) -> String {
+        switch self {
+        case .onUnplug:
+            return L10n.string("Immediately when unplugged", locale: locale)
+        case .onFirstFullCharge:
+            return L10n.string("When reaching 100% for the first time", locale: locale)
+        }
+    }
+
+    func subtitle(in locale: Locale) -> String {
+        switch self {
+        case .onUnplug:
+            return L10n.string("Restores your charge limit as soon as you disconnect the charger.", locale: locale)
+        case .onFirstFullCharge:
+            return L10n.string("Restores your charge limit automatically as soon as the battery reaches 100%.", locale: locale)
+        }
+    }
+}
+
+struct TemporaryChargeOverrideState: Codable, Equatable, Sendable {
+    var restoreLimitPercentage: Int
+    var hasObservedPluggedIn: Bool
+    var activatedAt: Date
+}
+
 enum ChargeLimitHelpers {
     static let defaultLimits = [80, 85, 90, 95, 100]
 

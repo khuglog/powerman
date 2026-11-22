@@ -229,4 +229,152 @@ final class ChargeLimitTests: XCTestCase {
         XCTAssertTrue(appState.isPausedAtChargeLimit)
         XCTAssertEqual(appState.batteryStatusLabel, "Paused at 80% Limit")
     }
+
+    @MainActor
+    func testTemporaryChargeOverrideEndsOnUnplugByDefault() {
+        func makeBattery(percentage: Int, isPluggedIn: Bool, isCharging: Bool) -> BatteryInfo {
+            BatteryInfo(
+                percentage: percentage,
+                isCharging: isCharging,
+                isPluggedIn: isPluggedIn,
+                isFullyCharged: isPluggedIn && percentage >= 100,
+                timeRemainingMinutes: nil,
+                cycleCount: 100,
+                ratedCycleCount: 1000,
+                designCapacityMah: 6000,
+                maxCapacityMah: 5700,
+                currentCapacityMah: 4500,
+                temperatureCelsius: 31.0,
+                voltageMv: 12000,
+                amperageMa: isCharging ? 2000 : -900,
+                batteryPowerMw: nil,
+                adapterWatts: isPluggedIn ? 65 : nil,
+                adapterName: nil,
+                hasBattery: true,
+                lastUpdated: Date()
+            )
+        }
+
+        let tempHistory = FileManager.default.temporaryDirectory
+            .appendingPathComponent("powerman_override_unplug_\(UUID().uuidString).json")
+        defer { try? FileManager.default.removeItem(at: tempHistory) }
+
+        let suiteName = "com.powerman.override.unplug.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let settings = AppSettings(defaults: defaults)
+        XCTAssertEqual(settings.chargeLimitOverrideEndCondition, .onUnplug)
+
+        let stubBattery = StubBatteryService(initial: makeBattery(percentage: 80, isPluggedIn: true, isCharging: false))
+        let mockCharge = MockChargeLimitService()
+        let appState = AppState(
+            batteryService: stubBattery,
+            bluetoothService: StubBluetoothService(),
+            historyStore: JSONBatteryHistoryStore(fileURL: tempHistory),
+            energyService: StubEnergyService(),
+            chargeLimitService: mockCharge,
+            systemService: StubSystemService(),
+            settings: settings,
+            alertPresenter: StubAlertPresenter()
+        )
+        appState.start()
+        defer { appState.stop() }
+
+        appState.setChargeLimitEnabled(true)
+        appState.setChargeLimitPercentage(80)
+        XCTAssertTrue(appState.canActivateTemporaryChargeOverride)
+
+        appState.activateTemporaryChargeOverride()
+        XCTAssertTrue(appState.isTemporaryChargeOverrideActive)
+        XCTAssertEqual(appState.temporaryChargeOverrideRestoreLimit, 80)
+        XCTAssertFalse(appState.chargeLimitStatus.isEnabled)
+        XCTAssertEqual(appState.chargeLimitStatus.limitPercentage, 100)
+
+        // Reaching 100% while still plugged in does NOT end the override when endCondition == .onUnplug.
+        stubBattery.push(makeBattery(percentage: 100, isPluggedIn: true, isCharging: false))
+        XCTAssertTrue(appState.isTemporaryChargeOverrideActive)
+        XCTAssertFalse(appState.chargeLimitStatus.isEnabled)
+
+        // Unplugging the charger immediately ends the override and restores the 80% Charge Limit.
+        stubBattery.push(makeBattery(percentage: 100, isPluggedIn: false, isCharging: false))
+        XCTAssertFalse(appState.isTemporaryChargeOverrideActive)
+        XCTAssertTrue(appState.chargeLimitStatus.isEnabled)
+        XCTAssertEqual(appState.chargeLimitStatus.limitPercentage, 80)
+    }
+
+    @MainActor
+    func testTemporaryChargeOverrideEndsOnFirstFullChargeAndManualCancel() {
+        func makeBattery(percentage: Int, isPluggedIn: Bool, isCharging: Bool) -> BatteryInfo {
+            BatteryInfo(
+                percentage: percentage,
+                isCharging: isCharging,
+                isPluggedIn: isPluggedIn,
+                isFullyCharged: isPluggedIn && percentage >= 100,
+                timeRemainingMinutes: nil,
+                cycleCount: 100,
+                ratedCycleCount: 1000,
+                designCapacityMah: 6000,
+                maxCapacityMah: 5700,
+                currentCapacityMah: 4500,
+                temperatureCelsius: 31.0,
+                voltageMv: 12000,
+                amperageMa: isCharging ? 2000 : -900,
+                batteryPowerMw: nil,
+                adapterWatts: isPluggedIn ? 65 : nil,
+                adapterName: nil,
+                hasBattery: true,
+                lastUpdated: Date()
+            )
+        }
+
+        let tempHistory = FileManager.default.temporaryDirectory
+            .appendingPathComponent("powerman_override_full_\(UUID().uuidString).json")
+        defer { try? FileManager.default.removeItem(at: tempHistory) }
+
+        let suiteName = "com.powerman.override.full.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let settings = AppSettings(defaults: defaults)
+        settings.chargeLimitOverrideEndCondition = .onFirstFullCharge
+
+        let stubBattery = StubBatteryService(initial: makeBattery(percentage: 85, isPluggedIn: true, isCharging: false))
+        let mockCharge = MockChargeLimitService()
+        let appState = AppState(
+            batteryService: stubBattery,
+            bluetoothService: StubBluetoothService(),
+            historyStore: JSONBatteryHistoryStore(fileURL: tempHistory),
+            energyService: StubEnergyService(),
+            chargeLimitService: mockCharge,
+            systemService: StubSystemService(),
+            settings: settings,
+            alertPresenter: StubAlertPresenter()
+        )
+        appState.start()
+        defer { appState.stop() }
+
+        appState.setChargeLimitEnabled(true)
+        appState.setChargeLimitPercentage(85)
+        appState.activateTemporaryChargeOverride()
+        XCTAssertTrue(appState.isTemporaryChargeOverrideActive)
+
+        // Manual cancel restores 85% immediately.
+        appState.cancelTemporaryChargeOverride()
+        XCTAssertFalse(appState.isTemporaryChargeOverrideActive)
+        XCTAssertTrue(appState.chargeLimitStatus.isEnabled)
+        XCTAssertEqual(appState.chargeLimitStatus.limitPercentage, 85)
+
+        // Re-activate and verify .onFirstFullCharge ignores unplug before 100% and restores at 100%.
+        appState.activateTemporaryChargeOverride()
+        XCTAssertTrue(appState.isTemporaryChargeOverrideActive)
+
+        stubBattery.push(makeBattery(percentage: 92, isPluggedIn: false, isCharging: false))
+        XCTAssertTrue(appState.isTemporaryChargeOverrideActive)
+
+        stubBattery.push(makeBattery(percentage: 100, isPluggedIn: true, isCharging: false))
+        XCTAssertFalse(appState.isTemporaryChargeOverrideActive)
+        XCTAssertTrue(appState.chargeLimitStatus.isEnabled)
+        XCTAssertEqual(appState.chargeLimitStatus.limitPercentage, 85)
+    }
 }

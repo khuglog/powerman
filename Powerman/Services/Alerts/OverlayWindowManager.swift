@@ -128,9 +128,13 @@ final class OverlayWindowManager: AlertPresenting {
         }
 
         let hosting = NSHostingController(rootView: bubbleView)
-        let fittingSize = hosting.sizeThatFits(in: NSSize(width: 480, height: 150))
-        let panelWidth = max(310 * bubbleSize.scale, fittingSize.width)
-        let panelHeight = max(62 * bubbleSize.scale, fittingSize.height)
+        hosting.view.wantsLayer = true
+        hosting.view.layer?.backgroundColor = NSColor.clear.cgColor
+        hosting.view.layer?.isOpaque = false
+
+        let fittingSize = hosting.sizeThatFits(in: NSSize(width: 600, height: 200))
+        let panelWidth = max(300 * bubbleSize.scale, fittingSize.width)
+        let panelHeight = max(50 * bubbleSize.scale, fittingSize.height)
 
         let originX = screen.frame.midX - (panelWidth / 2.0)
         let originY: CGFloat
@@ -152,10 +156,15 @@ final class OverlayWindowManager: AlertPresenting {
         panel.isOpaque = false
         panel.backgroundColor = .clear
         panel.hasShadow = false
+        panel.titleVisibility = .hidden
+        panel.titlebarAppearsTransparent = true
         panel.isReleasedWhenClosed = false
         panel.ignoresMouseEvents = false
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary, .stationary, .ignoresCycle]
         panel.contentViewController = hosting
+        panel.contentView?.wantsLayer = true
+        panel.contentView?.layer?.backgroundColor = NSColor.clear.cgColor
+        panel.contentView?.layer?.isOpaque = false
         panel.setFrame(frame, display: true)
         panel.orderFrontRegardless()
         self.popupPanel = panel

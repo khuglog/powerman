@@ -14,9 +14,13 @@ enum AlertPosition: String, Codable, Sendable, CaseIterable, Identifiable {
     var id: String { rawValue }
 
     var title: String {
+        title(in: Locale(identifier: "en"))
+    }
+
+    func title(in locale: Locale) -> String {
         switch self {
-        case .topOfScreen: return "Top of Screen"
-        case .centerOfScreen: return "Center of Screen"
+        case .topOfScreen: return L10n.string("Top of Screen", locale: locale)
+        case .centerOfScreen: return L10n.string("Center of Screen", locale: locale)
         }
     }
 }
@@ -77,30 +81,34 @@ enum AlertSoundOption: String, Codable, Sendable, CaseIterable, Identifiable {
     }
 
     var title: String {
+        title(in: Locale(identifier: "en"))
+    }
+
+    func title(in locale: Locale) -> String {
         switch self {
-        case .none: return "None (Silent)"
-        case .criticalAlarm: return "Critical Alarm (Urgent)"
-        case .urgentBeep: return "Urgent Double Beep"
-        case .lowWarning: return "Low Battery Warning"
-        case .chargedChime: return "Charged Success Chime"
-        case .powerConnect: return "Power Connect"
-        case .powerDisconnect: return "Power Disconnect"
-        case .radarPulse: return "Radar Pulse"
-        case .softBell: return "Soft Bell"
-        case .glass: return "macOS Glass"
-        case .hero: return "macOS Hero"
-        case .ping: return "macOS Ping"
-        case .pop: return "macOS Pop"
-        case .tink: return "macOS Tink"
-        case .submarine: return "macOS Submarine"
-        case .sosumi: return "macOS Sosumi"
-        case .blow: return "macOS Blow"
-        case .bottle: return "macOS Bottle"
-        case .frog: return "macOS Frog"
-        case .funk: return "macOS Funk"
-        case .morse: return "macOS Morse"
-        case .purr: return "macOS Purr"
-        case .basso: return "macOS Basso"
+        case .none: return L10n.string("None (Silent)", locale: locale)
+        case .criticalAlarm: return L10n.string("Critical Alarm (Urgent)", locale: locale)
+        case .urgentBeep: return L10n.string("Urgent Double Beep", locale: locale)
+        case .lowWarning: return L10n.string("Low Battery Warning", locale: locale)
+        case .chargedChime: return L10n.string("Charged Success Chime", locale: locale)
+        case .powerConnect: return L10n.string("Power Connect", locale: locale)
+        case .powerDisconnect: return L10n.string("Power Disconnect", locale: locale)
+        case .radarPulse: return L10n.string("Radar Pulse", locale: locale)
+        case .softBell: return L10n.string("Soft Bell", locale: locale)
+        case .glass: return L10n.string("macOS Glass", locale: locale)
+        case .hero: return L10n.string("macOS Hero", locale: locale)
+        case .ping: return L10n.string("macOS Ping", locale: locale)
+        case .pop: return L10n.string("macOS Pop", locale: locale)
+        case .tink: return L10n.string("macOS Tink", locale: locale)
+        case .submarine: return L10n.string("macOS Submarine", locale: locale)
+        case .sosumi: return L10n.string("macOS Sosumi", locale: locale)
+        case .blow: return L10n.string("macOS Blow", locale: locale)
+        case .bottle: return L10n.string("macOS Bottle", locale: locale)
+        case .frog: return L10n.string("macOS Frog", locale: locale)
+        case .funk: return L10n.string("macOS Funk", locale: locale)
+        case .morse: return L10n.string("macOS Morse", locale: locale)
+        case .purr: return L10n.string("macOS Purr", locale: locale)
+        case .basso: return L10n.string("macOS Basso", locale: locale)
         }
     }
 
@@ -159,20 +167,24 @@ struct AlertRule: Identifiable, Codable, Equatable, Sendable {
     }
 
     var summaryText: String {
+        summaryText(in: Locale(identifier: "en"))
+    }
+
+    func summaryText(in locale: Locale) -> String {
         var parts: [String] = []
         if showPopup {
-            parts.append(position.title)
+            parts.append(position.title(in: locale))
         }
         if borderGlow {
-            parts.append("Border Glow")
+            parts.append(L10n.string("Border Glow", locale: locale))
         }
         if sound != .none {
-            parts.append(sound.title)
+            parts.append(sound.title(in: locale))
         }
         if persistent {
-            parts.append("Persistent")
+            parts.append(L10n.string("Persistent", locale: locale))
         }
-        return parts.isEmpty ? "Silent" : parts.joined(separator: " • ")
+        return parts.isEmpty ? L10n.string("Silent", locale: locale) : parts.joined(separator: " • ")
     }
 
     var color: Color {
@@ -249,20 +261,24 @@ struct ActiveAlertPresentation: Identifiable, Equatable, Sendable {
         Color(hex: colorHex) ?? .orange
     }
 
-    static func from(rule: AlertRule, battery: BatteryInfo) -> ActiveAlertPresentation {
+    static func from(
+        rule: AlertRule,
+        battery: BatteryInfo,
+        locale: Locale = Locale(identifier: "en")
+    ) -> ActiveAlertPresentation {
         let title: String
         let subtitle: String
         switch rule.kind {
         case .lowBattery:
-            title = "\(battery.percentage)% Remaining"
+            title = L10n.format("%d%% Remaining", locale: locale, battery.percentage)
             if let mins = battery.timeRemainingMinutes, mins > 0 {
-                subtitle = "\(mins)min until empty"
+                subtitle = L10n.format("%dmin until empty", locale: locale, mins)
             } else {
-                subtitle = "Low battery alert (\(rule.threshold)%)"
+                subtitle = L10n.format("Low battery alert (%d%%)", locale: locale, rule.threshold)
             }
         case .charged:
-            title = "\(battery.percentage)% Charged"
-            subtitle = "Battery reached \(rule.threshold)% target"
+            title = L10n.format("%d%% Charged", locale: locale, battery.percentage)
+            subtitle = L10n.format("Battery reached %d%% target", locale: locale, rule.threshold)
         }
 
         return ActiveAlertPresentation(
@@ -282,19 +298,26 @@ struct ActiveAlertPresentation: Identifiable, Equatable, Sendable {
         )
     }
 
-    static func powerSource(pluggedIn: Bool, battery: BatteryInfo, sound: AlertSoundOption) -> ActiveAlertPresentation {
-        let title = pluggedIn ? "Power Connected" : "On Battery Power"
+    static func powerSource(
+        pluggedIn: Bool,
+        battery: BatteryInfo,
+        sound: AlertSoundOption,
+        locale: Locale = Locale(identifier: "en")
+    ) -> ActiveAlertPresentation {
+        let title = pluggedIn
+            ? L10n.string("Power Connected", locale: locale)
+            : L10n.string("On Battery Power", locale: locale)
         let subtitle: String
         if pluggedIn {
             if let watts = battery.adapterWatts {
-                subtitle = "\(watts)W Adapter • \(battery.percentage)%"
+                subtitle = L10n.format("%dW Adapter • %d%%", locale: locale, watts, battery.percentage)
             } else {
-                subtitle = "Charging at \(battery.percentage)%"
+                subtitle = L10n.format("Charging at %d%%", locale: locale, battery.percentage)
             }
         } else {
             subtitle = battery.timeRemainingMinutes != nil
-                ? "\(battery.formattedTimeRemaining) remaining • \(battery.percentage)%"
-                : "Battery at \(battery.percentage)%"
+                ? L10n.format("%@ remaining • %d%%", locale: locale, battery.formattedTimeRemaining(in: locale), battery.percentage)
+                : L10n.format("Battery at %d%%", locale: locale, battery.percentage)
         }
 
         return ActiveAlertPresentation(

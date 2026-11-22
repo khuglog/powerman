@@ -9,24 +9,32 @@ enum MenuBarIconStyle: String, CaseIterable, Identifiable, Codable {
     var id: String { rawValue }
 
     var title: String {
+        title(in: Locale(identifier: "en"))
+    }
+
+    func title(in locale: Locale) -> String {
         switch self {
         case .batteryIndicator:
-            return "Battery Indicator"
+            return L10n.string("Battery Indicator", locale: locale)
         case .minimal:
-            return "Minimal"
+            return L10n.string("Minimal", locale: locale)
         case .powermanLogo:
-            return "Powerman Logo"
+            return L10n.string("Powerman Logo", locale: locale)
         }
     }
 
     var subtitle: String {
+        subtitle(in: Locale(identifier: "en"))
+    }
+
+    func subtitle(in locale: Locale) -> String {
         switch self {
         case .batteryIndicator:
-            return "Shows battery level and charging status — Powerman's rich design"
+            return L10n.string("Shows battery level and charging status — Powerman's rich design", locale: locale)
         case .minimal:
-            return "Minimalistic iPhone-style battery indicator"
+            return L10n.string("Minimalistic iPhone-style battery indicator", locale: locale)
         case .powermanLogo:
-            return "Static Powerman logo icon"
+            return L10n.string("Static Powerman logo icon", locale: locale)
         }
     }
 }
@@ -40,15 +48,19 @@ enum MenuBarDisplayMode: String, CaseIterable, Identifiable, Codable {
     var id: String { rawValue }
 
     var title: String {
+        title(in: Locale(identifier: "en"))
+    }
+
+    func title(in locale: Locale) -> String {
         switch self {
         case .iconAndPercentage:
-            return "Icon & Percentage"
+            return L10n.string("Icon & Percentage", locale: locale)
         case .percentage:
-            return "Percentage"
+            return L10n.string("Percentage", locale: locale)
         case .timeRemaining:
-            return "Time Remaining"
+            return L10n.string("Time Remaining", locale: locale)
         case .iconOnly:
-            return "Icon Only"
+            return L10n.string("Icon Only", locale: locale)
         }
     }
 }
@@ -62,15 +74,19 @@ enum MenuBarColorMode: String, CaseIterable, Identifiable, Codable {
     var id: String { rawValue }
 
     var title: String {
+        title(in: Locale(identifier: "en"))
+    }
+
+    func title(in locale: Locale) -> String {
         switch self {
         case .auto:
-            return "Auto"
+            return L10n.string("Auto", locale: locale)
         case .monochrome:
-            return "Monochrome"
+            return L10n.string("Monochrome", locale: locale)
         case .white:
-            return "White"
+            return L10n.string("White", locale: locale)
         case .black:
-            return "Black"
+            return L10n.string("Black", locale: locale)
         }
     }
 }
@@ -82,11 +98,15 @@ enum MenuBarSize: String, CaseIterable, Identifiable, Codable {
     var id: String { rawValue }
 
     var title: String {
+        title(in: Locale(identifier: "en"))
+    }
+
+    func title(in locale: Locale) -> String {
         switch self {
         case .default:
-            return "Default"
+            return L10n.string("Default", locale: locale)
         case .large:
-            return "Large"
+            return L10n.string("Large", locale: locale)
         }
     }
 }
@@ -95,22 +115,48 @@ enum AppLanguageOption: String, CaseIterable, Identifiable, Codable {
     case matchSystem = "system"
     case english = "en"
     case vietnamese = "vi"
+    case japanese = "ja"
+    case korean = "ko"
+    case chineseSimplified = "zh-Hans"
+    case chineseTraditional = "zh-Hant"
+    case french = "fr"
+    case german = "de"
+    case spanish = "es"
 
     var id: String { rawValue }
 
     var title: String {
+        title(in: Locale(identifier: "en"))
+    }
+
+    func title(in locale: Locale) -> String {
         switch self {
-        case .matchSystem: return "Match System"
+        case .matchSystem: return L10n.string("Match System", locale: locale)
         case .english: return "English"
         case .vietnamese: return "Tiếng Việt"
+        case .japanese: return "日本語"
+        case .korean: return "한국어"
+        case .chineseSimplified: return "简体中文"
+        case .chineseTraditional: return "繁體中文"
+        case .french: return "Français"
+        case .german: return "Deutsch"
+        case .spanish: return "Español"
         }
     }
 
     var locale: Locale {
         switch self {
         case .matchSystem: return .autoupdatingCurrent
-        case .english: return Locale(identifier: "en")
-        case .vietnamese: return Locale(identifier: "vi")
+        default: return Locale(identifier: rawValue)
+        }
+    }
+
+    var effectiveLocalizationLocale: Locale {
+        switch self {
+        case .matchSystem:
+            return Locale(identifier: Bundle.main.preferredLocalizations.first ?? "en")
+        default:
+            return Locale(identifier: rawValue)
         }
     }
 }
@@ -123,10 +169,14 @@ enum AppAppearanceOption: String, CaseIterable, Identifiable, Codable {
     var id: String { rawValue }
 
     var title: String {
+        title(in: Locale(identifier: "en"))
+    }
+
+    func title(in locale: Locale) -> String {
         switch self {
-        case .auto: return "Auto"
-        case .light: return "Light"
-        case .dark: return "Dark"
+        case .auto: return L10n.string("Auto", locale: locale)
+        case .light: return L10n.string("Light", locale: locale)
+        case .dark: return L10n.string("Dark", locale: locale)
         }
     }
 }
@@ -139,10 +189,14 @@ enum AlertBubbleSize: String, CaseIterable, Identifiable, Codable {
     var id: String { rawValue }
 
     var title: String {
+        title(in: Locale(identifier: "en"))
+    }
+
+    func title(in locale: Locale) -> String {
         switch self {
-        case .compact: return "Compact"
-        case .default: return "Default"
-        case .large: return "Large"
+        case .compact: return L10n.string("Compact", locale: locale)
+        case .default: return L10n.string("Default", locale: locale)
+        case .large: return L10n.string("Large", locale: locale)
         }
     }
 
@@ -163,10 +217,14 @@ enum ScreenEdgeGlowIntensity: String, CaseIterable, Identifiable, Codable {
     var id: String { rawValue }
 
     var title: String {
+        title(in: Locale(identifier: "en"))
+    }
+
+    func title(in locale: Locale) -> String {
         switch self {
-        case .subtle: return "Subtle"
-        case .default: return "Default"
-        case .intense: return "Intense"
+        case .subtle: return L10n.string("Subtle", locale: locale)
+        case .default: return L10n.string("Default", locale: locale)
+        case .intense: return L10n.string("Intense", locale: locale)
         }
     }
 
@@ -198,13 +256,17 @@ enum SettingsTab: String, CaseIterable, Identifiable {
     var id: String { rawValue }
 
     var title: String {
+        title(in: Locale(identifier: "en"))
+    }
+
+    func title(in locale: Locale) -> String {
         switch self {
-        case .battery: return "Battery"
-        case .charging: return "Charging"
-        case .alerts: return "Alerts"
-        case .menuBar: return "Menu Bar"
-        case .devices: return "Devices"
-        case .general: return "General"
+        case .battery: return L10n.string("Battery", locale: locale)
+        case .charging: return L10n.string("Charging", locale: locale)
+        case .alerts: return L10n.string("Alerts", locale: locale)
+        case .menuBar: return L10n.string("Menu Bar", locale: locale)
+        case .devices: return L10n.string("Devices", locale: locale)
+        case .general: return L10n.string("General", locale: locale)
         }
     }
 
@@ -241,6 +303,8 @@ final class AppSettings {
         static let restoreBrightnessOnLowPowerOff = "general.restoreBrightness"
         static let alertBubbleSize = "general.alertBubbleSize"
         static let screenEdgeGlowIntensity = "general.screenEdgeGlow"
+        static let chargeLimitOverrideEndCondition = "charging.overrideEndCondition"
+        static let temporaryChargeOverride = "charging.temporaryOverrideState"
     }
 
     private let defaults: UserDefaults
@@ -319,6 +383,21 @@ final class AppSettings {
 
     var screenEdgeGlowIntensity: ScreenEdgeGlowIntensity {
         didSet { defaults.set(screenEdgeGlowIntensity.rawValue, forKey: Keys.screenEdgeGlowIntensity) }
+    }
+
+    var chargeLimitOverrideEndCondition: ChargeLimitOverrideEndCondition {
+        didSet { defaults.set(chargeLimitOverrideEndCondition.rawValue, forKey: Keys.chargeLimitOverrideEndCondition) }
+    }
+
+    var temporaryChargeOverride: TemporaryChargeOverrideState? {
+        didSet {
+            if let temporaryChargeOverride,
+               let data = try? JSONEncoder().encode(temporaryChargeOverride) {
+                defaults.set(data, forKey: Keys.temporaryChargeOverride)
+            } else {
+                defaults.removeObject(forKey: Keys.temporaryChargeOverride)
+            }
+        }
     }
 
     init(defaults: UserDefaults = .standard) {
@@ -425,6 +504,20 @@ final class AppSettings {
             self.screenEdgeGlowIntensity = value
         } else {
             self.screenEdgeGlowIntensity = .default
+        }
+
+        if let raw = defaults.string(forKey: Keys.chargeLimitOverrideEndCondition),
+           let value = ChargeLimitOverrideEndCondition(rawValue: raw) {
+            self.chargeLimitOverrideEndCondition = value
+        } else {
+            self.chargeLimitOverrideEndCondition = .onUnplug
+        }
+
+        if let data = defaults.data(forKey: Keys.temporaryChargeOverride),
+           let decoded = try? JSONDecoder().decode(TemporaryChargeOverrideState.self, from: data) {
+            self.temporaryChargeOverride = decoded
+        } else {
+            self.temporaryChargeOverride = nil
         }
 
         migrateLegacySoundDefaultsIfNeeded()

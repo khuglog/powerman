@@ -2,10 +2,10 @@
 
 > **Dành cho nhân sự hoặc AI model mới tiếp nhận:** Đọc file này đầu tiên để biết dự án đang ở đâu, các tính năng nào đã chạy ổn định và bước tiếp theo cần làm ngay.
 
-- **Cập nhật lần cuối:** 2026-11-17
-- **Giai đoạn hiện tại (Current Phase):** Đã phát hành **v1.0.1 (build 4)** (hiển thị trạng thái đang sạc tức thì khi cắm nguồn, bỏ `GeometryReader` trong `ImageRenderer`, khắc phục CPU spike & lỗi bật lại `Charge Limit`)
-- **Nhánh chính:** `main` (tag `v1.0.1`)
-- **Trạng thái Build / Test:** `Release BUILD SUCCEEDED` (0 Swift compiler warnings), `TEST SUCCEEDED` (26/26 test cases: `BatteryInfoTests` 7/7, `AlertEngineTests` 6/6, `BluetoothBatteryTests` 3/3, `BatteryHistoryTests` 4/4, `ChargeLimitTests` 3/3, `GeneralSettingsTests` 3/3), và đã rà soát trực quan toàn bộ màn hình Dark/Light UI, Popover, Menu Bar icons & Overlays.
+- **Cập nhật lần cuối:** 2026-11-22
+- **Giai đoạn hiện tại (Current Phase):** Đã phát hành **v1.0.2 (build 5)** — Đa ngôn ngữ (`Localizable.xcstrings`, 9 ngôn ngữ) & Tạm thời vượt giới hạn sạc (`Temporary Limit Override`)
+- **Nhánh chính:** `main` (v1.0.2)
+- **Trạng thái Build / Test:** `Release BUILD SUCCEEDED` (0 Swift compiler warnings), `TEST SUCCEEDED` (30/30 test cases: `BatteryInfoTests` 7/7, `AlertEngineTests` 7/7, `BluetoothBatteryTests` 3/3, `BatteryHistoryTests` 4/4, `ChargeLimitTests` 5/5, `GeneralSettingsTests` 4/4).
 
 ---
 
@@ -56,11 +56,10 @@
 
 ---
 
-## 4. Hướng mở rộng tiếp theo (Backlog sau v1.0.0)
+## 4. Hướng mở rộng tiếp theo (Backlog sau v1.0.1)
 
-1. Bổ sung bản địa hóa đầy đủ (`Localizable.xcstrings`) cho tiếng Việt & tiếng Anh trên toàn bộ chuỗi UI.
-2. Hỗ trợ đọc pin iPhone / Apple Watch qua kết nối Wi-Fi/USB (`lockdownd` / Companion).
-3. Đóng gói bản Release `.app` / `.dmg` có Developer ID Code Signing & Notarization hoặc Sparkle auto-updater (`Check for Updates...`).
+1. Hỗ trợ đọc pin iPhone / Apple Watch qua kết nối Wi-Fi/USB (`lockdownd` / Companion).
+2. Đóng gói bản Release `.app` / `.dmg` có Developer ID Code Signing & Notarization hoặc Sparkle auto-updater (`Check for Updates...`).
 
 ---
 

@@ -2,10 +2,10 @@
 
 > **Dành cho nhân sự hoặc AI model mới tiếp nhận:** Đọc file này đầu tiên để biết dự án đang ở đâu, các tính năng nào đã chạy ổn định và bước tiếp theo cần làm ngay.
 
-- **Cập nhật lần cuối:** 2026-11-22
-- **Giai đoạn hiện tại (Current Phase):** Đã phát hành **v1.0.2 (build 5)** — Đa ngôn ngữ (`Localizable.xcstrings`, 9 ngôn ngữ) & Tạm thời vượt giới hạn sạc (`Temporary Limit Override`)
-- **Nhánh chính:** `main` (v1.0.2)
-- **Trạng thái Build / Test:** `Release BUILD SUCCEEDED` (0 Swift compiler warnings), `TEST SUCCEEDED` (30/30 test cases: `BatteryInfoTests` 7/7, `AlertEngineTests` 7/7, `BluetoothBatteryTests` 3/3, `BatteryHistoryTests` 4/4, `ChargeLimitTests` 5/5, `GeneralSettingsTests` 4/4).
+- **Cập nhật lần cuối:** 2026-11-23
+- **Giai đoạn hiện tại (Current Phase):** Đã phát hành **v1.0.2 (build 5)** — Đang phát triển `[Unreleased]`: Keep Awake (Caffeinate) trên Menu Bar & tối ưu bản địa hóa theo ngữ cảnh
+- **Nhánh chính:** `main` (v1.0.2 + `[Unreleased]`)
+- **Trạng thái Build / Test:** `Release BUILD SUCCEEDED` (0 Swift compiler warnings), `TEST SUCCEEDED` (35/35 test cases: `BatteryInfoTests` 7/7, `AlertEngineTests` 7/7, `BluetoothBatteryTests` 3/3, `BatteryHistoryTests` 4/4, `ChargeLimitTests` 5/5, `GeneralSettingsTests` 4/4, `KeepAwakeTests` 5/5).
 
 ---
 
@@ -49,10 +49,10 @@
 ## 3. Danh sách File Trọng tâm Hiện tại
 
 - **Models:** `BatteryInfo.swift`, `AppSettings.swift`, `AlertRule.swift`, `BluetoothDeviceBattery.swift`, `BatteryHistory.swift`, `ChargeLimitState.swift`
-- **Services:** `IOKitBatteryService.swift`, `BatteryHistoryStore.swift`, `EnergyConsumerService.swift`, `AlertEngine.swift`, `OverlayWindowManager.swift`, `SoundPlayer.swift`, `BluetoothBatteryService.swift`, `ChargeLimitService.swift`, `SystemIntegrationService.swift`
+- **Services:** `IOKitBatteryService.swift`, `BatteryHistoryStore.swift`, `EnergyConsumerService.swift`, `AlertEngine.swift`, `OverlayWindowManager.swift`, `SoundPlayer.swift`, `BluetoothBatteryService.swift`, `ChargeLimitService.swift`, `SystemIntegrationService.swift`, `SleepPreventionService.swift`
 - **App:** `PowermanApp.swift`, `AppDelegate.swift`, `AppState.swift`
 - **UI:** `MenuBarController.swift`, `MenuBarIconView.swift`, `MenuBarPopoverView.swift`, `FloatingAlertBubbleView.swift`, `ScreenBorderGlowView.swift`, `SettingsRootView.swift`, `MenuBarSettingsView.swift`, `BatteryOverviewView.swift`, `AlertsSettingsView.swift`, `DevicesSettingsView.swift`, `ChargingSettingsView.swift`, `GeneralSettingsView.swift`
-- **Tests:** `BatteryInfoTests.swift`, `AlertEngineTests.swift`, `BluetoothBatteryTests.swift`, `BatteryHistoryTests.swift`, `ChargeLimitTests.swift`, `GeneralSettingsTests.swift`
+- **Tests:** `BatteryInfoTests.swift`, `AlertEngineTests.swift`, `BluetoothBatteryTests.swift`, `BatteryHistoryTests.swift`, `ChargeLimitTests.swift`, `GeneralSettingsTests.swift`, `KeepAwakeTests.swift`
 
 ---
 

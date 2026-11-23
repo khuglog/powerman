@@ -4,6 +4,16 @@ Tất cả các thay đổi đáng chú ý của dự án **Powerman** sẽ đư
 
 ## [Unreleased]
 
+### Added
+- **Keep Awake / Caffeinate trên Menu Bar (`SleepPreventionService`, `KeepAwakeDuration`, `MenuBarPopoverView`, `MenuBarIconView`):**
+  - Thêm thẻ **Giữ máy thức (`Keep Awake`)** ngay trong Menu Bar Popover với nút **Bắt đầu / Dừng (`Start / Stop`)** và thanh trượt ghi nhớ thời gian (`15 phút` → `12 giờ` và `Vô thời hạn ∞`), kèm đồng hồ đếm ngược trực tiếp và biểu tượng tách cà phê trên thanh Menu Bar khi đang hoạt động.
+  - Sử dụng `IOPMAssertionCreateWithName` với `kIOPMAssertionTypePreventUserIdleSystemSleep` (tương đương `caffeinate -i`), ngăn máy tự sleep để không gián đoạn tác vụ nhưng vẫn cho phép trình bảo vệ màn hình (Screen Saver) và tắt màn hình chạy bình thường để bảo vệ màn hình.
+  - Tự động giải phóng assertion khi hết giờ, khi máy wake qua mốc hẹn giờ, hoặc khi thoát ứng dụng; bổ sung 5 unit tests trong `KeepAwakeTests`.
+
+### Fixed
+- **Bản địa hóa theo ngữ cảnh (`Localizable.xcstrings`, `AppSettings`, `ChargingSettingsView`):**
+  - Tách riêng key `Charging.tab` cho tiêu đề tab/trang Cài đặt (`Sạc pin` thay vì `Đang sạc` trên tiếng Việt, đồng thời chỉnh đúng danh từ trong cả 9 ngôn ngữ) và tinh chỉnh lại các chuỗi tiếng Việt cho tự nhiên như phần mềm viết bản địa.
+
 ## [1.0.2] - 2026-11-22
 
 ### Added

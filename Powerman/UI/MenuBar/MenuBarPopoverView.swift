@@ -5,6 +5,8 @@ struct MenuBarPopoverView: View {
     @State private var isBatteryInfoExpanded = false
     @State private var isEnergyAppsExpanded = false
     @State private var isDevicesExpanded = true
+    @State private var keepAwakeSliderIndex: Double = Double(KeepAwakeDuration.hour1.sliderIndex)
+    @State private var isDraggingKeepAwakeSlider = false
 
     private var battery: BatteryInfo { appState.batteryInfo }
     private var locale: Locale { appState.effectiveLocale }
@@ -32,6 +34,7 @@ struct MenuBarPopoverView: View {
             expandableBatteryInfoCard
             expandableEnergyAppsCard
             connectedDevicesCard
+            keepAwakeCard
 
             actionMenuCard
         }
@@ -40,6 +43,21 @@ struct MenuBarPopoverView: View {
         .background(.regularMaterial)
         .environment(\.locale, appState.settings.appLanguage.locale)
         .environment(\.appLocale, locale)
+        .onAppear {
+            keepAwakeSliderIndex = Double(appState.settings.keepAwakeDuration.sliderIndex)
+        }
+        .onChange(of: appState.settings.keepAwakeDuration) { _, newValue in
+            if !isDraggingKeepAwakeSlider {
+                keepAwakeSliderIndex = Double(newValue.sliderIndex)
+            }
+        }
+        .onChange(of: keepAwakeSliderIndex) { _, newValue in
+            guard !isDraggingKeepAwakeSlider else { return }
+            let target = KeepAwakeDuration.fromSliderIndex(Int(newValue.rounded()))
+            if target != appState.settings.keepAwakeDuration {
+                appState.setKeepAwakeDuration(target)
+            }
+        }
     }
 
     private var statusDisplayText: String {
@@ -388,6 +406,132 @@ struct MenuBarPopoverView: View {
                 }
             }
             .frame(height: 4)
+        }
+    }
+
+    private var selectedSliderDuration: KeepAwakeDuration {
+        KeepAwakeDuration.fromSliderIndex(Int(keepAwakeSliderIndex.rounded()))
+    }
+
+    private func commitKeepAwakeSlider() {
+        appState.setKeepAwakeDuration(selectedSliderDuration)
+    }
+
+    private var keepAwakeCard: some View {
+        VStack(spacing: 8) {
+            HStack(spacing: 8) {
+                Image(systemName: appState.isKeepAwakeActive ? "cup.and.saucer.fill" : "cup.and.saucer")
+                    .foregroundStyle(appState.isKeepAwakeActive ? .orange : .primary.opacity(0.75))
+                    .frame(width: 18)
+
+                Text(L10n.string("Keep Awake", locale: locale))
+                    .font(.system(size: 13, weight: .medium))
+
+                Spacer(minLength: 4)
+
+                keepAwakeStatusBadge
+
+                Button {
+                    appState.setKeepAwakeEnabled(!appState.isKeepAwakeActive)
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: appState.isKeepAwakeActive ? "stop.fill" : "play.fill")
+                            .font(.system(size: 8.5, weight: .bold))
+                        Text(L10n.string(appState.isKeepAwakeActive ? "Stop" : "Start", locale: locale))
+                            .font(.system(size: 11, weight: .semibold))
+                    }
+                    .foregroundStyle(appState.isKeepAwakeActive ? Color.red : Color.orange)
+                    .padding(.horizontal, 9)
+                    .padding(.vertical, 4)
+                    .background(
+                        Capsule()
+                            .fill(appState.isKeepAwakeActive ? Color.red.opacity(0.13) : Color.orange.opacity(0.14))
+                    )
+                    .contentShape(Capsule())
+                }
+                .buttonStyle(.plain)
+            }
+
+            HStack(spacing: 8) {
+                Text(KeepAwakeDuration.minutes15.title(in: locale))
+                    .font(.system(size: 10, weight: .medium, design: .rounded))
+                    .foregroundStyle(.secondary)
+                    .fixedSize()
+
+                Slider(
+                    value: $keepAwakeSliderIndex,
+                    in: 0...Double(KeepAwakeDuration.allCases.count - 1),
+                    step: 1
+                ) { editing in
+                    isDraggingKeepAwakeSlider = editing
+                    if !editing {
+                        commitKeepAwakeSlider()
+                    }
+                }
+                .tint(appState.isKeepAwakeActive ? .orange : .accentColor)
+                .controlSize(.small)
+
+                Text("∞")
+                    .font(.system(size: 12, weight: .semibold, design: .rounded))
+                    .foregroundStyle(.secondary)
+                    .fixedSize()
+            }
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 10)
+        .background(cardBackground)
+    }
+
+    @ViewBuilder
+    private var keepAwakeStatusBadge: some View {
+        if isDraggingKeepAwakeSlider {
+            Text(selectedSliderDuration.title(in: locale))
+                .font(.system(size: 11, weight: .semibold, design: .rounded))
+                .monospacedDigit()
+                .foregroundStyle(appState.isKeepAwakeActive ? .orange : .primary)
+                .padding(.horizontal, 7)
+                .padding(.vertical, 2)
+                .background(
+                    Capsule()
+                        .fill(appState.isKeepAwakeActive ? Color.orange.opacity(0.14) : Color.primary.opacity(0.08))
+                )
+        } else if appState.isKeepAwakeActive {
+            if let endDate = appState.keepAwakeEndDate {
+                TimelineView(.periodic(from: .now, by: 1)) { context in
+                    let remaining = max(0, endDate.timeIntervalSince(context.date))
+                    Text(KeepAwakeDuration.formattedRemaining(remaining))
+                        .font(.system(size: 11, weight: .semibold, design: .rounded))
+                        .monospacedDigit()
+                        .foregroundStyle(.orange)
+                        .padding(.horizontal, 7)
+                        .padding(.vertical, 2)
+                        .background(
+                            Capsule()
+                                .fill(Color.orange.opacity(0.14))
+                        )
+                }
+            } else {
+                Text(L10n.string("Indefinite", locale: locale))
+                    .font(.system(size: 11, weight: .semibold, design: .rounded))
+                    .foregroundStyle(.orange)
+                    .padding(.horizontal, 7)
+                    .padding(.vertical, 2)
+                    .background(
+                        Capsule()
+                            .fill(Color.orange.opacity(0.14))
+                    )
+            }
+        } else {
+            Text(selectedSliderDuration.title(in: locale))
+                .font(.system(size: 11, weight: .semibold, design: .rounded))
+                .monospacedDigit()
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 7)
+                .padding(.vertical, 2)
+                .background(
+                    Capsule()
+                        .fill(Color.primary.opacity(0.07))
+                )
         }
     }
 

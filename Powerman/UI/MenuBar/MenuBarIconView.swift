@@ -8,6 +8,7 @@ struct MenuBarIconView: View {
     let colorMode: MenuBarColorMode
     let size: MenuBarSize
     let statusColorsEnabled: Bool
+    var isKeepAwakeActive: Bool = false
     var isDarkMenuBar: Bool = false
     var isTemplateMode: Bool = false
     var locale: Locale = Locale(identifier: "en")
@@ -62,6 +63,13 @@ struct MenuBarIconView: View {
         return baseForeground
     }
 
+    private var keepAwakeIconColor: Color {
+        if colorMode == .monochrome || isTemplateMode {
+            return baseForeground
+        }
+        return statusColorsEnabled ? .orange : baseForeground
+    }
+
     var body: some View {
         HStack(spacing: 6 * scaleFactor) {
             if !pinnedDevices.isEmpty {
@@ -78,6 +86,12 @@ struct MenuBarIconView: View {
                         }
                     }
                 }
+            }
+
+            if isKeepAwakeActive {
+                Image(systemName: "cup.and.saucer.fill")
+                    .font(.system(size: 11 * scaleFactor, weight: .semibold))
+                    .foregroundStyle(keepAwakeIconColor)
             }
 
             HStack(spacing: 4 * scaleFactor) {

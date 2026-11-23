@@ -17,6 +17,7 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
         let colorMode: MenuBarColorMode
         let size: MenuBarSize
         let statusColorsEnabled: Bool
+        let isKeepAwakeActive: Bool
         let isDarkMenuBar: Bool
         let useTemplate: Bool
         let scale: CGFloat
@@ -129,6 +130,7 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
         appState.refreshChargeLimit()
         appState.refreshDevices()
         appState.refreshEnergyConsumers()
+        appState.expireKeepAwakeIfNeeded()
         popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
         NSApp.activate(ignoringOtherApps: true)
 
@@ -169,6 +171,7 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
             _ = appState.settings.statusColorsEnabled
             _ = appState.settings.appLanguage
             _ = appState.settings.temporaryChargeOverride
+            _ = appState.isKeepAwakeActive
         } onChange: { [weak self] in
             Task { @MainActor [weak self] in
                 guard let self else { return }
@@ -205,6 +208,7 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
             colorMode: settings.menuBarColorMode,
             size: settings.menuBarSize,
             statusColorsEnabled: settings.statusColorsEnabled,
+            isKeepAwakeActive: appState.isKeepAwakeActive,
             isDarkMenuBar: effectiveDark,
             useTemplate: useTemplate,
             scale: backingScale,
@@ -221,6 +225,7 @@ final class MenuBarController: NSObject, NSPopoverDelegate {
             colorMode: settings.menuBarColorMode,
             size: settings.menuBarSize,
             statusColorsEnabled: settings.statusColorsEnabled,
+            isKeepAwakeActive: appState.isKeepAwakeActive,
             isDarkMenuBar: effectiveDark,
             isTemplateMode: useTemplate,
             locale: settings.appLanguage.effectiveLocalizationLocale

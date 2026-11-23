@@ -14,6 +14,8 @@ final class AppState {
     var isLaunchAtLoginEnabled: Bool = false
     var launchAtLoginError: String?
     var isAccessibilityGranted: Bool = false
+    var isKeepAwakeActive: Bool = false
+    var keepAwakeEndDate: Date?
 
     let settings: AppSettings
     var selectedTab: SettingsTab = .battery
@@ -25,11 +27,14 @@ final class AppState {
     private let energyService: EnergyConsuming
     private let chargeLimitService: ChargeLimitManaging
     private let systemService: SystemIntegrating
+    private let sleepPreventionService: SleepPreventing
     private let alertEngine: AlertEngine
     private let alertPresenter: AlertPresenting
     private let soundPreviewPlayer: SoundPlaying
     private var firedDeviceAlertIDs: Set<String> = []
     private var lastActiveChargeLimit: Int = 80
+    private var keepAwakeExpirationTimer: Timer?
+    private var keepAwakeWakeObserver: NSObjectProtocol?
 
     var onOpenSettings: (() -> Void)?
     var onDismissPopover: (() -> Void)?
@@ -43,6 +48,7 @@ final class AppState {
         energyService: EnergyConsuming = ProcessEnergyConsumerService(),
         chargeLimitService: ChargeLimitManaging = NativeChargeLimitService(),
         systemService: SystemIntegrating = MacSystemIntegrationService(),
+        sleepPreventionService: SleepPreventing = IOKitSleepPreventionService(),
         settings: AppSettings = AppSettings(),
         alertEngine: AlertEngine = AlertEngine(),
         alertPresenter: AlertPresenting = OverlayWindowManager(),
@@ -54,6 +60,7 @@ final class AppState {
         self.energyService = energyService
         self.chargeLimitService = chargeLimitService
         self.systemService = systemService
+        self.sleepPreventionService = sleepPreventionService
         self.settings = settings
         self.alertEngine = alertEngine
         self.alertPresenter = alertPresenter
@@ -138,6 +145,15 @@ final class AppState {
         bluetoothService.startMonitoring { [weak self] devices in
             self?.handleBluetoothUpdate(devices)
         }
+        keepAwakeWakeObserver = NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.didWakeNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                self?.expireKeepAwakeIfNeeded()
+            }
+        }
         refreshEnergyConsumers()
     }
 
@@ -146,6 +162,11 @@ final class AppState {
         bluetoothService.stopMonitoring()
         systemService.stopLowPowerObserver()
         systemService.stopNotificationDismisser()
+        if let keepAwakeWakeObserver {
+            NSWorkspace.shared.notificationCenter.removeObserver(keepAwakeWakeObserver)
+            self.keepAwakeWakeObserver = nil
+        }
+        setKeepAwakeEnabled(false)
         alertPresenter.dismiss()
         soundPreviewPlayer.stop()
     }
@@ -306,6 +327,76 @@ final class AppState {
             } else {
                 self.isLowPowerModeEnabled = self.systemService.isLowPowerModeEnabled
             }
+        }
+    }
+
+    func setKeepAwakeEnabled(_ enabled: Bool, now: Date = Date()) {
+        if enabled {
+            let started = sleepPreventionService.beginPreventingSystemSleep(
+                reason: "Powerman Keep Awake (Prevent Idle System Sleep)"
+            )
+            guard started else {
+                isKeepAwakeActive = false
+                keepAwakeEndDate = nil
+                keepAwakeExpirationTimer?.invalidate()
+                keepAwakeExpirationTimer = nil
+                onMenuBarUpdate?()
+                return
+            }
+
+            isKeepAwakeActive = true
+            keepAwakeEndDate = settings.keepAwakeDuration.durationSeconds.map { now.addingTimeInterval($0) }
+            scheduleKeepAwakeExpirationTimer(now: now)
+            onMenuBarUpdate?()
+        } else {
+            keepAwakeExpirationTimer?.invalidate()
+            keepAwakeExpirationTimer = nil
+            sleepPreventionService.endPreventingSystemSleep()
+            isKeepAwakeActive = false
+            keepAwakeEndDate = nil
+            onMenuBarUpdate?()
+        }
+    }
+
+    func setKeepAwakeDuration(_ duration: KeepAwakeDuration, now: Date = Date()) {
+        settings.keepAwakeDuration = duration
+        guard isKeepAwakeActive else { return }
+        keepAwakeEndDate = duration.durationSeconds.map { now.addingTimeInterval($0) }
+        scheduleKeepAwakeExpirationTimer(now: now)
+    }
+
+    func expireKeepAwakeIfNeeded(now: Date = Date()) {
+        guard isKeepAwakeActive, let endDate = keepAwakeEndDate, now >= endDate else { return }
+        setKeepAwakeEnabled(false, now: now)
+    }
+
+    func keepAwakeRemainingSeconds(at now: Date = Date()) -> TimeInterval? {
+        guard isKeepAwakeActive, let endDate = keepAwakeEndDate else { return nil }
+        return max(0, endDate.timeIntervalSince(now))
+    }
+
+    private func scheduleKeepAwakeExpirationTimer(now: Date) {
+        keepAwakeExpirationTimer?.invalidate()
+        keepAwakeExpirationTimer = nil
+
+        guard isKeepAwakeActive, let endDate = keepAwakeEndDate else { return }
+        let delay = max(0.1, endDate.timeIntervalSince(now))
+        let timer = Timer(timeInterval: delay, repeats: false) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                self?.handleKeepAwakeTimerFired()
+            }
+        }
+        timer.tolerance = 0.5
+        RunLoop.main.add(timer, forMode: .common)
+        keepAwakeExpirationTimer = timer
+    }
+
+    private func handleKeepAwakeTimerFired(now: Date = Date()) {
+        guard isKeepAwakeActive, let endDate = keepAwakeEndDate else { return }
+        if now >= endDate {
+            setKeepAwakeEnabled(false, now: now)
+        } else {
+            scheduleKeepAwakeExpirationTimer(now: now)
         }
     }
 

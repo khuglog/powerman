@@ -56,7 +56,7 @@ struct ChargingSettingsView: View {
                                 .foregroundStyle(.white)
                         }
 
-                    Text(L10n.string("Charging", locale: locale))
+                    Text(L10n.string("Charging.tab", locale: locale))
                         .font(.title2.bold())
                 }
 

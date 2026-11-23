@@ -46,6 +46,8 @@
 		B904E3333EB6C05F545F68B0 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D7F19F2D471C68872D7B14D5 /* Assets.xcassets */; };
 		A1B2C3D4E5F6000100000001 /* Localization.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6000200000001 /* Localization.swift */; };
 		A1B2C3D4E5F6000100000002 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6000200000002 /* Localizable.xcstrings */; };
+		A1B2C3D4E5F6000100000003 /* SleepPreventionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6000200000003 /* SleepPreventionService.swift */; };
+		A1B2C3D4E5F6000100000004 /* KeepAwakeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6000200000004 /* KeepAwakeTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -100,6 +102,8 @@
 		D7F19F2D471C68872D7B14D5 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Assets.xcassets; path = Powerman/Resources/Assets.xcassets; sourceTree = "<group>"; };
 		A1B2C3D4E5F6000200000001 /* Localization.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Localization.swift; path = Powerman/App/Localization.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F6000200000002 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; name = Localizable.xcstrings; path = Powerman/Resources/Localizable.xcstrings; sourceTree = "<group>"; };
+		A1B2C3D4E5F6000200000003 /* SleepPreventionService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SleepPreventionService.swift; path = Powerman/Services/System/SleepPreventionService.swift; sourceTree = "<group>"; };
+		A1B2C3D4E5F6000200000004 /* KeepAwakeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = KeepAwakeTests.swift; path = PowermanTests/KeepAwakeTests.swift; sourceTree = "<group>"; };
 		5141EFFF35ACD6C51F274E4D /* Powerman.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Powerman.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		68D128FAC7073081D8355714 /* PowermanTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PowermanTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -178,6 +182,7 @@
 				D7F19F2D471C68872D7B14D5,
 				A1B2C3D4E5F6000200000001,
 				A1B2C3D4E5F6000200000002,
+				A1B2C3D4E5F6000200000003,
 			);
 			name = Powerman;
 			sourceTree = "<group>";
@@ -191,6 +196,7 @@
 				375EE0A3BC215F65B3C840E8,
 				28E3AC939E578A34F2EEA56F,
 				90B9729B2D3050605B76044A,
+				A1B2C3D4E5F6000200000004,
 			);
 			name = PowermanTests;
 			sourceTree = "<group>";
@@ -321,6 +327,7 @@
 				EB7570D83A1FCA72D86950A4 /* BluetoothBatteryService.swift in Sources */,
 				1FEE066C2CFC2328AF238BA8 /* ChargeLimitService.swift in Sources */,
 				D99DB87100430E9708D261C8 /* SystemIntegrationService.swift in Sources */,
+				A1B2C3D4E5F6000100000003 /* SleepPreventionService.swift in Sources */,
 				9EF2159D7B64C959749E806F /* MenuBarIconView.swift in Sources */,
 				F2CEF443A293EB865BA81424 /* MenuBarController.swift in Sources */,
 				F53B9D167CCF6E6E2FBC08EA /* MenuBarPopoverView.swift in Sources */,
@@ -347,6 +354,7 @@
 				FBEEF5D59B4286B7AAFEEC3B /* BatteryHistoryTests.swift in Sources */,
 				0446F25DE09E370EE38501D9 /* ChargeLimitTests.swift in Sources */,
 				A8EC81CF1A27BEC372483390 /* GeneralSettingsTests.swift in Sources */,
+				A1B2C3D4E5F6000100000004 /* KeepAwakeTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

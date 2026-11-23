@@ -245,6 +245,83 @@ enum ScreenEdgeGlowIntensity: String, CaseIterable, Identifiable, Codable {
     }
 }
 
+enum KeepAwakeDuration: String, CaseIterable, Identifiable, Codable {
+    case minutes15 = "15m"
+    case minutes30 = "30m"
+    case minutes45 = "45m"
+    case hour1 = "1h"
+    case hours1_5 = "1h30m"
+    case hours2 = "2h"
+    case hours3 = "3h"
+    case hours4 = "4h"
+    case hours6 = "6h"
+    case hours8 = "8h"
+    case hours12 = "12h"
+    case indefinite = "indefinite"
+
+    var id: String { rawValue }
+
+    var durationMinutes: Int? {
+        switch self {
+        case .minutes15: return 15
+        case .minutes30: return 30
+        case .minutes45: return 45
+        case .hour1: return 60
+        case .hours1_5: return 90
+        case .hours2: return 120
+        case .hours3: return 180
+        case .hours4: return 240
+        case .hours6: return 360
+        case .hours8: return 480
+        case .hours12: return 720
+        case .indefinite: return nil
+        }
+    }
+
+    var durationSeconds: TimeInterval? {
+        durationMinutes.map { TimeInterval($0 * 60) }
+    }
+
+    var sliderIndex: Int {
+        Self.allCases.firstIndex(of: self) ?? 3
+    }
+
+    static func fromSliderIndex(_ index: Int) -> KeepAwakeDuration {
+        let clamped = min(max(index, 0), allCases.count - 1)
+        return allCases[clamped]
+    }
+
+    var title: String {
+        title(in: Locale(identifier: "en"))
+    }
+
+    func title(in locale: Locale) -> String {
+        guard let minutes = durationMinutes else {
+            return L10n.string("Indefinite", locale: locale)
+        }
+        let hours = minutes / 60
+        let mins = minutes % 60
+        if hours > 0 && mins > 0 {
+            return L10n.format("%dh %dm", locale: locale, hours, mins)
+        } else if hours > 0 {
+            return L10n.format("%dh", locale: locale, hours)
+        } else {
+            return L10n.format("%dm", locale: locale, mins)
+        }
+    }
+
+    static func formattedRemaining(_ remainingSeconds: TimeInterval) -> String {
+        let totalSeconds = max(0, Int(ceil(remainingSeconds)))
+        let hours = totalSeconds / 3600
+        let minutes = (totalSeconds % 3600) / 60
+        let seconds = totalSeconds % 60
+        if hours > 0 {
+            return String(format: "%d:%02d:%02d", hours, minutes, seconds)
+        }
+        return String(format: "%02d:%02d", minutes, seconds)
+    }
+}
+
 enum SettingsTab: String, CaseIterable, Identifiable {
     case battery
     case charging
@@ -262,7 +339,7 @@ enum SettingsTab: String, CaseIterable, Identifiable {
     func title(in locale: Locale) -> String {
         switch self {
         case .battery: return L10n.string("Battery", locale: locale)
-        case .charging: return L10n.string("Charging", locale: locale)
+        case .charging: return L10n.string("Charging.tab", locale: locale)
         case .alerts: return L10n.string("Alerts", locale: locale)
         case .menuBar: return L10n.string("Menu Bar", locale: locale)
         case .devices: return L10n.string("Devices", locale: locale)
@@ -305,6 +382,7 @@ final class AppSettings {
         static let screenEdgeGlowIntensity = "general.screenEdgeGlow"
         static let chargeLimitOverrideEndCondition = "charging.overrideEndCondition"
         static let temporaryChargeOverride = "charging.temporaryOverrideState"
+        static let keepAwakeDuration = "system.keepAwakeDuration"
     }
 
     private let defaults: UserDefaults
@@ -398,6 +476,10 @@ final class AppSettings {
                 defaults.removeObject(forKey: Keys.temporaryChargeOverride)
             }
         }
+    }
+
+    var keepAwakeDuration: KeepAwakeDuration {
+        didSet { defaults.set(keepAwakeDuration.rawValue, forKey: Keys.keepAwakeDuration) }
     }
 
     init(defaults: UserDefaults = .standard) {
@@ -518,6 +600,13 @@ final class AppSettings {
             self.temporaryChargeOverride = decoded
         } else {
             self.temporaryChargeOverride = nil
+        }
+
+        if let raw = defaults.string(forKey: Keys.keepAwakeDuration),
+           let value = KeepAwakeDuration(rawValue: raw) {
+            self.keepAwakeDuration = value
+        } else {
+            self.keepAwakeDuration = .hour1
         }
 
         migrateLegacySoundDefaultsIfNeeded()

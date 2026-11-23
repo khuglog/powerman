@@ -473,6 +473,65 @@
         }
       }
     },
+    "%dh": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%dh"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%dg"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d時間"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d시간"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d小时"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d小時"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%dh"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%d Std."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%dh"
+          }
+        }
+      }
+    },
     "%dh %dm": {
       "extractionState": "manual",
       "localizations": {
@@ -2373,7 +2432,7 @@
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Không báo cáo mức pin"
+            "value": "Chưa có thông tin pin"
           }
         },
         "ja": {
@@ -2727,7 +2786,7 @@
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Khôi phục độ sáng trước đó khi bạn tắt Chế độ Nguồn điện thấp từ menu của Powerman."
+            "value": "Khôi phục độ sáng trước đó khi tắt Chế độ nguồn điện thấp từ menu của Powerman."
           }
         },
         "ja": {
@@ -2786,7 +2845,7 @@
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Đang thu thập lịch sử mức pin — biểu đồ sẽ tự cập nhật khi bạn sử dụng máy Mac."
+            "value": "Đang ghi nhận lịch sử pin — biểu đồ sẽ dần cập nhật khi bạn sử dụng máy Mac."
           }
         },
         "ja": {
@@ -2845,7 +2904,7 @@
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Đang tổng hợp mức dùng hàng ngày"
+            "value": "Đang tổng hợp mức sử dụng hàng ngày"
           }
         },
         "ja": {
@@ -3419,6 +3478,65 @@
           "stringUnit": {
             "state": "translated",
             "value": "Cargando al %d%%"
+          }
+        }
+      }
+    },
+    "Charging.tab": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Charging"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sạc pin"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "充電"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "충전"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "充电"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "充電"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recharge"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Laden"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Carga"
           }
         }
       }
@@ -4851,7 +4969,7 @@
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Vô hiệu hóa khi Màu sắc đang ở chế độ Đơn sắc."
+            "value": "Không khả dụng khi Màu sắc đang đặt ở chế độ Đơn sắc."
           }
         },
         "ja": {
@@ -5087,7 +5205,7 @@
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Hiển thị % pin cho các thiết bị Bluetooth đã ghép đôi trong menu thả xuống"
+            "value": "Hiển thị pin của các thiết bị Bluetooth đã ghép nối trong menu"
           }
         },
         "ja": {
@@ -5382,7 +5500,7 @@
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Được macOS thực thi thông qua tính năng Giới hạn sạc tích hợp."
+            "value": "Được kiểm soát trực tiếp qua tính năng Giới hạn sạc của macOS."
           }
         },
         "ja": {
@@ -5854,7 +5972,7 @@
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Xanh lá khi đang sạc, cam khi pin yếu. Tắt để giữ màu trung tính và chỉ chuyển đỏ khi pin cạn."
+            "value": "Xanh lá khi đang sạc, cam khi pin yếu. Tắt để giữ màu trung tính và chỉ báo đỏ khi pin cạn."
           }
         },
         "ja": {
@@ -6314,6 +6432,65 @@
         }
       }
     },
+    "Indefinite": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Indefinite"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vô thời hạn"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無期限"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "무제한"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无限期"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無期限"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Illimité"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unbegrenzt"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Indefinido"
+          }
+        }
+      }
+    },
     "Intense": {
       "extractionState": "manual",
       "localizations": {
@@ -6369,6 +6546,65 @@
           "stringUnit": {
             "state": "translated",
             "value": "Intenso"
+          }
+        }
+      }
+    },
+    "Keep Awake": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep Awake"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Giữ máy thức"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "スリープ防止"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "잠자기 방지"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保持唤醒"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保持喚醒"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Maintenir éveillé"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wach halten"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mantener despierto"
           }
         }
       }
@@ -6857,7 +7093,7 @@
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Chế độ Nguồn điện thấp"
+            "value": "Chế độ nguồn điện thấp"
           }
         },
         "ja": {
@@ -8096,7 +8332,7 @@
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Thông báo khi pin xuống dưới mức phần trăm"
+            "value": "Thông báo khi pin xuống dưới ngưỡng"
           }
         },
         "ja": {
@@ -8155,7 +8391,7 @@
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Thông báo khi pin đạt mức phần trăm"
+            "value": "Thông báo khi pin sạc đạt ngưỡng"
           }
         },
         "ja": {
@@ -8804,7 +9040,7 @@
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tạm dừng sạc ở mức mục tiêu để giữ pin trong vùng dung lượng khỏe mạnh hơn."
+            "value": "Tạm dừng sạc ở mức đã chọn để giúp pin bền hơn."
           }
         },
         "ja": {
@@ -10043,7 +10279,7 @@
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Bảo vệ tuổi thọ pin lâu dài bằng các cơ chế bảo vệ thông minh."
+            "value": "Bảo vệ tuổi thọ pin lâu dài với các thiết lập sạc thông minh."
           }
         },
         "ja": {
@@ -10279,7 +10515,7 @@
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Khôi phục mặc định"
+            "value": "Đặt lại mặc định"
           }
         },
         "ja": {
@@ -11518,7 +11754,7 @@
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Cảnh báo chỉ phát âm thanh"
+            "value": "Chỉ phát âm thanh"
           }
         },
         "ja": {
@@ -11624,6 +11860,65 @@
         }
       }
     },
+    "Start": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bắt đầu"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "開始"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "시작"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开始"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "開始"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Démarrer"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Starten"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Iniciar"
+          }
+        }
+      }
+    },
     "Start Powerman automatically when you log in": {
       "extractionState": "manual",
       "localizations": {
@@ -11695,7 +11990,7 @@
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Biểu tượng logo Powerman cố định"
+            "value": "Biểu tượng Powerman mặc định"
           }
         },
         "ja": {
@@ -12521,7 +12816,7 @@
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Biểu đồ nhiệt độ sẽ xuất hiện khi thu thập đủ dữ liệu."
+            "value": "Biểu đồ nhiệt độ sẽ hiển thị khi thu thập đủ dữ liệu."
           }
         },
         "ja": {
@@ -12580,7 +12875,7 @@
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Đang tạm thời vượt giới hạn sạc %d%% trong lần sạc này"
+            "value": "Đang sạc vượt ngưỡng %d%% cho lần này"
           }
         },
         "ja": {
@@ -14586,7 +14881,7 @@
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "trên %d định mức"
+            "value": "/ %d chu kỳ chuẩn"
           }
         },
         "ja": {

@@ -24,7 +24,7 @@ struct MenuBarPopoverView: View {
     }
 
     private var appVersion: String {
-        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.3"
+        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.4"
     }
 
     var body: some View {
@@ -450,6 +450,11 @@ struct MenuBarPopoverView: View {
                     .contentShape(Capsule())
                 }
                 .buttonStyle(.plain)
+                .disabled(!appState.isKeepAwakeActive && appState.isKeepAwakeBlockedByLowBattery)
+                .opacity(!appState.isKeepAwakeActive && appState.isKeepAwakeBlockedByLowBattery ? 0.45 : 1.0)
+                .help(!appState.isKeepAwakeActive && appState.isKeepAwakeBlockedByLowBattery
+                    ? L10n.string("Automatically stops Keep Awake when running on battery below 10%.", locale: locale)
+                    : "")
             }
 
             HStack(spacing: 8) {

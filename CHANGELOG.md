@@ -4,12 +4,21 @@ Tất cả các thay đổi đáng chú ý của dự án **Powerman** sẽ đư
 
 ## [Unreleased]
 
+## [1.0.4] - 2026-11-23
+
+### Added
+- **Tùy chọn cài đặt cho Keep Awake (`GeneralSettingsView`, `AppSettings`, `AppState`, `SleepPreventionService`):**
+  - Bổ sung mục **Giữ máy thức** trong tab `Cài đặt chung` với 3 tùy chọn (mặc định đều bật):
+    - **Dừng Giữ máy thức khi pin dưới 10%:** Tự động dừng phiên giữ thức khi chạy bằng pin dưới `10%` và chặn kích hoạt mới trong Popover cho tới khi cắm sạc hoặc tắt tùy chọn này.
+    - **Dừng Giữ máy thức khi tắt máy:** Tự động kết thúc phiên giữ thức khi nhận sự kiện `NSWorkspace.willSleepNotification` hoặc `NSWorkspace.willPowerOffNotification`.
+    - **Cho phép trình bảo vệ màn hình:** Chuyển đổi linh hoạt giữa `kIOPMAssertionTypePreventUserIdleSystemSleep` (`caffeinate -i`, cho phép Screen Saver & tắt màn hình) khi bật và `kIOPMAssertionTypePreventUserIdleDisplaySleep` (`caffeinate -d`, ngăn cả Screen Saver lẫn tắt màn hình) khi tắt, áp dụng tức thì ngay cả khi đang chạy.
+  - Bổ sung chuỗi bản địa hóa cho cả 9 ngôn ngữ trong `Localizable.xcstrings` và mở rộng `KeepAwakeTests` (6/6 test cases).
+
 ## [1.0.3] - 2026-11-23
 
 ### Added
 - **Keep Awake / Caffeinate trên Menu Bar (`SleepPreventionService`, `KeepAwakeDuration`, `MenuBarPopoverView`, `MenuBarIconView`):**
   - Thêm thẻ **Giữ máy thức (`Keep Awake`)** ngay trong Menu Bar Popover với nút **Bắt đầu / Dừng (`Start / Stop`)** và thanh trượt ghi nhớ thời gian (`15 phút` → `12 giờ` và `Vô thời hạn ∞`), kèm đồng hồ đếm ngược trực tiếp và biểu tượng tách cà phê trên thanh Menu Bar khi đang hoạt động.
-  - Sử dụng `IOPMAssertionCreateWithName` với `kIOPMAssertionTypePreventUserIdleSystemSleep` (tương đương `caffeinate -i`), ngăn máy tự sleep để không gián đoạn tác vụ nhưng vẫn cho phép trình bảo vệ màn hình (Screen Saver) và tắt màn hình chạy bình thường để bảo vệ màn hình.
   - Tự động giải phóng assertion khi hết giờ, khi máy wake qua mốc hẹn giờ, hoặc khi thoát ứng dụng; bổ sung 5 unit tests trong `KeepAwakeTests`.
 
 ### Fixed

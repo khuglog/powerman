@@ -16,6 +16,7 @@ struct GeneralSettingsView: View {
                 systemIntegrationSection
                 systemNotificationsSection
                 lowPowerModeSection
+                keepAwakeSection
                 notificationAppearanceSection
                 aboutSection
             }
@@ -228,6 +229,77 @@ struct GeneralSettingsView: View {
         }
     }
 
+    private var keepAwakeSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Label(L10n.string("Keep Awake", locale: locale), systemImage: "cup.and.saucer.fill")
+                .font(.headline)
+
+            VStack(spacing: 0) {
+                HStack(spacing: 12) {
+                    badgeIcon("battery.25", color: .red)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(L10n.string("Stop Keep Awake Below 10% Battery", locale: locale))
+                            .font(.system(size: 13, weight: .semibold))
+                        Text(L10n.string("Automatically stops Keep Awake when running on battery below 10%.", locale: locale))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                    Toggle("", isOn: Binding(
+                        get: { settings.keepAwakeStopBelow10Percent },
+                        set: { appState.setKeepAwakeStopBelow10Percent($0) }
+                    ))
+                    .labelsHidden()
+                    .toggleStyle(.switch)
+                }
+                .padding(14)
+
+                Divider().padding(.leading, 54)
+
+                HStack(spacing: 12) {
+                    badgeIcon("moon.zzz.fill", color: .orange)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(L10n.string("Stop Keep Awake on Sleep or Shutdown", locale: locale))
+                            .font(.system(size: 13, weight: .semibold))
+                        Text(L10n.string("Automatically ends the active session if your Mac goes to sleep or shuts down.", locale: locale))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                    Toggle("", isOn: Binding(
+                        get: { settings.keepAwakeStopOnSleepOrShutdown },
+                        set: { appState.setKeepAwakeStopOnSleepOrShutdown($0) }
+                    ))
+                    .labelsHidden()
+                    .toggleStyle(.switch)
+                }
+                .padding(14)
+
+                Divider().padding(.leading, 54)
+
+                HStack(spacing: 12) {
+                    badgeIcon("display", color: .blue)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(L10n.string("Allow Screen Saver", locale: locale))
+                            .font(.system(size: 13, weight: .semibold))
+                        Text(L10n.string("Prevents the Mac from sleeping while still allowing the screen saver and display sleep.", locale: locale))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                    Toggle("", isOn: Binding(
+                        get: { settings.keepAwakeAllowScreenSaver },
+                        set: { appState.setKeepAwakeAllowScreenSaver($0) }
+                    ))
+                    .labelsHidden()
+                    .toggleStyle(.switch)
+                }
+                .padding(14)
+            }
+            .background(cardBackground)
+        }
+    }
+
     private var notificationAppearanceSection: some View {
         let previewAlert = ActiveAlertPresentation(
             id: UUID(),
@@ -333,7 +405,7 @@ struct GeneralSettingsView: View {
     }
 
     private var aboutSection: some View {
-        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.3"
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.4"
 
         return VStack(alignment: .leading, spacing: 10) {
             Label(L10n.string("About Powerman", locale: locale), systemImage: "info.circle.fill")

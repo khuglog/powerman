@@ -383,6 +383,9 @@ final class AppSettings {
         static let chargeLimitOverrideEndCondition = "charging.overrideEndCondition"
         static let temporaryChargeOverride = "charging.temporaryOverrideState"
         static let keepAwakeDuration = "system.keepAwakeDuration"
+        static let keepAwakeStopBelow10Percent = "system.keepAwakeStopBelow10Percent"
+        static let keepAwakeStopOnSleepOrShutdown = "system.keepAwakeStopOnSleepOrShutdown"
+        static let keepAwakeAllowScreenSaver = "system.keepAwakeAllowScreenSaver"
     }
 
     private let defaults: UserDefaults
@@ -480,6 +483,18 @@ final class AppSettings {
 
     var keepAwakeDuration: KeepAwakeDuration {
         didSet { defaults.set(keepAwakeDuration.rawValue, forKey: Keys.keepAwakeDuration) }
+    }
+
+    var keepAwakeStopBelow10Percent: Bool {
+        didSet { defaults.set(keepAwakeStopBelow10Percent, forKey: Keys.keepAwakeStopBelow10Percent) }
+    }
+
+    var keepAwakeStopOnSleepOrShutdown: Bool {
+        didSet { defaults.set(keepAwakeStopOnSleepOrShutdown, forKey: Keys.keepAwakeStopOnSleepOrShutdown) }
+    }
+
+    var keepAwakeAllowScreenSaver: Bool {
+        didSet { defaults.set(keepAwakeAllowScreenSaver, forKey: Keys.keepAwakeAllowScreenSaver) }
     }
 
     init(defaults: UserDefaults = .standard) {
@@ -607,6 +622,24 @@ final class AppSettings {
             self.keepAwakeDuration = value
         } else {
             self.keepAwakeDuration = .hour1
+        }
+
+        if defaults.object(forKey: Keys.keepAwakeStopBelow10Percent) != nil {
+            self.keepAwakeStopBelow10Percent = defaults.bool(forKey: Keys.keepAwakeStopBelow10Percent)
+        } else {
+            self.keepAwakeStopBelow10Percent = true
+        }
+
+        if defaults.object(forKey: Keys.keepAwakeStopOnSleepOrShutdown) != nil {
+            self.keepAwakeStopOnSleepOrShutdown = defaults.bool(forKey: Keys.keepAwakeStopOnSleepOrShutdown)
+        } else {
+            self.keepAwakeStopOnSleepOrShutdown = true
+        }
+
+        if defaults.object(forKey: Keys.keepAwakeAllowScreenSaver) != nil {
+            self.keepAwakeAllowScreenSaver = defaults.bool(forKey: Keys.keepAwakeAllowScreenSaver)
+        } else {
+            self.keepAwakeAllowScreenSaver = true
         }
 
         migrateLegacySoundDefaultsIfNeeded()

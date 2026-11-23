@@ -4,28 +4,82 @@ import XCTest
 @MainActor
 private final class MockSleepPreventionService: SleepPreventing {
     var isPreventingSleep: Bool = false
+    var activeAllowsScreenSaver: Bool?
     var shouldSucceed: Bool = true
     var beginCount: Int = 0
     var endCount: Int = 0
     var lastReason: String?
 
-    func beginPreventingSystemSleep(reason: String) -> Bool {
+    func beginPreventingSystemSleep(reason: String, allowScreenSaver: Bool) -> Bool {
         beginCount += 1
         lastReason = reason
         guard shouldSucceed else { return false }
         isPreventingSleep = true
+        activeAllowsScreenSaver = allowScreenSaver
         return true
     }
 
     func endPreventingSystemSleep() {
         endCount += 1
         isPreventingSleep = false
+        activeAllowsScreenSaver = nil
     }
+}
+
+@MainActor
+private final class MockKeepAwakeBatteryService: BatteryMonitoring {
+    var currentBattery: BatteryInfo
+    private var onUpdate: (@MainActor (BatteryInfo) -> Void)?
+
+    init(initial: BatteryInfo) {
+        self.currentBattery = initial
+    }
+
+    func startMonitoring(onUpdate: @escaping @MainActor (BatteryInfo) -> Void) {
+        self.onUpdate = onUpdate
+        onUpdate(currentBattery)
+    }
+
+    func stopMonitoring() {
+        onUpdate = nil
+    }
+
+    func refreshNow() -> BatteryInfo {
+        currentBattery
+    }
+
+    func emit(_ info: BatteryInfo) {
+        currentBattery = info
+        onUpdate?(info)
+    }
+}
+
+private func makeBattery(percentage: Int, isPluggedIn: Bool = false, isCharging: Bool = false) -> BatteryInfo {
+    BatteryInfo(
+        percentage: percentage,
+        isCharging: isCharging,
+        isPluggedIn: isPluggedIn,
+        isFullyCharged: false,
+        timeRemainingMinutes: 120,
+        cycleCount: 50,
+        ratedCycleCount: 1000,
+        designCapacityMah: 5000,
+        maxCapacityMah: 4900,
+        currentCapacityMah: 49 * percentage,
+        temperatureCelsius: 30.0,
+        voltageMv: 12000,
+        amperageMa: isCharging ? 1500 : -800,
+        batteryPowerMw: 10000,
+        adapterWatts: isPluggedIn ? 67 : nil,
+        adapterName: nil,
+        hasBattery: true,
+        lastUpdated: Date()
+    )
 }
 
 final class KeepAwakeTests: XCTestCase {
     @MainActor
-    func testKeepAwakeDurationPersistenceAndSliderMapping() {
+    func testKeepAwakeSettingsDefaultsPersistenceAndSliderMapping() {
         let suiteName = "com.powerman.keepawake.tests.\(UUID().uuidString)"
         guard let defaults = UserDefaults(suiteName: suiteName) else {
             XCTFail("Failed to create UserDefaults suite")
@@ -35,10 +89,20 @@ final class KeepAwakeTests: XCTestCase {
 
         let settings = AppSettings(defaults: defaults)
         XCTAssertEqual(settings.keepAwakeDuration, .hour1)
+        XCTAssertTrue(settings.keepAwakeStopBelow10Percent)
+        XCTAssertTrue(settings.keepAwakeStopOnSleepOrShutdown)
+        XCTAssertTrue(settings.keepAwakeAllowScreenSaver)
 
         settings.keepAwakeDuration = .hours4
+        settings.keepAwakeStopBelow10Percent = false
+        settings.keepAwakeStopOnSleepOrShutdown = false
+        settings.keepAwakeAllowScreenSaver = false
+
         let reloaded = AppSettings(defaults: defaults)
         XCTAssertEqual(reloaded.keepAwakeDuration, .hours4)
+        XCTAssertFalse(reloaded.keepAwakeStopBelow10Percent)
+        XCTAssertFalse(reloaded.keepAwakeStopOnSleepOrShutdown)
+        XCTAssertFalse(reloaded.keepAwakeAllowScreenSaver)
 
         XCTAssertEqual(KeepAwakeDuration.fromSliderIndex(-5), .minutes15)
         XCTAssertEqual(KeepAwakeDuration.fromSliderIndex(999), .indefinite)
@@ -78,6 +142,7 @@ final class KeepAwakeTests: XCTestCase {
 
         XCTAssertTrue(appState.isKeepAwakeActive)
         XCTAssertTrue(mockSleep.isPreventingSleep)
+        XCTAssertEqual(mockSleep.activeAllowsScreenSaver, true)
         XCTAssertEqual(mockSleep.beginCount, 1)
         XCTAssertEqual(appState.keepAwakeEndDate, start.addingTimeInterval(1800))
         XCTAssertEqual(menuBarUpdates, 1)
@@ -138,6 +203,73 @@ final class KeepAwakeTests: XCTestCase {
     }
 
     @MainActor
+    func testKeepAwakeLowBatterySleepShutdownAndScreenSaverOptions() {
+        let mockSleep = MockSleepPreventionService()
+        let mockBattery = MockKeepAwakeBatteryService(initial: makeBattery(percentage: 15))
+        let tempHistory = FileManager.default.temporaryDirectory
+            .appendingPathComponent("powerman_ka_guards_\(UUID().uuidString).json")
+        defer { try? FileManager.default.removeItem(at: tempHistory) }
+
+        let suiteName = "com.powerman.ka.guards.\(UUID().uuidString)"
+        let defaults = UserDefaults(suiteName: suiteName)!
+        defer { defaults.removePersistentDomain(forName: suiteName) }
+
+        let appState = AppState(
+            batteryService: mockBattery,
+            historyStore: JSONBatteryHistoryStore(fileURL: tempHistory),
+            sleepPreventionService: mockSleep,
+            settings: AppSettings(defaults: defaults)
+        )
+        appState.start()
+        defer { appState.stop() }
+
+        // 1. Live screen saver toggle updates assertion mode without losing active session
+        appState.setKeepAwakeEnabled(true)
+        XCTAssertTrue(appState.isKeepAwakeActive)
+        XCTAssertEqual(mockSleep.activeAllowsScreenSaver, true)
+
+        appState.setKeepAwakeAllowScreenSaver(false)
+        XCTAssertTrue(appState.isKeepAwakeActive)
+        XCTAssertEqual(mockSleep.activeAllowsScreenSaver, false)
+
+        // 2. Dropping below 10% on battery stops Keep Awake automatically
+        mockBattery.emit(makeBattery(percentage: 9, isPluggedIn: false, isCharging: false))
+        XCTAssertFalse(appState.isKeepAwakeActive)
+        XCTAssertFalse(mockSleep.isPreventingSleep)
+        XCTAssertTrue(appState.isKeepAwakeBlockedByLowBattery)
+
+        // Cannot start while below 10% on battery if guard is enabled
+        appState.setKeepAwakeEnabled(true)
+        XCTAssertFalse(appState.isKeepAwakeActive)
+
+        // Plugging in allows starting even at 9%
+        mockBattery.emit(makeBattery(percentage: 9, isPluggedIn: true, isCharging: true))
+        XCTAssertFalse(appState.isKeepAwakeBlockedByLowBattery)
+        appState.setKeepAwakeEnabled(true)
+        XCTAssertTrue(appState.isKeepAwakeActive)
+
+        // Disabling 10% guard allows running on battery below 10%
+        appState.setKeepAwakeStopBelow10Percent(false)
+        mockBattery.emit(makeBattery(percentage: 8, isPluggedIn: false, isCharging: false))
+        XCTAssertTrue(appState.isKeepAwakeActive)
+
+        // 3. Sleep / shutdown stops Keep Awake when enabled (default)
+        appState.handleSystemWillSleep()
+        XCTAssertFalse(appState.isKeepAwakeActive)
+
+        appState.setKeepAwakeEnabled(true)
+        XCTAssertTrue(appState.isKeepAwakeActive)
+        appState.handleSystemWillPowerOff()
+        XCTAssertFalse(appState.isKeepAwakeActive)
+
+        // When stopOnSleepOrShutdown is disabled, sleep notification leaves Keep Awake active
+        appState.setKeepAwakeStopOnSleepOrShutdown(false)
+        appState.setKeepAwakeEnabled(true)
+        appState.handleSystemWillSleep()
+        XCTAssertTrue(appState.isKeepAwakeActive)
+    }
+
+    @MainActor
     func testKeepAwakeFailureDoesNotActivateState() {
         let mockSleep = MockSleepPreventionService()
         mockSleep.shouldSucceed = false
@@ -169,6 +301,9 @@ final class KeepAwakeTests: XCTestCase {
         XCTAssertEqual(L10n.string("Indefinite", locale: vi), "Vô thời hạn")
         XCTAssertEqual(L10n.string("Start", locale: vi), "Bắt đầu")
         XCTAssertEqual(L10n.string("Stop", locale: vi), "Dừng")
+        XCTAssertEqual(L10n.string("Stop Keep Awake Below 10% Battery", locale: vi), "Dừng Giữ máy thức khi pin dưới 10%")
+        XCTAssertEqual(L10n.string("Stop Keep Awake on Sleep or Shutdown", locale: vi), "Dừng Giữ máy thức khi tắt máy")
+        XCTAssertEqual(L10n.string("Allow Screen Saver", locale: vi), "Cho phép trình bảo vệ màn hình")
 
         let ja = AppLanguageOption.japanese.effectiveLocalizationLocale
         XCTAssertEqual(L10n.string("Charging", locale: ja), "充電中")
@@ -178,5 +313,6 @@ final class KeepAwakeTests: XCTestCase {
         let en = AppLanguageOption.english.effectiveLocalizationLocale
         XCTAssertEqual(L10n.string("Charging", locale: en), "Charging")
         XCTAssertEqual(L10n.string("Charging.tab", locale: en), "Charging")
+        XCTAssertEqual(L10n.string("Allow Screen Saver", locale: en), "Allow Screen Saver")
     }
 }

@@ -35,6 +35,8 @@ final class AppState {
     private var lastActiveChargeLimit: Int = 80
     private var keepAwakeExpirationTimer: Timer?
     private var keepAwakeWakeObserver: NSObjectProtocol?
+    private var keepAwakeSleepObserver: NSObjectProtocol?
+    private var keepAwakePowerOffObserver: NSObjectProtocol?
 
     var onOpenSettings: (() -> Void)?
     var onDismissPopover: (() -> Void)?
@@ -154,6 +156,24 @@ final class AppState {
                 self?.expireKeepAwakeIfNeeded()
             }
         }
+        keepAwakeSleepObserver = NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.willSleepNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                self?.handleSystemWillSleep()
+            }
+        }
+        keepAwakePowerOffObserver = NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.willPowerOffNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                self?.handleSystemWillPowerOff()
+            }
+        }
         refreshEnergyConsumers()
     }
 
@@ -165,6 +185,14 @@ final class AppState {
         if let keepAwakeWakeObserver {
             NSWorkspace.shared.notificationCenter.removeObserver(keepAwakeWakeObserver)
             self.keepAwakeWakeObserver = nil
+        }
+        if let keepAwakeSleepObserver {
+            NSWorkspace.shared.notificationCenter.removeObserver(keepAwakeSleepObserver)
+            self.keepAwakeSleepObserver = nil
+        }
+        if let keepAwakePowerOffObserver {
+            NSWorkspace.shared.notificationCenter.removeObserver(keepAwakePowerOffObserver)
+            self.keepAwakePowerOffObserver = nil
         }
         setKeepAwakeEnabled(false)
         alertPresenter.dismiss()
@@ -330,10 +358,22 @@ final class AppState {
         }
     }
 
+    var isKeepAwakeBlockedByLowBattery: Bool {
+        isLowBatteryGuardTriggered(for: batteryInfo)
+    }
+
     func setKeepAwakeEnabled(_ enabled: Bool, now: Date = Date()) {
         if enabled {
+            guard !isLowBatteryGuardTriggered(for: batteryInfo) else {
+                isKeepAwakeActive = false
+                keepAwakeEndDate = nil
+                onMenuBarUpdate?()
+                return
+            }
+
             let started = sleepPreventionService.beginPreventingSystemSleep(
-                reason: "Powerman Keep Awake (Prevent Idle System Sleep)"
+                reason: "Powerman Keep Awake",
+                allowScreenSaver: settings.keepAwakeAllowScreenSaver
             )
             guard started else {
                 isKeepAwakeActive = false
@@ -363,6 +403,51 @@ final class AppState {
         guard isKeepAwakeActive else { return }
         keepAwakeEndDate = duration.durationSeconds.map { now.addingTimeInterval($0) }
         scheduleKeepAwakeExpirationTimer(now: now)
+    }
+
+    func setKeepAwakeStopBelow10Percent(_ enabled: Bool) {
+        settings.keepAwakeStopBelow10Percent = enabled
+        evaluateKeepAwakeBatteryGuard(for: batteryInfo)
+    }
+
+    func setKeepAwakeStopOnSleepOrShutdown(_ enabled: Bool) {
+        settings.keepAwakeStopOnSleepOrShutdown = enabled
+    }
+
+    func setKeepAwakeAllowScreenSaver(_ allow: Bool) {
+        settings.keepAwakeAllowScreenSaver = allow
+        guard isKeepAwakeActive else { return }
+        let updated = sleepPreventionService.beginPreventingSystemSleep(
+            reason: "Powerman Keep Awake",
+            allowScreenSaver: allow
+        )
+        if !updated {
+            setKeepAwakeEnabled(false)
+        }
+    }
+
+    func handleSystemWillSleep() {
+        guard isKeepAwakeActive, settings.keepAwakeStopOnSleepOrShutdown else { return }
+        setKeepAwakeEnabled(false)
+    }
+
+    func handleSystemWillPowerOff() {
+        guard isKeepAwakeActive, settings.keepAwakeStopOnSleepOrShutdown else { return }
+        setKeepAwakeEnabled(false)
+    }
+
+    private func isLowBatteryGuardTriggered(for info: BatteryInfo) -> Bool {
+        settings.keepAwakeStopBelow10Percent
+            && info.hasBattery
+            && !info.isPluggedIn
+            && !info.isCharging
+            && info.percentage < 10
+    }
+
+    private func evaluateKeepAwakeBatteryGuard(for info: BatteryInfo) {
+        if isKeepAwakeActive && isLowBatteryGuardTriggered(for: info) {
+            setKeepAwakeEnabled(false)
+        }
     }
 
     func expireKeepAwakeIfNeeded(now: Date = Date()) {
@@ -474,6 +559,7 @@ final class AppState {
     private func handleBatteryUpdate(_ info: BatteryInfo) {
         batteryInfo = info
         evaluateTemporaryChargeOverride(for: info)
+        evaluateKeepAwakeBatteryGuard(for: info)
         onMenuBarUpdate?()
         if historyStore.recordIfNeeded(from: info) {
             historySamples = historyStore.samples

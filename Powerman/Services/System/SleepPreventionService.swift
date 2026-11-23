@@ -4,32 +4,42 @@ import IOKit.pwr_mgt
 @MainActor
 protocol SleepPreventing: AnyObject {
     var isPreventingSleep: Bool { get }
+    var activeAllowsScreenSaver: Bool? { get }
 
     @discardableResult
-    func beginPreventingSystemSleep(reason: String) -> Bool
+    func beginPreventingSystemSleep(reason: String, allowScreenSaver: Bool) -> Bool
     func endPreventingSystemSleep()
 }
 
-/// Uses IOKit's `PreventUserIdleSystemSleep` assertion (equivalent to `caffeinate -i`)
-/// so the Mac stays awake for background tasks while still allowing the display to sleep
-/// and the screen saver to activate normally.
+/// Uses IOKit power assertions:
+/// - `PreventUserIdleSystemSleep` (`caffeinate -i`) when `allowScreenSaver` is true.
+/// - `PreventUserIdleDisplaySleep` (`caffeinate -d`) when `allowScreenSaver` is false,
+///   which prevents both the screen saver/display sleep and system idle sleep.
 @MainActor
 final class IOKitSleepPreventionService: SleepPreventing {
     private var assertionID: IOPMAssertionID?
+    private(set) var activeAllowsScreenSaver: Bool?
 
     var isPreventingSleep: Bool {
         assertionID != nil
     }
 
     @discardableResult
-    func beginPreventingSystemSleep(reason: String) -> Bool {
+    func beginPreventingSystemSleep(reason: String, allowScreenSaver: Bool) -> Bool {
         if assertionID != nil {
-            return true
+            if activeAllowsScreenSaver == allowScreenSaver {
+                return true
+            }
+            endPreventingSystemSleep()
         }
+
+        let assertionType = allowScreenSaver
+            ? kIOPMAssertionTypePreventUserIdleSystemSleep
+            : kIOPMAssertionTypePreventUserIdleDisplaySleep
 
         var newAssertionID: IOPMAssertionID = 0
         let status = IOPMAssertionCreateWithName(
-            kIOPMAssertionTypePreventUserIdleSystemSleep as CFString,
+            assertionType as CFString,
             IOPMAssertionLevel(kIOPMAssertionLevelOn),
             reason as CFString,
             &newAssertionID
@@ -40,6 +50,7 @@ final class IOKitSleepPreventionService: SleepPreventing {
         }
 
         assertionID = newAssertionID
+        activeAllowsScreenSaver = allowScreenSaver
         return true
     }
 
@@ -47,5 +58,6 @@ final class IOKitSleepPreventionService: SleepPreventing {
         guard let assertionID else { return }
         IOPMAssertionRelease(assertionID)
         self.assertionID = nil
+        self.activeAllowsScreenSaver = nil
     }
 }

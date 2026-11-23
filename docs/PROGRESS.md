@@ -3,9 +3,9 @@
 > **Dành cho nhân sự hoặc AI model mới tiếp nhận:** Đọc file này đầu tiên để biết dự án đang ở đâu, các tính năng nào đã chạy ổn định và bước tiếp theo cần làm ngay.
 
 - **Cập nhật lần cuối:** 2026-11-23
-- **Giai đoạn hiện tại (Current Phase):** Đã phát hành **v1.0.3 (build 6)** — Keep Awake (Caffeinate) trên Menu Bar & tối ưu bản địa hóa theo ngữ cảnh
-- **Nhánh chính:** `main` (v1.0.3)
-- **Trạng thái Build / Test:** `Release BUILD SUCCEEDED` (0 Swift compiler warnings), `TEST SUCCEEDED` (35/35 test cases: `BatteryInfoTests` 7/7, `AlertEngineTests` 7/7, `BluetoothBatteryTests` 3/3, `BatteryHistoryTests` 4/4, `ChargeLimitTests` 5/5, `GeneralSettingsTests` 4/4, `KeepAwakeTests` 5/5).
+- **Giai đoạn hiện tại (Current Phase):** Đã phát hành **v1.0.4 (build 7)** — Tùy chọn cài đặt nâng cao cho Keep Awake (Pin < 10%, Ngủ/Tắt máy, Screen Saver)
+- **Nhánh chính:** `main` (v1.0.4)
+- **Trạng thái Build / Test:** `Release BUILD SUCCEEDED` (0 Swift compiler warnings), `TEST SUCCEEDED` (36/36 test cases: `BatteryInfoTests` 7/7, `AlertEngineTests` 7/7, `BluetoothBatteryTests` 3/3, `BatteryHistoryTests` 4/4, `ChargeLimitTests` 5/5, `GeneralSettingsTests` 4/4, `KeepAwakeTests` 6/6).
 
 ---
 

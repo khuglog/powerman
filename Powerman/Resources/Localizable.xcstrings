@@ -1358,6 +1358,65 @@
         }
       }
     },
+    "Allow Screen Saver": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allow Screen Saver"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cho phép trình bảo vệ màn hình"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "スクリーンセーバを許可"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "화면 보호기 허용"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "允许屏幕保护程序"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "允許螢幕保護程式"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Autoriser l'économiseur d'écran"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bildschirmschoner erlauben"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Permitir salvapantallas"
+          }
+        }
+      }
+    },
     "App Appearance": {
       "extractionState": "manual",
       "localizations": {
@@ -1885,6 +1944,124 @@
           "stringUnit": {
             "state": "translated",
             "value": "Cierra automáticamente las notificaciones de batería del sistema arriba a la derecha."
+          }
+        }
+      }
+    },
+    "Automatically ends the active session if your Mac goes to sleep or shuts down.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatically ends the active session if your Mac goes to sleep or shuts down."
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tự động kết thúc phiên hiện tại nếu máy Mac chuyển sang chế độ ngủ hoặc tắt máy."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mac がスリープまたはシステム終了すると実行中のセッションを終了します。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mac이 잠자기 모드로 들어가거나 종료되면 실행 중인 세션을 종료합니다."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当 Mac 进入睡眠或关机时自动结束当前会话。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "當 Mac 進入睡眠或關機時自動結束目前工作階段。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Termine automatiquement la session si votre Mac passe en veille ou s'éteint."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beendet die aktive Sitzung, wenn der Mac in den Ruhezustand geht oder ausgeschaltet wird."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Finaliza la sesión activa si el Mac entra en reposo o se apaga."
+          }
+        }
+      }
+    },
+    "Automatically stops Keep Awake when running on battery below 10%.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatically stops Keep Awake when running on battery below 10%."
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tự động tắt Giữ máy thức khi chạy bằng pin dưới 10% để bảo vệ pin."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "バッテリー駆動中に残量が 10% を下回ると自動的に停止します。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "배터리로 사용 중 잔량이 10% 미만으로 떨어지면 자동으로 중지합니다."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用电池且电量低于 10% 时自动停止保持唤醒。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用電池且電量低於 10% 時自動停止保持喚醒。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Désactive automatiquement le maintien en éveil sur batterie sous 10 %."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beendet „Wach halten“ automatisch im Akkubetrieb unter 10 %."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Detiene automáticamente Mantener despierto con batería por debajo del 10 %."
           }
         }
       }
@@ -10149,6 +10326,65 @@
         }
       }
     },
+    "Prevents the Mac from sleeping while still allowing the screen saver and display sleep.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prevents the Mac from sleeping while still allowing the screen saver and display sleep."
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ngăn máy tự ngủ nhưng vẫn cho phép trình bảo vệ màn hình và tắt màn hình chạy bình thường."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "システムのスリープを防ぎつつ、スクリーンセーバとディスプレイのスリープは通常通り動作させます。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "시스템 잠자기는 방지하면서 화면 보호기와 디스플레이 잠자기는 정상 작동하도록 합니다."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "阻止系统睡眠，同时允许屏幕保护程序和显示器睡眠正常运行。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "防止系統睡眠，同時允許螢幕保護程式與顯示器睡眠正常運作。"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Empêche la mise en veille du Mac tout en laissant l'économiseur d'écran et la veille d'écran actifs."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verhindert den System-Ruhezustand, lässt aber Bildschirmschoner und Display-Ruhezustand zu."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Evita que el Mac entre en reposo sin bloquear el salvapantallas ni el reposo de pantalla."
+          }
+        }
+      }
+    },
     "Preview": {
       "extractionState": "manual",
       "localizations": {
@@ -12151,6 +12387,124 @@
           "stringUnit": {
             "state": "translated",
             "value": "Detener"
+          }
+        }
+      }
+    },
+    "Stop Keep Awake Below 10% Battery": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop Keep Awake Below 10% Battery"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dừng Giữ máy thức khi pin dưới 10%"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "バッテリー残量 10% 未満でスリープ防止を停止"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "배터리 10% 미만 시 잠자기 방지 중지"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "电量低于 10% 时停止保持唤醒"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "電量低於 10% 時停止保持喚醒"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arrêter sous 10 % de batterie"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bei unter 10 % Akku stoppen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Detener por debajo del 10 % de batería"
+          }
+        }
+      }
+    },
+    "Stop Keep Awake on Sleep or Shutdown": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop Keep Awake on Sleep or Shutdown"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dừng Giữ máy thức khi tắt máy"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "スリープまたはシステム終了時に停止"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "잠자기 또는 시스템 종료 시 중지"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "睡眠或关机时停止保持唤醒"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "睡眠或關機時停止保持喚醒"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arrêter à la mise en veille ou l'extinction"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bei Ruhezustand oder Ausschalten stoppen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Detener al suspender o apagar"
           }
         }
       }

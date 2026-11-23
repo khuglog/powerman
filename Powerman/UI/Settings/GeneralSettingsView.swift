@@ -333,7 +333,7 @@ struct GeneralSettingsView: View {
     }
 
     private var aboutSection: some View {
-        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.2"
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0.3"
 
         return VStack(alignment: .leading, spacing: 10) {
             Label(L10n.string("About Powerman", locale: locale), systemImage: "info.circle.fill")

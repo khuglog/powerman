@@ -4,6 +4,8 @@ Tất cả các thay đổi đáng chú ý của dự án **Powerman** sẽ đư
 
 ## [Unreleased]
 
+## [1.0.3] - 2026-11-23
+
 ### Added
 - **Keep Awake / Caffeinate trên Menu Bar (`SleepPreventionService`, `KeepAwakeDuration`, `MenuBarPopoverView`, `MenuBarIconView`):**
   - Thêm thẻ **Giữ máy thức (`Keep Awake`)** ngay trong Menu Bar Popover với nút **Bắt đầu / Dừng (`Start / Stop`)** và thanh trượt ghi nhớ thời gian (`15 phút` → `12 giờ` và `Vô thời hạn ∞`), kèm đồng hồ đếm ngược trực tiếp và biểu tượng tách cà phê trên thanh Menu Bar khi đang hoạt động.
